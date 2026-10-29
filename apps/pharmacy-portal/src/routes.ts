@@ -1,7 +1,7 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { presentPharmacy, type Db } from "@medlink/db";
-import type { ChangeResult, PharmacySimulator } from "@medlink/pharmacy-ops";
+import type { ChangeResult, Movement, MovementResult, PharmacySimulator } from "@medlink/pharmacy-ops";
 import { clearedCookie, COOKIE_NAME, createSessionToken, DUMMY_HASH, hashPassword, readCookie, readSessionToken, sessionCookie, verifyPassword, type Session } from "./auth.js";
 import type { Config } from "./config.js";
 import { AppError } from "./errors.js";
@@ -26,6 +26,9 @@ const patchBody = z
   .strict()
   .refine((b) => b.quantity !== undefined || b.price !== undefined, "Provide quantity and/or price");
 const codeParam = z.object({ code: medicineCode });
+const transactionBody = z.object({ medicineCode, quantity: z.number().int().min(1).max(1_000_000) }).strict();
+/** Extra query parameters are ignored, never trusted: the pharmacy always comes from the session. */
+const historyQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).max(100_000).default(0) });
 
 interface Deps {
   db: Db;
@@ -40,6 +43,27 @@ export interface PharmacyIdentity {
   name: string;
   address: string | null;
   registeredName: string | null;
+}
+
+/** The movement as the API shows it: the pharmacy's own record, with no staff identity beyond "was it you". */
+function movementView(m: Movement, names: Map<string, string>, userId: number) {
+  return {
+    movementId: m.movementId,
+    pharmacyCode: m.pharmacyCode,
+    medicineCode: m.medicineCode,
+    medicineName: names.get(m.medicineCode) ?? m.medicineCode,
+    operation: m.operation,
+    source: m.source,
+    /** Units sold or received (always positive); `quantityDelta` carries the sign. */
+    quantity: Math.abs(m.quantityDelta),
+    quantityDelta: m.quantityDelta,
+    quantityBefore: m.quantityBefore,
+    quantityAfter: m.quantityAfter,
+    occurredAt: m.occurredAt.toISOString(),
+    byYou: m.actorUserId === userId,
+    eventId: m.eventId,
+    idempotencyKey: m.idempotencyKey,
+  };
 }
 
 const summary = (c: ChangeResult) => ({ medicineCode: c.medicineCode, before: c.before, after: c.after, events: c.events.map((e) => e.eventType) });
@@ -59,6 +83,20 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     if (!pool) throw new AppError(404, "UNKNOWN_PHARMACY", "No database is configured for your pharmacy");
     return pool;
   };
+  /** "Crocin 500mg" for each medicine code, from the central catalogue. A code it does not know is shown as the code. */
+  const medicineNames = async (codes: string[]): Promise<Map<string, string>> => {
+    if (codes.length === 0) return new Map();
+    const { rows } = await db.query<{ code: string; brand_name: string; dosage: string }>("SELECT code, brand_name, dosage FROM medicines WHERE code = ANY($1)", [codes]);
+    return new Map(rows.map((m) => [m.code, `${m.brand_name} ${m.dosage}`.trim()]));
+  };
+  /** The optional Idempotency-Key header. Its format is checked where it is used. */
+  const idempotencyKey = (req: FastifyRequest): string | undefined => {
+    const h = req.headers["idempotency-key"];
+    if (h === undefined) return undefined;
+    if (typeof h !== "string") throw new AppError(400, "INVALID_IDEMPOTENCY_KEY", "Send one Idempotency-Key header");
+    return h;
+  };
+
   /**
    * Who the pharmacy is, read from the central pharmacies table for the code in the session (never from the request), and shown the
    * same way shoppers see it (presentPharmacy). With no row there is nothing to show but the code, so that is all it says.
@@ -164,16 +202,53 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
 
   /** Counts the shelf and/or sets the price. The pharmacy database's trigger records the events; the pipeline does the rest. */
   app.patch("/portal/stock/:code", async (req) => {
-    const { pharmacyCode } = await requireSession(req);
+    const { pharmacyCode, userId } = await requireSession(req);
     const { code } = codeParam.parse(req.params);
     const patch = patchBody.parse(req.body);
     const changes: ChangeResult[] = [];
-    if (patch.quantity !== undefined) changes.push(await sim.setQuantity(pharmacyCode, code, patch.quantity));
+    if (patch.quantity !== undefined) changes.push((await sim.recordCount(pharmacyCode, code, patch.quantity, { actorUserId: userId })).change!);
     if (patch.price !== undefined) changes.push(await sim.changePrice(pharmacyCode, code, patch.price));
     const first = changes[0]!;
     const last = changes.at(-1)!;
     req.log.info({ pharmacy: pharmacyCode, medicine: code, ...patch }, "portal stock updated");
     return { data: { medicineCode: code, before: first.before, after: last.after, events: changes.flatMap((c) => c.events.map((e) => e.eventType)) } };
+  });
+
+  /**
+   * Records a sale (dispensing). The pharmacy is the one in the session. The stock change, the outbox event and the movement-history
+   * row are one transaction in that pharmacy's own database; the row lock means concurrent sales cannot oversell. With an
+   * Idempotency-Key header a retried request returns the original result (200, meta.replayed) instead of selling twice; the same key
+   * with a different request is refused (422). Not enough stock: 409 INSUFFICIENT_STOCK, and nothing is recorded.
+   */
+  app.post("/portal/sales", async (req, reply) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const body = transactionBody.parse(req.body);
+    const done = await sim.recordSale(pharmacyCode, body.medicineCode, body.quantity, { actorUserId: userId, idempotencyKey: idempotencyKey(req) });
+    return transactionReply(reply, req, done, "sale", userId);
+  });
+
+  /** Records stock received. Same guarantees as a sale: one transaction, the outbox event, a history row, safe retries. */
+  app.post("/portal/restocks", async (req, reply) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const body = transactionBody.parse(req.body);
+    const done = await sim.recordRestock(pharmacyCode, body.medicineCode, body.quantity, { actorUserId: userId, idempotencyKey: idempotencyKey(req) });
+    return transactionReply(reply, req, done, "restock", userId);
+  });
+
+  const transactionReply = async (reply: FastifyReply, req: FastifyRequest, done: MovementResult, kind: string, userId: number) => {
+    const movement = done.movement!; // a sale or restock of at least one unit always changes the quantity
+    const names = await medicineNames([movement.medicineCode]);
+    if (!done.replayed) req.log.info({ pharmacy: movement.pharmacyCode, medicine: movement.medicineCode, kind, movement: movement.movementId }, "portal transaction recorded");
+    return reply.status(done.replayed ? 200 : 201).send({ data: movementView(movement, names, userId), meta: { replayed: done.replayed } });
+  };
+
+  /** The pharmacy's own movement history, newest first, bounded (limit 1 to 100, default 20) with an offset. */
+  app.get("/portal/history", async (req) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const { limit, offset } = historyQuery.parse(req.query);
+    const { items, total } = await sim.history(pharmacyCode, { limit, offset });
+    const names = await medicineNames([...new Set(items.map((m) => m.medicineCode))]);
+    return { data: items.map((m) => movementView(m, names, userId)), meta: { total, limit, offset, hasMore: offset + items.length < total } };
   });
 
   app.post("/portal/stock", async (req, reply) => {

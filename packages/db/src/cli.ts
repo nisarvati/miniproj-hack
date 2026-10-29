@@ -1,5 +1,6 @@
 import { createPool } from "./pool.js";
-import { migrate, resetSchema } from "./migrate.js";
+import { migrate, resetSchema, PHARMACY_MIGRATIONS_DIR } from "./migrate.js";
+import { loadActivePharmacyUrls } from "./pharmacy-registry.js";
 import { seed } from "./seed.js";
 import { importCatalogue, readCatalogueBatch } from "./catalogue.js";
 import { loadPharmacyUrls, PHARMACY_CODES, provisionPharmacyDatabase, setupAllPharmacies, setupPharmacyDatabase } from "./pharmacy.js";
@@ -28,6 +29,18 @@ try {
     console.log("Seeded:", await seed(db));
   } else if (command === "pharmacies:setup") {
     console.log("Pharmacy databases ready (items per pharmacy):", await setupAllPharmacies(db));
+  } else if (command === "pharmacies:migrate") {
+    // Applies only the pharmacy schema migrations that are still pending, to every active pharmacy's own database. Additive: it never
+    // seeds, never overwrites stock and never drops anything (unlike pharmacies:setup and pharmacies:reset).
+    for (const [code, url] of Object.entries(loadActivePharmacyUrls())) {
+      const p = pool(url);
+      try {
+        const applied = await migrate(p, PHARMACY_MIGRATIONS_DIR);
+        console.log(`${code}  ${applied.length ? `applied ${applied.join(", ")}` : "up to date"}`);
+      } finally {
+        await p.end();
+      }
+    }
   } else if (command === "pharmacies:reset") {
     // Back to the starting demo state: drops each pharmacy's schema, re-applies migrations, re-seeds stock.
     const urls = loadPharmacyUrls();
@@ -61,7 +74,7 @@ try {
       }
     }
   } else {
-    console.error("Usage: cli.ts <migrate|seed|catalogue:import|reset|pharmacies:setup|pharmacies:reset|pharmacies:status>");
+    console.error("Usage: cli.ts <migrate|seed|catalogue:import|reset|pharmacies:setup|pharmacies:migrate|pharmacies:reset|pharmacies:status>");
     process.exitCode = 1;
   }
 } catch (err) {

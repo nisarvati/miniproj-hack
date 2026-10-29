@@ -20,6 +20,7 @@ const STATUS_FOR: Record<SimulatorError["code"], number> = {
   NOT_STOCKED: 404,
   ALREADY_STOCKED: 409,
   INSUFFICIENT_STOCK: 409,
+  IDEMPOTENCY_KEY_REUSED: 422,
 };
 
 function send(reply: FastifyReply, req: FastifyRequest, status: number, code: string, message: string, details?: unknown) {
@@ -31,6 +32,10 @@ export function errorHandler(err: FastifyError | Error, req: FastifyRequest, rep
   if (err instanceof SimulatorError) return send(reply, req, STATUS_FOR[err.code], err.code, err.message);
   if (err instanceof ZodError) {
     return send(reply, req, 400, "VALIDATION_ERROR", "Invalid request", err.issues.map((i) => ({ field: i.path.join("."), message: i.message })));
+  }
+  // The movement history needs the pharmacy schema's 003 migration: say what to do instead of a bare 500.
+  if ((err as { code?: string }).code === "42P01" && /inventory_movements/.test(err.message)) {
+    return send(reply, req, 503, "PHARMACY_SCHEMA_OUTDATED", "This pharmacy's database has not been updated yet. Ask MedLink to run the pharmacy migrations (npm run pharmacies:migrate).");
   }
   const status = (err as FastifyError).statusCode;
   if (status && status >= 400 && status < 500) return send(reply, req, status, "BAD_REQUEST", "Malformed request");

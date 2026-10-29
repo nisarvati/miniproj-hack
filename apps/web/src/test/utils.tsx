@@ -11,12 +11,12 @@ type Handler = (url: URL, init?: RequestInit) => { status?: number; body?: unkno
  * recorded, so a test cannot pass by accident through a request it did not know about.
  */
 export function mockApi(routes: Record<string, Handler>) {
-  const calls: { method: string; path: string; search: URLSearchParams; body: unknown }[] = [];
+  const calls: { method: string; path: string; search: URLSearchParams; body: unknown; headers: Record<string, string> }[] = [];
   const unrouted: string[] = [];
   const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input));
     const method = (init?.method ?? "GET").toUpperCase();
-    calls.push({ method, path: url.pathname, search: url.searchParams, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    calls.push({ method, path: url.pathname, search: url.searchParams, body: init?.body ? JSON.parse(String(init.body)) : undefined, headers: Object.fromEntries(new Headers(init?.headers)) });
     const key = Object.keys(routes).find((k) => {
       const [m, p] = k.split(" ") as [string, string];
       return m === method && (p.includes("*") ? new RegExp(`^${p.replace(/\*/g, "[^/]+")}$`).test(url.pathname) : p === url.pathname);

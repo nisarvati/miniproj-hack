@@ -1,4 +1,4 @@
-export { PharmacySimulator, type ChangeResult, type RecordedEvent, type StockLine } from "./simulator.js";
+export { PharmacySimulator, type ChangeResult, type Movement, type MovementContext, type MovementResult, type RecordedEvent, type StockLine } from "./simulator.js";
 export { SimulatorError, catalogueEntries, catalogueEntryByCode, medicineByCode, medicineLabel, pharmacyByCode, resolveMedicine, resolvePharmacy } from "./catalogue.js";
 export {
   DEFAULT_DEMO_SEED,

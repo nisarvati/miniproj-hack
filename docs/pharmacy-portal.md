@@ -43,6 +43,11 @@ New staff request access on the same page ("Request access for your pharmacy"); 
 | Change the price | `PATCH /portal/stock/:code` `{ price }` | `PRICE_UPDATED` |
 | List a medicine | `POST /portal/stock` `{ medicineCode, quantity, price }` | `MEDICINE_ADDED` |
 | Stop listing a medicine | `DELETE /portal/stock/:code` | `MEDICINE_REMOVED` |
+| Record a sale | `POST /portal/sales` `{ medicineCode, quantity }` | `SALE`, plus a movement-history row |
+| Record a restock | `POST /portal/restocks` `{ medicineCode, quantity }` | `RESTOCK`, plus a movement-history row |
+| See the movement history | `GET /portal/history?limit&offset` | (read only) |
+
+Sales, restocks and the history are described in [inventory-transactions.md](inventory-transactions.md). A quantity change through `PATCH` is also written to the history (marked as a stock count).
 
 Also `POST /portal/signup`, `POST /portal/login`, `POST /portal/logout`, `GET /portal/me`, `GET /portal/stock` (read from the pharmacy's own
 database) and `GET /portal/catalogue` (medicines the pharmacy does not list yet: every product in the central catalogue, including the imported batch described in [catalogue.md](catalogue.md)).

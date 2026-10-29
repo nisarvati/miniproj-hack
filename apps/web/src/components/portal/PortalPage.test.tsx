@@ -20,6 +20,7 @@ const unauthenticated = { status: 401, body: { error: { code: "UNAUTHENTICATED",
 const signedIn = (extra: Record<string, () => { status?: number; body?: unknown }> = {}) => ({
   "GET /portal/me": () => ({ body: { data: session } }),
   "GET /portal/stock": () => ({ body: { data: stock } }),
+  "GET /portal/history": () => ({ body: { data: [], meta: { total: 0, limit: 10, offset: 0, hasMore: false } } }),
   "GET /portal/catalogue": () => ({ body: { data: [{ medicineCode: "M008", brandName: "Cetzine", genericName: "Cetirizine", dosage: "10mg", form: "tablet" }] } }),
   ...extra,
 });

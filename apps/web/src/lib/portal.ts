@@ -35,6 +35,38 @@ export interface StockChange {
   events: string[];
 }
 
+/** One entry of the pharmacy's movement history, or the result of a sale or restock. */
+export interface PortalMovement {
+  movementId: string;
+  pharmacyCode: string;
+  medicineCode: string;
+  medicineName: string;
+  /** A decrease is a SALE, an increase a RESTOCK. */
+  operation: "SALE" | "RESTOCK";
+  /** TRANSACTION: an explicit sale or restock. STOCK_COUNT: the quantity was corrected after counting the shelf. */
+  source: "TRANSACTION" | "STOCK_COUNT";
+  /** Units sold or received, always positive. `quantityDelta` has the sign. */
+  quantity: number;
+  quantityDelta: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  occurredAt: string;
+  /** Whether the signed-in staff member made it. No other staff identity is shown. */
+  byYou: boolean;
+}
+export interface MovementPage {
+  items: PortalMovement[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+export interface TransactionResult {
+  movement: PortalMovement;
+  /** true: this exact request had already been recorded (a retry); nothing was changed again. */
+  replayed: boolean;
+}
+
 /** An error whose message is safe to show to pharmacy staff. */
 export class PortalError extends Error {
   constructor(
@@ -59,7 +91,7 @@ async function failure(res: Response): Promise<PortalError> {
   return new PortalError("Something went wrong on our side. Please try again.", "unknown");
 }
 
-async function request<T>(method: string, path: string, body: unknown, opts: Options): Promise<T> {
+async function requestRaw<T>(method: string, path: string, body: unknown, opts: Options, headers: Record<string, string> = {}): Promise<{ data: T; meta: Record<string, unknown> }> {
   const { signal, fetchImpl = fetch, baseUrl = PORTAL_URL } = opts;
   let res: Response;
   try {
@@ -67,18 +99,20 @@ async function request<T>(method: string, path: string, body: unknown, opts: Opt
       method,
       signal,
       credentials: "include", // the session cookie is set by another origin (the portal), so it must be sent explicitly
-      ...(body !== undefined && { headers: { "content-type": "application/json" }, body: JSON.stringify(body) }),
+      ...((body !== undefined || Object.keys(headers).length > 0) && { headers: { ...(body !== undefined && { "content-type": "application/json" }), ...headers } }),
+      ...(body !== undefined && { body: JSON.stringify(body) }),
     });
   } catch (err) {
     if ((err as Error).name === "AbortError") throw err;
     throw new PortalError("Can't reach the pharmacy portal. Check your connection and try again.", "network");
   }
   if (!res.ok) throw await failure(res);
-  if (res.status === 204) return undefined as T;
-  const json = (await res.json()) as { data?: T };
+  if (res.status === 204) return { data: undefined as T, meta: {} };
+  const json = (await res.json()) as { data?: T; meta?: Record<string, unknown> };
   if (json.data === undefined) throw new PortalError("Unexpected response from the portal.", "unknown");
-  return json.data;
+  return { data: json.data, meta: json.meta ?? {} };
 }
+const request = async <T>(method: string, path: string, body: unknown, opts: Options): Promise<T> => (await requestRaw<T>(method, path, body, opts)).data;
 
 export const getSession = (opts: Options = {}) => request<PortalSession>("GET", "/portal/me", undefined, opts);
 export const signIn = (email: string, password: string, opts: Options = {}) => request<PortalSession>("POST", "/portal/login", { email, password }, opts);
@@ -92,3 +126,16 @@ export const updateStock = (medicineCode: string, patch: { quantity?: number; pr
   request<StockChange>("PATCH", `/portal/stock/${encodeURIComponent(medicineCode)}`, patch, opts);
 export const addMedicine = (item: { medicineCode: string; quantity: number; price: number }, opts: Options = {}) => request<StockChange>("POST", "/portal/stock", item, opts);
 export const removeMedicine = (medicineCode: string, opts: Options = {}) => request<StockChange>("DELETE", `/portal/stock/${encodeURIComponent(medicineCode)}`, undefined, opts);
+
+const transaction = async (path: string, item: { medicineCode: string; quantity: number }, idempotencyKey: string, opts: Options): Promise<TransactionResult> => {
+  const { data, meta } = await requestRaw<PortalMovement>("POST", path, item, opts, { "Idempotency-Key": idempotencyKey });
+  return { movement: data, replayed: meta.replayed === true };
+};
+/** Records a sale. The same `idempotencyKey` with the same request is applied once, however often it is sent. */
+export const recordSale = (item: { medicineCode: string; quantity: number }, idempotencyKey: string, opts: Options = {}) => transaction("/portal/sales", item, idempotencyKey, opts);
+export const recordRestock = (item: { medicineCode: string; quantity: number }, idempotencyKey: string, opts: Options = {}) => transaction("/portal/restocks", item, idempotencyKey, opts);
+export async function listHistory(page: { limit: number; offset: number }, opts: Options = {}): Promise<MovementPage> {
+  const { data, meta } = await requestRaw<PortalMovement[]>("GET", `/portal/history?limit=${page.limit}&offset=${page.offset}`, undefined, opts);
+  const m = meta as Partial<MovementPage>;
+  return { items: data, total: m.total ?? data.length, limit: m.limit ?? page.limit, offset: m.offset ?? page.offset, hasMore: m.hasMore ?? false };
+}

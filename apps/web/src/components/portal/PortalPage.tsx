@@ -21,6 +21,7 @@ import { useAsync } from "../../lib/use-async";
 import { useDebounced } from "../../lib/use-debounced";
 import { MapPinIcon, SearchIcon, StoreIcon } from "../ui/icons";
 import { Alert, Button, Card, EmptyState, Input, Select, Skeleton } from "../ui/primitives";
+import { HistoryPanel, TransactionPanel } from "./Movements";
 
 const message = (err: unknown) => (err instanceof PortalError ? err.message : "Something went wrong.");
 
@@ -175,6 +176,7 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
   const [adding, setAdding] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
   const q = useDebounced(text.trim().toLowerCase(), 200);
 
   const stock = useAsync((signal) => listStock({ signal }), []);
@@ -188,6 +190,7 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
   // A rejected request because the session ended (or the account was removed) sends the person back to sign in.
   const failed = (err: unknown) => (err instanceof PortalError && err.kind === "unauthenticated" ? onSignedOut() : setProblem(message(err)));
   const saved = (text: string) => {
+    setHistoryKey((k) => k + 1); // a changed quantity is recorded in the history
     setNotice(text);
     setProblem(null);
     setEditing(null);
@@ -228,6 +231,7 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
 
       <section aria-label="Stock" className="space-y-4">
         <h2 className="text-lg font-semibold">Managing inventory for {session.pharmacy.name} <span className="text-sm font-normal text-muted">({session.pharmacy.code})</span></h2>
+        <TransactionPanel items={stock.data ?? undefined} onRecorded={() => { stock.reload(); setHistoryKey((k) => k + 1); }} onSignedOut={onSignedOut} />
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-0 flex-1 basis-64">
             <SearchIcon size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
@@ -289,6 +293,8 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
           </>
         )}
       </section>
+
+      <HistoryPanel refreshKey={historyKey} onSignedOut={onSignedOut} />
     </div>
   );
 }

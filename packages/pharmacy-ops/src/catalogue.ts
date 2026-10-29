@@ -2,7 +2,7 @@ import { MEDICINES, knownPharmacies, shippedCatalogue, type SeedMedicine, type S
 
 export class SimulatorError extends Error {
   constructor(
-    public readonly code: "UNKNOWN_PHARMACY" | "UNKNOWN_MEDICINE" | "NOT_STOCKED" | "ALREADY_STOCKED" | "INSUFFICIENT_STOCK" | "INVALID",
+    public readonly code: "UNKNOWN_PHARMACY" | "UNKNOWN_MEDICINE" | "NOT_STOCKED" | "ALREADY_STOCKED" | "INSUFFICIENT_STOCK" | "IDEMPOTENCY_KEY_REUSED" | "INVALID",
     message: string,
   ) {
     super(message);

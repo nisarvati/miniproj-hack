@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Db } from "@medlink/db";
 import { catalogueEntryByCode, medicineLabel, pharmacyByCode, SimulatorError } from "./catalogue.js";
@@ -27,6 +28,69 @@ export interface ChangeResult {
   events: RecordedEvent[];
 }
 
+/** Who is making a recorded change and, for an explicit sale or restock, the key that makes a retry safe. */
+export interface MovementContext {
+  /** pharmacy_users.id of the signed-in staff member. */
+  actorUserId?: number;
+  /** 8 to 100 characters. The same key with the same request is applied once; with a different request it is refused. */
+  idempotencyKey?: string;
+}
+
+/** One row of the pharmacy's movement history (table `inventory_movements`). */
+export interface Movement {
+  movementId: string;
+  pharmacyCode: string;
+  medicineCode: string;
+  /** A decrease is a SALE, an increase a RESTOCK: the same classification the outbox trigger uses. */
+  operation: "SALE" | "RESTOCK";
+  /** TRANSACTION: an explicit sale or restock. STOCK_COUNT: staff corrected the quantity after counting the shelf. */
+  source: "TRANSACTION" | "STOCK_COUNT";
+  quantityDelta: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  actorUserId: number | null;
+  idempotencyKey: string | null;
+  /** The outbox event this change produced. */
+  eventId: string | null;
+  occurredAt: Date;
+}
+
+export interface MovementResult {
+  /** null: the quantity did not change (a stock count equal to the current quantity), so nothing was recorded. */
+  movement: Movement | null;
+  /** true: this exact request had been applied before; nothing was changed now and `movement` is the original. */
+  replayed: boolean;
+  /** The change this call made (events recorded, before and after). null when it was a replay. */
+  change: ChangeResult | null;
+}
+
+interface Recording {
+  source: Movement["source"];
+  ctx: MovementContext;
+  /** What was asked for, hashed: the same key must always come with the same request. */
+  requestHash: string;
+}
+
+interface MovementRow {
+  movement_id: string;
+  medicine_code: string;
+  operation: Movement["operation"];
+  source: Movement["source"];
+  quantity_delta: number;
+  quantity_before: number;
+  quantity_after: number;
+  actor_user_id: string | null;
+  idempotency_key: string | null;
+  request_hash: string | null;
+  event_id: string | null;
+  occurred_at: Date;
+}
+const MOVEMENT_COLUMNS = "movement_id, medicine_code, operation, source, quantity_delta, quantity_before, quantity_after, actor_user_id, idempotency_key, request_hash, event_id, occurred_at";
+const IDEMPOTENCY_KEY = /^[A-Za-z0-9_.:-]{8,100}$/;
+const IDEMPOTENCY_INDEX = "inventory_movements_idempotency_key";
+
+const requestHash = (action: string, medicineCode: string, quantity: number) => createHash("sha256").update(`${action}|${medicineCode}|${quantity}`).digest("hex");
+
 const MAX = 1_000_000;
 
 const invalid = (message: string) => new SimulatorError("INVALID", message);
@@ -40,6 +104,23 @@ function money(value: number): number {
   }
   return Math.round(value * 100) / 100;
 }
+
+type Plan = (tx: PoolClient, before: StockLine | null) => Promise<{ sql: string; params: unknown[] }>;
+
+const toMovement = (pharmacyCode: string, r: MovementRow): Movement => ({
+  movementId: r.movement_id,
+  pharmacyCode,
+  medicineCode: r.medicine_code,
+  operation: r.operation,
+  source: r.source,
+  quantityDelta: r.quantity_delta,
+  quantityBefore: r.quantity_before,
+  quantityAfter: r.quantity_after,
+  actorUserId: r.actor_user_id === null ? null : Number(r.actor_user_id),
+  idempotencyKey: r.idempotency_key,
+  eventId: r.event_id,
+  occurredAt: r.occurred_at,
+});
 
 /**
  * What pharmacy software does: it changes the pharmacy's OWN database with plain SQL and knows nothing about MedLink.
@@ -55,23 +136,64 @@ export class PharmacySimulator {
   /** Sells `quantity` units. Cannot sell more than is on the shelf. */
   sell(pharmacyCode: string, medicineCode: string, quantity: number): Promise<ChangeResult> {
     wholeNumber(quantity, "quantity", 1);
-    return this.change("sell", pharmacyCode, medicineCode, async (_tx, before) => {
+    return this.change("sell", pharmacyCode, medicineCode, this.sellPlan(pharmacyCode, medicineCode, quantity));
+  }
+
+  private sellPlan(pharmacyCode: string, medicineCode: string, quantity: number): Plan {
+    return async (_tx, before) => {
       if (!before) throw this.notStocked(pharmacyCode, medicineCode);
       if (before.quantity < quantity) {
         throw new SimulatorError("INSUFFICIENT_STOCK", `${pharmacyCode} has only ${before.quantity} of ${medicineLabel(medicineCode)}, cannot sell ${quantity}`);
       }
       return { sql: "UPDATE inventory SET quantity = quantity - $2, updated_at = now() WHERE medicine_code = $1", params: [medicineCode, quantity] };
-    });
+    };
   }
 
   /** Receives `quantity` more units of a medicine the pharmacy already carries. */
   restock(pharmacyCode: string, medicineCode: string, quantity: number): Promise<ChangeResult> {
     wholeNumber(quantity, "quantity", 1);
-    return this.change("restock", pharmacyCode, medicineCode, async (_tx, before) => {
+    return this.change("restock", pharmacyCode, medicineCode, this.restockPlan(pharmacyCode, medicineCode, quantity));
+  }
+
+  private restockPlan(pharmacyCode: string, medicineCode: string, quantity: number): Plan {
+    return async (_tx, before) => {
       if (!before) throw this.notStocked(pharmacyCode, medicineCode);
       if (before.quantity + quantity > MAX) throw invalid(`stock cannot exceed ${MAX} units`);
       return { sql: "UPDATE inventory SET quantity = quantity + $2, updated_at = now() WHERE medicine_code = $1", params: [medicineCode, quantity] };
-    });
+    };
+  }
+
+  // ---- Recorded operations: the same changes, plus a durable movement row written in the same transaction. ----
+
+  /**
+   * A sale that is also written to the movement history, atomically with the stock change and its outbox event. With an idempotency
+   * key, repeating the same request returns the original movement instead of selling again.
+   */
+  async recordSale(pharmacyCode: string, medicineCode: string, quantity: number, ctx: MovementContext = {}): Promise<MovementResult> {
+    wholeNumber(quantity, "quantity", 1);
+    return this.recorded("sell", pharmacyCode, medicineCode, this.sellPlan(pharmacyCode, medicineCode, quantity), "TRANSACTION", ctx, requestHash("sale", medicineCode, quantity));
+  }
+
+  /** A restock that is also written to the movement history, atomically; idempotent like `recordSale`. */
+  async recordRestock(pharmacyCode: string, medicineCode: string, quantity: number, ctx: MovementContext = {}): Promise<MovementResult> {
+    wholeNumber(quantity, "quantity", 1);
+    return this.recorded("restock", pharmacyCode, medicineCode, this.restockPlan(pharmacyCode, medicineCode, quantity), "TRANSACTION", ctx, requestHash("restock", medicineCode, quantity));
+  }
+
+  /** `setQuantity` that records the correction (as a SALE or RESTOCK by direction, source STOCK_COUNT). No idempotency key: a count is absolute. */
+  async recordCount(pharmacyCode: string, medicineCode: string, quantity: number, ctx: Pick<MovementContext, "actorUserId"> = {}): Promise<MovementResult> {
+    wholeNumber(quantity, "quantity", 0);
+    return this.recorded("set", pharmacyCode, medicineCode, this.countPlan(pharmacyCode, medicineCode, quantity), "STOCK_COUNT", ctx, "");
+  }
+
+  /** The pharmacy's movement history, newest first (ties broken by id, so the order is always the same). `total` is every movement it has. */
+  async history(pharmacyCode: string, page: { limit: number; offset: number }): Promise<{ items: Movement[]; total: number }> {
+    const db = this.db(pharmacyCode);
+    const [{ rows }, { rows: count }] = await Promise.all([
+      db.query<MovementRow>(`SELECT ${MOVEMENT_COLUMNS} FROM inventory_movements ORDER BY occurred_at DESC, id DESC LIMIT $1 OFFSET $2`, [page.limit, page.offset]),
+      db.query<{ n: string }>("SELECT count(*) AS n FROM inventory_movements"),
+    ]);
+    return { items: rows.map((r) => toMovement(pharmacyCode, r)), total: Number(count[0]!.n) };
   }
 
   /**
@@ -80,10 +202,14 @@ export class PharmacySimulator {
    */
   setQuantity(pharmacyCode: string, medicineCode: string, quantity: number): Promise<ChangeResult> {
     wholeNumber(quantity, "quantity", 0);
-    return this.change("set", pharmacyCode, medicineCode, async (_tx, before) => {
+    return this.change("set", pharmacyCode, medicineCode, this.countPlan(pharmacyCode, medicineCode, quantity));
+  }
+
+  private countPlan(pharmacyCode: string, medicineCode: string, quantity: number): Plan {
+    return async (_tx, before) => {
       if (!before) throw this.notStocked(pharmacyCode, medicineCode);
       return { sql: "UPDATE inventory SET quantity = $2, updated_at = now() WHERE medicine_code = $1", params: [medicineCode, quantity] };
-    });
+    };
   }
 
   /** Sets a new price. A price equal to the current one is not a change and records no event. */
@@ -135,13 +261,45 @@ export class PharmacySimulator {
     return new SimulatorError("NOT_STOCKED", `${pharmacyCode} does not carry ${medicineLabel(medicineCode)}; use add first`);
   }
 
-  private async change(
+  private async change(action: ChangeResult["action"], pharmacyCode: string, medicineCode: string, plan: Plan): Promise<ChangeResult> {
+    const out = await this.run(action, pharmacyCode, medicineCode, plan);
+    return (out as { result: ChangeResult }).result; // without a recording there is nothing to replay
+  }
+
+  /** A recorded operation: applies the change and writes its movement, or (same key, same request) returns the movement written before. */
+  private async recorded(
     action: ChangeResult["action"],
     pharmacyCode: string,
     medicineCode: string,
-    plan: (tx: PoolClient, before: StockLine | null) => Promise<{ sql: string; params: unknown[] }>,
-  ): Promise<ChangeResult> {
+    plan: Plan,
+    source: Movement["source"],
+    ctx: MovementContext,
+    hash: string,
+  ): Promise<MovementResult> {
+    if (ctx.idempotencyKey !== undefined && !IDEMPOTENCY_KEY.test(ctx.idempotencyKey)) {
+      throw invalid("idempotency key must be 8 to 100 characters: letters, digits and _ . : -");
+    }
+    const out = await this.run(action, pharmacyCode, medicineCode, plan, { source, ctx, requestHash: hash });
+    return "replay" in out ? { movement: out.replay, replayed: true, change: null } : { movement: out.movement, replayed: false, change: out.result };
+  }
+
+  /** The movement already recorded for a key: the original when the request is the same, an error when the key is being reused for another. */
+  private replayOf(prior: MovementRow, pharmacyCode: string, record: Recording): Movement {
+    if (prior.request_hash !== record.requestHash) {
+      throw new SimulatorError("IDEMPOTENCY_KEY_REUSED", "This idempotency key was already used for a different request. Use a new key for a new request.");
+    }
+    return toMovement(pharmacyCode, prior);
+  }
+
+  private async run(
+    action: ChangeResult["action"],
+    pharmacyCode: string,
+    medicineCode: string,
+    plan: Plan,
+    record?: Recording,
+  ): Promise<{ result: ChangeResult; movement: Movement | null } | { replay: Movement }> {
     const pharmacy = pharmacyByCode(pharmacyCode);
+    const key = record?.ctx.idempotencyKey;
     const client = await this.db(pharmacyCode).connect();
     try {
       await client.query("BEGIN");
@@ -151,6 +309,16 @@ export class PharmacySimulator {
         [medicineCode],
       );
       const before = current[0] ? { quantity: current[0].quantity, price: Number(current[0].price) } : null;
+
+      // Looked up only AFTER the row lock: a duplicate of a request that is still running waits here for it to commit, then finds it.
+      if (record && key) {
+        const { rows } = await client.query<MovementRow>(`SELECT ${MOVEMENT_COLUMNS} FROM inventory_movements WHERE idempotency_key = $1`, [key]);
+        if (rows[0]) {
+          const original = this.replayOf(rows[0], pharmacyCode, record);
+          await client.query("ROLLBACK");
+          return { replay: original };
+        }
+      }
 
       const { sql, params } = await plan(client, before);
       await client.query(sql, params);
@@ -163,20 +331,43 @@ export class PharmacySimulator {
       const { rows: events } = await client.query<{ event_id: string; event_type: string; occurred_at: Date }>(
         "SELECT event_id, event_type, occurred_at FROM outbox WHERE xmin = pg_current_xact_id()::xid ORDER BY id",
       );
+
+      // The movement goes in the same transaction as the stock change and its outbox row: all of them commit, or none does.
+      let movement: Movement | null = null;
+      if (record && before && after[0] && after[0].quantity !== before.quantity) {
+        const delta = after[0].quantity - before.quantity;
+        const operation = delta < 0 ? "SALE" : "RESTOCK";
+        const { rows } = await client.query<MovementRow>(
+          `INSERT INTO inventory_movements (medicine_code, operation, source, quantity_delta, quantity_before, quantity_after, actor_user_id, idempotency_key, request_hash, event_id)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING ${MOVEMENT_COLUMNS}`,
+          [medicineCode, operation, record.source, delta, before.quantity, after[0].quantity, record.ctx.actorUserId ?? null, key ?? null, key ? record.requestHash : null, events.find((e) => e.event_type === operation)?.event_id ?? null],
+        );
+        movement = toMovement(pharmacyCode, rows[0]!);
+      }
       await client.query("COMMIT");
 
       return {
-        action,
-        pharmacyCode,
-        pharmacyName: pharmacy.name,
-        medicineCode,
-        medicineName: medicineLabel(medicineCode),
-        before,
-        after: after[0] ? { quantity: after[0].quantity, price: Number(after[0].price) } : null,
-        events: events.map((e) => ({ eventId: e.event_id, eventType: e.event_type, occurredAt: e.occurred_at })),
+        movement,
+        result: {
+          action,
+          pharmacyCode,
+          pharmacyName: pharmacy.name,
+          medicineCode,
+          medicineName: medicineLabel(medicineCode),
+          before,
+          after: after[0] ? { quantity: after[0].quantity, price: Number(after[0].price) } : null,
+          events: events.map((e) => ({ eventId: e.event_id, eventType: e.event_type, occurredAt: e.occurred_at })),
+        },
       };
     } catch (err) {
       await client.query("ROLLBACK").catch(() => undefined);
+      // Two requests with the same key for DIFFERENT medicines do not queue on one row lock: the second one to insert loses here.
+      // Nothing of it was kept, so look at what the winner recorded and answer as for any other reuse of the key.
+      const e = err as { code?: string; constraint?: string };
+      if (record && key && e.code === "23505" && e.constraint === IDEMPOTENCY_INDEX) {
+        const { rows } = await this.db(pharmacyCode).query<MovementRow>(`SELECT ${MOVEMENT_COLUMNS} FROM inventory_movements WHERE idempotency_key = $1`, [key]);
+        if (rows[0]) return { replay: this.replayOf(rows[0], pharmacyCode, record) };
+      }
       throw err;
     } finally {
       client.release();

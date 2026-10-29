@@ -9,6 +9,7 @@
     "catalogue:import": "tsx --env-file-if-exists=../../.env src/cli.ts catalogue:import",
     "reset": "tsx --env-file-if-exists=../../.env src/cli.ts reset",
     "pharmacies:setup": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:setup",
+    "pharmacies:migrate": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:migrate",
     "pharmacies:status": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:status",
     "pharmacies:reset": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:reset"
   },
