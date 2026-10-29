@@ -11,7 +11,7 @@ what happens at the pharmacy**, and the screen says how fresh each number is.
 | `/pharmacies` | Every pharmacy, nearest first. |
 | `/pharmacies/[id]` | One pharmacy: address, distance, directions, and everything it stocks with live status. Search within it, filter by availability, ask to be notified about anything out of stock. |
 | `/notifications` | Your restock alerts: the notifications (with "New"), what you are waiting for (cancel), and earlier ones. A bell with an unread count in the header and bottom bar. |
-| `/dashboard` | Pharmacy synchronization status, one card per active pharmacy, from `GET /api/nodes`: health, last synchronized, time since last sync, processed, duplicate and stale event counts, and the pharmacy outbox backlog when available. Unknown values say so; it has a Refresh button (no live updates yet). See [node-status.md](node-status.md). |
+| `/dashboard` | Pharmacy synchronization status, one card per active pharmacy, from `GET /api/nodes`: health, last synchronized, time since last sync, processed, duplicate and stale event counts, and the pharmacy outbox backlog when available. Unknown values say so; it updates live over Server-Sent Events (a Live / Reconnecting indicator) and keeps its Refresh button. See [node-status.md](node-status.md) and [live-updates.md](live-updates.md). |
 
 The header has a **location chip** (areas, "use my current location", or coordinates; remembered on the device), a theme
 toggle, and the navigation (a bottom tab bar on phones). The search itself lives in the URL

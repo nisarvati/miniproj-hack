@@ -1,10 +1,14 @@
 "use client";
 
-import { getNodes, type NodesResponse } from "../../lib/api";
+import { useMemo, useState } from "react";
+import { getNodes, type NodesResponse, type NodeStatusEntry } from "../../lib/api";
 import { formatRelativeTime, pluralise } from "../../lib/format";
+import { useLiveStream, type NodeEvent } from "../../lib/live";
 import { useAsync } from "../../lib/use-async";
+import { useNow } from "../../lib/use-now";
 import { PulseIcon, RefreshIcon } from "../ui/icons";
 import { Alert, Button, EmptyState, Skeleton } from "../ui/primitives";
+import { LiveStatus } from "./LiveStatus";
 import { NodeStatusGrid } from "./NodeStatusGrid";
 
 const message = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong.");
@@ -37,11 +41,38 @@ function SourceNotes({ meta }: { meta: NodesResponse["meta"] }) {
   );
 }
 
+/** A reading is newer than another when it was taken later. */
+const takenAt = (meta: { generatedAt: string }) => Date.parse(meta.generatedAt);
+
 export function DashboardPage() {
   const nodes = useAsync((signal) => getNodes({ signal }), []);
+  // Node updates that arrived over the live stream. They sit on top of what the API returned, and an entry only wins while it is newer
+  // than that response, so a fresh Refresh always takes over.
+  const [pushed, setPushed] = useState<Record<string, NodeEvent>>({});
+  const live = useLiveStream({
+    onNode: (event) => setPushed((p) => (p[event.node.pharmacyCode] && takenAt(p[event.node.pharmacyCode]!.meta) > takenAt(event.meta) ? p : { ...p, [event.node.pharmacyCode]: event })),
+    // The stream was down for a while, or may have missed events: read the current state instead of guessing.
+    onResync: () => {
+      if (nodes.status !== "loading") nodes.reload();
+    },
+  });
   const loading = nodes.status === "loading" || nodes.status === "idle";
   const first = !nodes.data && nodes.status !== "error";
-  const generatedAt = nodes.data ? new Date(nodes.data.meta.generatedAt) : null;
+  const now = useNow();
+
+  const view = useMemo(() => {
+    if (!nodes.data) return null;
+    const base = takenAt(nodes.data.meta);
+    let meta: NodesResponse["meta"] = nodes.data.meta;
+    const list: NodeStatusEntry[] = nodes.data.data.map((n) => {
+      const event = pushed[n.pharmacyCode];
+      if (!event || takenAt(event.meta) <= base) return n;
+      if (takenAt(event.meta) > takenAt(meta)) meta = { ...meta, ...event.meta };
+      return event.node;
+    });
+    return { list, meta };
+  }, [nodes.data, pushed]);
+  const updatedAt = view ? new Date(view.meta.generatedAt) : null;
 
   return (
     <div className="dashboard-view mx-auto max-w-6xl space-y-6">
@@ -51,11 +82,13 @@ export function DashboardPage() {
           <h1 className="editorial-title mt-2 text-4xl leading-tight sm:text-5xl">Synchronization status</h1>
           <p className="mt-2 max-w-2xl text-muted">
             Each pharmacy keeps its own inventory and sends changes to MedLink. MedLink is eventually consistent: a change shows up in search after a short,
-            variable delay, not instantly, and these readings describe what MedLink has processed so far.
+            variable delay, not instantly, and these readings describe what MedLink has processed so far. Live updates can lag or be missed;
+            Refresh reads the current state.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {generatedAt && <p className="text-sm text-muted" aria-live="polite">Read {formatRelativeTime(generatedAt.toISOString())}</p>}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <LiveStatus state={live.state} />
+          {updatedAt && <p className="text-sm text-muted" aria-live="off">Updated {formatRelativeTime(updatedAt.toISOString(), now)}</p>}
           <Button variant="secondary" onClick={nodes.reload} loading={loading} aria-label="Refresh status"><RefreshIcon size={16} /> Refresh</Button>
         </div>
       </header>
@@ -73,17 +106,17 @@ export function DashboardPage() {
         </div>
       )}
 
-      {nodes.data && (
+      {view && (
         <>
-          <SourceNotes meta={nodes.data.meta} />
-          {nodes.data.data.length === 0 ? (
+          <SourceNotes meta={view.meta} />
+          {view.list.length === 0 ? (
             <EmptyState icon={<PulseIcon />} title="No pharmacies are configured">
               Once a pharmacy is set up and sends inventory changes, its synchronization status appears here.
             </EmptyState>
           ) : (
             <>
-              <p className="text-sm text-muted" aria-live="polite">Showing {pluralise(nodes.data.data.length, "pharmacy")}</p>
-              <NodeStatusGrid nodes={nodes.data.data} now={new Date(nodes.data.meta.generatedAt)} />
+              <p className="text-sm text-muted">Showing {pluralise(view.list.length, "pharmacy")}</p>
+              <NodeStatusGrid nodes={view.list} now={new Date(view.meta.generatedAt)} />
               <p className="text-sm text-muted">
                 &ldquo;Time since last sync&rdquo; is how long ago MedLink last processed an event for that pharmacy. A pharmacy with no recent changes has a
                 long one and is not necessarily unhealthy; a pharmacy is marked degraded or down only when changes are waiting and not being processed.

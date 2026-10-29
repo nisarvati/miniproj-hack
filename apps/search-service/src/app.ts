@@ -7,7 +7,10 @@ import { errorHandler, notFoundHandler } from "./errors.js";
 import { inventoryRoutes } from "./modules/inventory/routes.js";
 import { medicineRoutes } from "./modules/medicines/routes.js";
 import { nodeRoutes } from "./modules/nodes/routes.js";
-import type { NodeSources } from "./modules/nodes/service.js";
+import { getNodes, type NodeSources } from "./modules/nodes/service.js";
+import type { StockFeed } from "./modules/stream/feed.js";
+import { LiveHub } from "./modules/stream/hub.js";
+import { streamRoutes } from "./modules/stream/routes.js";
 import { notificationRoutes } from "./modules/notifications/routes.js";
 import { pharmacyRoutes } from "./modules/pharmacies/routes.js";
 import type { LiveStock } from "./modules/live/live-stock.js";
@@ -21,7 +24,12 @@ export interface AppOptions {
   live?: LiveStock;
   /** Where GET /api/nodes reads sync status from. Without `sync` every node is reported "unknown". */
   nodes?: NodeSources;
+  /** GET /api/stream. `stock` is where stock changes come from (without it the stream carries node status and heartbeats only);
+   *  `hub` replaces the whole fan-out (tests). */
+  stream?: { stock?: StockFeed; hub?: LiveHub };
 }
+
+const noStock: StockFeed = { poll: async () => [], stats: () => ({ malformed: 0, unconfirmed: 0 }) };
 
 export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): Promise<FastifyInstance> {
   const app = Fastify({
@@ -62,6 +70,7 @@ export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): P
   searchRoutes(app, deps);
   notificationRoutes(app, db);
   nodeRoutes(app, opts.nodes ?? {});
+  streamRoutes(app, opts.stream?.hub ?? new LiveHub({ stock: opts.stream?.stock ?? noStock, nodes: () => getNodes(opts.nodes ?? {}), log: app.log }));
 
   return app;
 }

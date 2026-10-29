@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, searchMedicines, type SearchFilters } from "../../lib/api";
 import { formatPrice, pluralise } from "../../lib/format";
+import { useLiveStream } from "../../lib/live";
 import { unavailableMedicines } from "../../lib/restock";
 import { activeFilterCount, parseSearchParams, toSearchParams, type SearchState, type View } from "../../lib/search-state";
 import { useAsync } from "../../lib/use-async";
@@ -74,6 +75,26 @@ export function SearchPage() {
   }, [hasQuery, ready, narrowed, search.reload, everything.reload]);
   const availability = (narrowed ? everything.data : search.data)?.results ?? [];
   const unavailable = useMemo(() => unavailableMedicines(availability), [availability]);
+
+  // Live updates (GET /api/stream): when a stock change arrives for a medicine in these results, read the same query again, once, a moment
+  // later (several changes in a row are one reload). Unrelated changes are ignored. The 20 s refresh above stays as the fallback.
+  const shownMedicines = useRef(new Set<string>());
+  shownMedicines.current = new Set(availability.map((r) => r.medicine.code));
+  const reloadResults = useRef(() => {});
+  reloadResults.current = () => {
+    search.reload();
+    if (narrowed) everything.reload();
+  };
+  const liveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleReload = useCallback(() => {
+    if (liveTimer.current) clearTimeout(liveTimer.current);
+    liveTimer.current = setTimeout(() => {
+      liveTimer.current = null;
+      reloadResults.current();
+    }, 800);
+  }, []);
+  useEffect(() => () => { if (liveTimer.current) clearTimeout(liveTimer.current); }, []);
+  useLiveStream({ onStock: (e) => { if (shownMedicines.current.has(e.medicineCode)) scheduleReload(); }, onResync: scheduleReload }, hasQuery && ready);
   const results = search.data?.results ?? [];
   const matchingMedicines = useMemo(
     () => Array.from(new Map(results.map((result) => [result.medicine.id, result.medicine])).values()),

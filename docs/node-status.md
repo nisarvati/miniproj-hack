@@ -80,5 +80,5 @@ conservative defaults, not measured values.
   connector unreachable, changes stuck in a pharmacy outbox are invisible here (`unpublishedOutbox` is `null`, and the dashboard says so).
 - There is no heartbeat. Detecting a silent pharmacy would need a heartbeat written by the connector or the sync service, which this milestone does not add.
 - `syncLagMs` is time since the last processed event. The per-event delay the sync service measures (`lastLatencyMs`) is stored in Redis but not exposed here.
-- No live updates yet: the dashboard has a Refresh button.
+- Live updates arrive over `GET /api/stream` (see [live-updates.md](live-updates.md)); the dashboard also keeps its Refresh button, which reads this endpoint.
 - No access control beyond the other `/api` routes. A role-restricted dashboard belongs with the admin-role milestone.
