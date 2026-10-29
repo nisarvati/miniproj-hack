@@ -19,7 +19,7 @@ import {
 } from "../../lib/portal";
 import { useAsync } from "../../lib/use-async";
 import { useDebounced } from "../../lib/use-debounced";
-import { SearchIcon, StoreIcon } from "../ui/icons";
+import { MapPinIcon, SearchIcon, StoreIcon } from "../ui/icons";
 import { Alert, Button, Card, EmptyState, Input, Select, Skeleton } from "../ui/primitives";
 
 const message = (err: unknown) => (err instanceof PortalError ? err.message : "Something went wrong.");
@@ -216,12 +216,18 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-brand"><StoreIcon size={16} /> Pharmacy workspace</p>
           <h1 className="editorial-title mt-1 text-3xl leading-tight sm:text-4xl">{session.pharmacy.name}</h1>
+          <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted" data-testid="pharmacy-identity">
+            <span className="rounded-full border border-line px-2 py-0.5 text-xs font-semibold text-ink">Pharmacy {session.pharmacy.code}</span>
+            {session.pharmacy.address && <span className="flex items-center gap-1"><MapPinIcon size={14} /> {session.pharmacy.address}</span>}
+            {session.pharmacy.registeredName && <span>Account label: {session.pharmacy.registeredName}</span>}
+          </p>
           <p className="text-sm text-muted">Signed in as {session.email}</p>
         </div>
         <Button variant="secondary" onClick={leave}>Sign out</Button>
       </Card>
 
       <section aria-label="Stock" className="space-y-4">
+        <h2 className="text-lg font-semibold">Managing inventory for {session.pharmacy.name} <span className="text-sm font-normal text-muted">({session.pharmacy.code})</span></h2>
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative min-w-0 flex-1 basis-64">
             <SearchIcon size={18} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />

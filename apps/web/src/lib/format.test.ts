@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDistance, formatPrice, formatRelativeTime, pluralise } from "./format";
+import { formatDistance, formatDuration, formatPrice, formatRelativeTime, pluralise } from "./format";
 
 describe("pluralise", () => {
   it("handles pharmacy counts conversationally", () => {
@@ -39,5 +39,21 @@ describe("formatRelativeTime", () => {
   });
   it("copes with invalid input", () => {
     expect(formatRelativeTime("garbage", now)).toBe("unknown");
+  });
+});
+
+describe("formatDuration", () => {
+  it("always carries its unit", () => {
+    expect(formatDuration(0)).toBe("0 ms");
+    expect(formatDuration(850)).toBe("850 ms");
+    expect(formatDuration(1200)).toBe("1.2 s");
+    expect(formatDuration(42_000)).toBe("42 s");
+    expect(formatDuration(200_000)).toBe("3 min 20 s");
+    expect(formatDuration(2 * 3_600_000 + 5 * 60_000)).toBe("2 hr 5 min");
+    expect(formatDuration(50 * 3_600_000)).toBe("2 d 2 hr");
+  });
+  it("does not make up a duration", () => {
+    expect(formatDuration(-1)).toBe("unknown");
+    expect(formatDuration(Number.NaN)).toBe("unknown");
   });
 });

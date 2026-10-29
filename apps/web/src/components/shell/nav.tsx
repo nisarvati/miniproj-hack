@@ -4,13 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAccount } from "../providers/account";
 import { useAuth } from "../providers/auth";
-import { BellIcon, CalendarIcon, SearchIcon, StoreIcon } from "../ui/icons";
+import { BellIcon, CalendarIcon, PulseIcon, SearchIcon, StoreIcon } from "../ui/icons";
 import { cx } from "../ui/primitives";
 
 export const NAV = [
   { href: "/search", label: "Search", Icon: SearchIcon },
   { href: "/pharmacies", label: "Pharmacies", Icon: StoreIcon },
   { href: "/notifications", label: "Notifications", Icon: BellIcon },
+  // Read-only sync status: counts, times and public pharmacy names only. A role-gated version is the admin milestone.
+  { href: "/dashboard", label: "Dashboard", Icon: PulseIcon },
 ] as const;
 
 /** Shown only to a signed-in patient. Hiding the link is a courtesy: the page and its API check the session themselves. */

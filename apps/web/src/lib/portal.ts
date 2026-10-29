@@ -6,6 +6,10 @@ export const PORTAL_URL = (process.env.NEXT_PUBLIC_PORTAL_URL ?? "http://localho
 export interface PortalPharmacy {
   code: string;
   name: string;
+  /** Where it is, when MedLink has an address for it. */
+  address?: string | null;
+  /** MedLink's own label for the account, present only when it differs from `name`. */
+  registeredName?: string | null;
 }
 export interface PortalSession {
   email: string;

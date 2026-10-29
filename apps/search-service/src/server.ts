@@ -1,8 +1,11 @@
-import { createPool } from "@medlink/db";
+import { createPool, healthPortFor } from "@medlink/db";
 import { createRedis, describeError, redisOptionsFromEnv } from "@medlink/redis";
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { RedisLiveStock } from "./modules/live/live-stock.js";
+import { HttpConnectorHealth } from "./modules/nodes/connector-health.js";
+import { HttpSyncServiceHealth } from "./modules/nodes/service-health.js";
+import { RedisSyncStatus } from "./modules/nodes/sync-status.js";
 
 const config = loadConfig();
 const db = createPool(config.DATABASE_URL);
@@ -23,7 +26,17 @@ if (process.env.LIVE_STOCK !== "off") {
     console.warn(`live stock disabled: ${describeError(err)}`);
   }
 }
-const app = await buildApp(db, config, { live: redis && new RedisLiveStock(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }) });
+// Node status (GET /api/nodes): the sync service's Redis status, plus the connector's and the sync service's local health endpoints.
+const connectorPort = healthPortFor("inventory-connector");
+const syncPort = healthPortFor("inventory-sync");
+const app = await buildApp(db, config, {
+  live: redis && new RedisLiveStock(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
+  nodes: {
+    sync: redis && new RedisSyncStatus(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
+    connector: connectorPort === null ? undefined : new HttpConnectorHealth(`http://127.0.0.1:${connectorPort}/health`),
+    syncService: syncPort === null ? undefined : new HttpSyncServiceHealth(`http://127.0.0.1:${syncPort}/health`),
+  },
+});
 app.log.info({ liveStock: redis ? "on" : "off" }, "search service configured");
 
 // Pool errors on idle clients must not crash the process.

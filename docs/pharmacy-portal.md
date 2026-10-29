@@ -47,6 +47,8 @@ New staff request access on the same page ("Request access for your pharmacy"); 
 Also `POST /portal/signup`, `POST /portal/login`, `POST /portal/logout`, `GET /portal/me`, `GET /portal/stock` (read from the pharmacy's own
 database) and `GET /portal/catalogue` (medicines the pharmacy does not list yet: every product in the central catalogue, including the imported batch described in [catalogue.md](catalogue.md)).
 
+`POST /portal/login` and `GET /portal/me` answer `{ email, pharmacy: { code, name, address, registeredName } }`. The pharmacy is the one in the session cookie, read from the central `pharmacies` table and shown the way shoppers see it (`presentPharmacy`). `registeredName` is MedLink's own label for the account and is `null` when it equals `name`. With no row for the code, `name` is `Pharmacy <code>` and `address` is `null`. The portal header and the "Managing inventory for ..." heading show these fields.
+
 ## Sign-in and who can change what
 
 - Accounts live in the central `pharmacy_users` table: an email, a scrypt password hash and **one** pharmacy code.

@@ -38,3 +38,16 @@ export const pluralise = (n: number, one: string, many = one === "pharmacy" ? "p
  * the web only says that the medicine is back in stock, so that count is left off the page (the stored text is not changed).
  */
 export const withoutStockCount = (message: string) => message.replace(/\s*\(\d+ available\)/g, "");
+
+/** A duration with its unit: "850 ms", "1.2 s", "3 min 20 s", "2 hr 5 min". */
+export function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "unknown";
+  if (ms < 1000) return `${Math.round(ms)} ms`;
+  const seconds = ms / 1000;
+  if (seconds < 10) return `${seconds.toFixed(1)} s`;
+  if (seconds < 60) return `${Math.round(seconds)} s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ${Math.round(seconds - minutes * 60)} s`;
+  const hours = Math.floor(minutes / 60);
+  return hours < 24 ? `${hours} hr ${minutes - hours * 60} min` : `${Math.floor(hours / 24)} d ${hours % 24} hr`;
+}

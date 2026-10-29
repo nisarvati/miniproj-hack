@@ -42,6 +42,27 @@ describe("PortalPage", () => {
     expect(await screen.findByText("Crocin 500mg")).toBeTruthy();
   });
 
+  it("says whose inventory is being managed: name, code, address and a clear heading", async () => {
+    const identity = { code: "P002", name: "Roopam Medical and General Stores", address: "Chakala, Andheri East, Mumbai", registeredName: "Pharmacy B - Andheri East" };
+    mockApi(signedIn({ "GET /portal/me": () => ({ body: { data: { email: "staff@p002.test", pharmacy: identity } } }) }));
+    render(<PortalPage />);
+    expect(await screen.findByRole("heading", { level: 1, name: "Roopam Medical and General Stores" })).toBeTruthy();
+    const box = screen.getByTestId("pharmacy-identity");
+    expect(box.textContent).toMatch(/Pharmacy P002/);
+    expect(box.textContent).toMatch(/Chakala, Andheri East, Mumbai/);
+    expect(box.textContent).toMatch(/Account label: Pharmacy B - Andheri East/);
+    expect(screen.getByRole("heading", { level: 2, name: /Managing inventory for Roopam Medical and General Stores/ })).toBeTruthy();
+  });
+
+  it("falls back to the code when the portal has no name or address, and invents nothing", async () => {
+    mockApi(signedIn({ "GET /portal/me": () => ({ body: { data: { email: "s@p.test", pharmacy: { code: "P099", name: "Pharmacy P099", address: null, registeredName: null } } } }) }));
+    render(<PortalPage />);
+    expect(await screen.findByRole("heading", { level: 1, name: "Pharmacy P099" })).toBeTruthy();
+    const box = screen.getByTestId("pharmacy-identity");
+    expect(box.textContent).not.toMatch(/Account label/);
+    expect(screen.getByRole("heading", { level: 2, name: /Managing inventory for Pharmacy P099/ })).toBeTruthy();
+  });
+
   it("shows the server's message when the sign-in is refused", async () => {
     mockApi({
       "GET /portal/me": () => unauthenticated,

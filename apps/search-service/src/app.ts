@@ -6,6 +6,8 @@ import type { Config } from "./config.js";
 import { errorHandler, notFoundHandler } from "./errors.js";
 import { inventoryRoutes } from "./modules/inventory/routes.js";
 import { medicineRoutes } from "./modules/medicines/routes.js";
+import { nodeRoutes } from "./modules/nodes/routes.js";
+import type { NodeSources } from "./modules/nodes/service.js";
 import { notificationRoutes } from "./modules/notifications/routes.js";
 import { pharmacyRoutes } from "./modules/pharmacies/routes.js";
 import type { LiveStock } from "./modules/live/live-stock.js";
@@ -17,6 +19,8 @@ export interface AppOptions {
   logger?: boolean;
   /** Live stock from the event pipeline's Redis state. Without it search uses the catalogue database only. */
   live?: LiveStock;
+  /** Where GET /api/nodes reads sync status from. Without `sync` every node is reported "unknown". */
+  nodes?: NodeSources;
 }
 
 export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): Promise<FastifyInstance> {
@@ -57,6 +61,7 @@ export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): P
   inventoryRoutes(app, db, config);
   searchRoutes(app, deps);
   notificationRoutes(app, db);
+  nodeRoutes(app, opts.nodes ?? {});
 
   return app;
 }

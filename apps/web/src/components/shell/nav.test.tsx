@@ -20,6 +20,17 @@ const shell = () =>
     </AuthProvider>,
   );
 
+describe("the Dashboard link", () => {
+  it("is offered in both navigations and goes to /dashboard", async () => {
+    session(null);
+    shell();
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    const links = screen.getAllByRole("link", { name: /Dashboard/ });
+    expect(links).toHaveLength(2);
+    expect(links.every((l) => l.getAttribute("href") === "/dashboard")).toBe(true);
+  });
+});
+
 describe("the Calendar link", () => {
   it("appears in both navigations for a signed-in patient", async () => {
     session({ user: { name: "Asha", email: "a@example.com", image: null } });

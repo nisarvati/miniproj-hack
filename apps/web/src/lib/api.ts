@@ -130,6 +130,40 @@ export class ApiError extends Error {
   }
 }
 
+/** How far a pharmacy's synchronization can be trusted right now. "unknown": MedLink has no reliable evidence either way. */
+export type NodeStatus = "healthy" | "degraded" | "down" | "unknown";
+
+/** One pharmacy's synchronization status. A null metric is UNKNOWN or unavailable, never zero. */
+export interface NodeStatusEntry {
+  pharmacyCode: string;
+  name: string;
+  status: NodeStatus;
+  /** One line saying what evidence decided `status`. Missing from an older API. */
+  statusReason?: string;
+  /** When MedLink last processed an event for the pharmacy. Not a heartbeat: a quiet pharmacy has an old value. */
+  lastSyncedAt: string | null;
+  /** Milliseconds from lastSyncedAt to the time of the response. */
+  syncLagMs: number | null;
+  /** Events still waiting in the pharmacy's own outbox. null: not available. */
+  unpublishedOutbox: number | null;
+  staleCount: number | null;
+  duplicateCount: number | null;
+  processedCount: number | null;
+}
+
+export interface NodesResponse {
+  data: NodeStatusEntry[];
+  meta: {
+    generatedAt: string;
+    /** Anything but "up": no pharmacy can be assessed. */
+    redis: "up" | "down" | "not-configured";
+    connector: "up" | "unreachable" | "not-configured";
+    /** Whether the sync service confirmed it is running. Missing from an older API. */
+    syncService?: "ready" | "not-ready" | "unreachable" | "not-configured";
+    thresholds?: { degradedAfterMs: number; downAfterMs: number };
+  };
+}
+
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000").replace(/\/$/, "");
 
 interface ErrorBody {
@@ -228,6 +262,12 @@ export interface DirectoryEntry {
 
 export async function listDirectory(opts: Options = {}): Promise<DirectoryEntry[]> {
   return (await getJson<{ data: DirectoryEntry[] }>("/api/directory", opts)).data;
+}
+
+export async function getNodes(opts: Options = {}): Promise<NodesResponse> {
+  const body = await getJson<NodesResponse>("/api/nodes", opts);
+  if (typeof body.meta?.generatedAt !== "string") throw new ApiError("Unexpected response from MedLink.", "unknown");
+  return body;
 }
 
 export async function listPharmacies(opts: Options = {}): Promise<PharmacyRef[]> {

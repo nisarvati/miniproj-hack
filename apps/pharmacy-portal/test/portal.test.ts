@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createPool, type Db } from "@medlink/db";
 import { freshPharmacyDbs, freshSeededDb } from "@medlink/db/testing";
 import { decide, listUsers } from "../src/admin.js";
-import { createSessionToken, hashPassword, readSessionToken, verifyPassword } from "../src/auth.js";
+import { COOKIE_NAME, createSessionToken, hashPassword, readSessionToken, verifyPassword } from "../src/auth.js";
 import { buildApp } from "../src/app.js";
 import { loadConfig } from "../src/config.js";
 
@@ -79,8 +79,33 @@ describe("login", () => {
     const { res } = await login();
     expect(res.statusCode).toBe(200);
     expect(String(res.headers["set-cookie"])).toMatch(/HttpOnly.*SameSite=Lax|SameSite=Lax.*HttpOnly/);
-    expect(res.json().data).toMatchObject({ email: "a@pharmacy.test", pharmacy: { code: "P001", name: "Pharmacy A - Andheri West" } });
+    expect(res.json().data).toMatchObject({ email: "a@pharmacy.test", pharmacy: { code: "P001", name: "Paras Medical and General Store", registeredName: "Pharmacy A - Andheri West" } });
     expect(JSON.stringify(res.json())).not.toContain("scrypt");
+  });
+
+  it("tells each pharmacy who it is: listed name, code and address, from the pharmacy in the session", async () => {
+    const a = (await login("a@pharmacy.test", "pw-a")).cookie;
+    const b = (await login("b@pharmacy.test", "pw-b")).cookie;
+    const meA = (await call("GET", "/portal/me", a)).json().data.pharmacy;
+    const meB = (await call("GET", "/portal/me", b)).json().data.pharmacy;
+    expect(meA).toMatchObject({ code: "P001", name: "Paras Medical and General Store", registeredName: "Pharmacy A - Andheri West" });
+    expect(meB).toMatchObject({ code: "P002", name: "Roopam Medical and General Stores", registeredName: "Pharmacy B - Andheri East" });
+    expect(meA.address).toBeTruthy();
+    expect(meB.address).toBeTruthy();
+    expect(meA.address).not.toBe(meB.address);
+    // A request cannot choose whose identity comes back.
+    expect((await call("GET", "/portal/me?pharmacyCode=P002", a)).json().data.pharmacy.code).toBe("P001");
+  });
+
+  it("shows only the code when the pharmacy has no row, rather than inventing a name", async () => {
+    const { rows } = await admin.query("INSERT INTO pharmacy_users (email, password_hash, pharmacy_code) VALUES ('nobody@pharmacy.test', $1, 'P099') RETURNING id", [await hashPassword("pw")]);
+    const token = createSessionToken({ userId: Number(rows[0].id), pharmacyCode: "P099", exp: Date.now() + 60_000 }, config.sessionSecret);
+    const res = await call("GET", "/portal/me", `${COOKIE_NAME}=${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.pharmacy).toEqual({ code: "P099", name: "Pharmacy P099", address: null, registeredName: null });
+    // And it cannot open anyone's stock: no database is configured for that code.
+    expect((await call("GET", "/portal/stock", `${COOKIE_NAME}=${token}`)).statusCode).toBe(404);
+    await admin.query("DELETE FROM pharmacy_users WHERE pharmacy_code = 'P099'");
   });
 
   it("is case-insensitive on the email, and gives one message for a wrong password and an unknown email", async () => {
@@ -190,6 +215,19 @@ describe("one pharmacy cannot touch another", () => {
     expect((await stockRow("P001", "M001")).quantity).toBe(777);
     expect(p1Before).toBeDefined();
     expect(await outbox("P002")).toHaveLength(1);
+  });
+
+  it("lists, adds and removes only in the session's pharmacy, whatever the request says", async () => {
+    const a = (await login("a@pharmacy.test", "pw-a")).cookie;
+    const b = (await login("b@pharmacy.test", "pw-b")).cookie;
+    const listed = async (cookie: string, qs = "") => (await call("GET", `/portal/stock${qs}`, cookie)).json().data.map((i: { medicineCode: string; quantity: number }) => `${i.medicineCode}:${i.quantity}`);
+    const p1 = await listed(a);
+    const p2 = await listed(b);
+    expect(await listed(a, "?pharmacyCode=P002")).toEqual(p1);
+    expect(await listed(b, "?pharmacyCode=P001")).toEqual(p2);
+    expect((await call("DELETE", "/portal/stock/M001?pharmacyCode=P002", a)).statusCode).toBe(200);
+    expect(await stockRow("P001", "M001")).toBeUndefined();
+    expect(await stockRow("P002", "M001")).toBeDefined();
   });
 
   it("ends the session when the account is removed", async () => {

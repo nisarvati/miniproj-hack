@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
-import type { Db } from "@medlink/db";
+import { presentPharmacy, type Db } from "@medlink/db";
 import type { ChangeResult, PharmacySimulator } from "@medlink/pharmacy-ops";
 import { clearedCookie, COOKIE_NAME, createSessionToken, DUMMY_HASH, hashPassword, readCookie, readSessionToken, sessionCookie, verifyPassword, type Session } from "./auth.js";
 import type { Config } from "./config.js";
@@ -34,6 +34,14 @@ interface Deps {
   config: Config;
 }
 
+/** What the portal shows about the signed-in pharmacy. `registeredName` is MedLink's own label for the account, shown only when it differs from the listed name. */
+export interface PharmacyIdentity {
+  code: string;
+  name: string;
+  address: string | null;
+  registeredName: string | null;
+}
+
 const summary = (c: ChangeResult) => ({ medicineCode: c.medicineCode, before: c.before, after: c.after, events: c.events.map((e) => e.eventType) });
 
 export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config }: Deps) {
@@ -51,8 +59,16 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     if (!pool) throw new AppError(404, "UNKNOWN_PHARMACY", "No database is configured for your pharmacy");
     return pool;
   };
-  const pharmacyName = async (code: string) =>
-    ((await db.query<{ name: string }>("SELECT name FROM pharmacies WHERE code = $1", [code])).rows[0]?.name ?? code);
+  /**
+   * Who the pharmacy is, read from the central pharmacies table for the code in the session (never from the request), and shown the
+   * same way shoppers see it (presentPharmacy). With no row there is nothing to show but the code, so that is all it says.
+   */
+  const pharmacyIdentity = async (code: string): Promise<PharmacyIdentity> => {
+    const row = (await db.query<{ name: string; address: string; latitude: number; longitude: number }>("SELECT name, address, latitude, longitude FROM pharmacies WHERE code = $1", [code])).rows[0];
+    if (!row) return { code, name: `Pharmacy ${code}`, address: null, registeredName: null };
+    const shown = presentPharmacy({ code, ...row });
+    return { code, name: shown.name, address: shown.address || null, registeredName: row.name !== shown.name ? row.name : null };
+  };
 
   /**
    * Asks for staff access to one pharmacy. The account is created 'pending' and cannot sign in until an administrator
@@ -93,7 +109,7 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     const token = createSessionToken({ userId: Number(user.id), pharmacyCode: user.pharmacy_code, exp: Date.now() + config.sessionMs }, config.sessionSecret);
     reply.header("set-cookie", sessionCookie(token, config.sessionMs, config.secureCookies));
     req.log.info({ userId: Number(user.id), pharmacy: user.pharmacy_code }, "portal login");
-    return { data: { email: user.email, pharmacy: { code: user.pharmacy_code, name: await pharmacyName(user.pharmacy_code) } } };
+    return { data: { email: user.email, pharmacy: await pharmacyIdentity(user.pharmacy_code) } };
   });
 
   app.post("/portal/logout", async (_req, reply) => {
@@ -103,7 +119,7 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
 
   app.get("/portal/me", async (req) => {
     const s = await requireSession(req);
-    return { data: { email: s.email, pharmacy: { code: s.pharmacyCode, name: await pharmacyName(s.pharmacyCode) } } };
+    return { data: { email: s.email, pharmacy: await pharmacyIdentity(s.pharmacyCode) } };
   });
 
   /** What the pharmacy holds, from its own database: the source of truth the pipeline copies from. */

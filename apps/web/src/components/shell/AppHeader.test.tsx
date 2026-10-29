@@ -36,7 +36,7 @@ describe("the shared header, on /search and on /calendar", () => {
     expect(header().getByRole("link", { name: "MedLink home" }).getAttribute("href")).toBe("/");
     await screen.findByRole("link", { name: "Your account: Alice Example" }); // the session has loaded
     const links = mainNav().getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")]);
-    expect(links).toEqual([["Search", "/search"], ["Pharmacies", "/pharmacies"], ["Notifications", "/notifications"], ["Calendar", "/calendar"]]);
+    expect(links).toEqual([["Search", "/search"], ["Pharmacies", "/pharmacies"], ["Notifications", "/notifications"], ["Dashboard", "/dashboard"], ["Calendar", "/calendar"]]);
     const current = mainNav().getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page");
     expect(current.map((a) => a.getAttribute("href"))).toEqual([path]);
     expect(header().getByRole("link", { name: "Your account: Alice Example" }).getAttribute("href")).toBe("/account");
@@ -63,7 +63,7 @@ describe("the shared header, on /search and on /calendar", () => {
     await screen.findByRole("link", { name: "Your account: Alice Example" });
     const bars = screen.getAllByRole("navigation", { name: "Main" });
     expect(bars).toHaveLength(2); // the header's (tablet and up) and the phone tab bar
-    for (const bar of bars) expect(within(bar).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/search", "/pharmacies", "/notifications", "/calendar"]);
+    for (const bar of bars) expect(within(bar).getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/search", "/pharmacies", "/notifications", "/dashboard", "/calendar"]);
     expect(screen.queryByRole("complementary")).toBeNull();
     expect(screen.queryByRole("contentinfo")).toBeNull();
     expect(screen.getByRole("link", { name: "Skip to the calendar" }).getAttribute("href")).toBe("#cal-main");
@@ -78,14 +78,14 @@ describe("the shared header, on /search and on /calendar", () => {
     expect(action).toHaveBeenCalledTimes(1);
   });
 
-  it("signed out: a Sign in link and no account or sign-out; the destinations are Search, Pharmacies and Notifications", async () => {
+  it("signed out: a Sign in link and no account or sign-out; the destinations are Search, Pharmacies, Notifications and Dashboard", async () => {
     api(null);
     nav.pathname = "/search";
     render(<AppShell signOutAction={async () => undefined}><main /></AppShell>);
     expect((await screen.findByRole("link", { name: "Sign in" })).getAttribute("href")).toBe("/signin");
     expect(screen.queryByRole("button", { name: "Sign out" })).toBeNull();
     expect(screen.queryByRole("link", { name: /Your account/ })).toBeNull();
-    expect(mainNav().getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/search", "/pharmacies", "/notifications"]);
+    expect(mainNav().getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/search", "/pharmacies", "/notifications", "/dashboard"]);
   });
 
   it("without a sign-out action there is no sign-out button (nothing is invented)", async () => {
