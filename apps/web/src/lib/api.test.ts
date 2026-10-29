@@ -8,7 +8,7 @@ describe("searchMedicines", () => {
   it("calls /api/search with q, lat and lng and returns the data array", async () => {
     const fetchImpl = respond(200, { data: [{ rank: 1 }] });
     const out = await searchMedicines("Crocin 500mg", loc, { fetchImpl, baseUrl: "http://api.test" });
-    expect(out).toEqual({ results: [{ rank: 1 }], matches: null, live: false, sortNote: null, unverifiedCount: 0 });
+    expect(out).toEqual({ results: [{ rank: 1 }], matches: null, live: false, sortNote: null, unverifiedCount: 0, rejected: [], rejectionSummary: null });
     const url = new URL(String(fetchImpl.mock.calls[0]![0]));
     expect(url.origin + url.pathname).toBe("http://api.test/api/search");
     expect(Object.fromEntries(url.searchParams)).toEqual({ q: "Crocin 500mg", lat: "19.1364", lng: "72.8296" });
@@ -17,7 +17,7 @@ describe("searchMedicines", () => {
   it("returns the catalogue matches when the API sends them, and null when it does not", async () => {
     const matches = [{ medicine: { id: 40, code: "M025", brandName: "Retaunch", genericName: "N-Acetylcysteine + Taurine", dosage: "150mg/500mg", form: "tablet" }, listed: false }];
     const withMatches = await searchMedicines("Retaunch", loc, { fetchImpl: respond(200, { data: [], meta: { live: true, matches } }), baseUrl: "http://api.test" });
-    expect(withMatches).toEqual({ results: [], matches, live: true, sortNote: null, unverifiedCount: 0 });
+    expect(withMatches).toEqual({ results: [], matches, live: true, sortNote: null, unverifiedCount: 0, rejected: [], rejectionSummary: null });
     const garbled = await searchMedicines("x", loc, { fetchImpl: respond(200, { data: [], meta: { matches: "nope" } }), baseUrl: "http://api.test" });
     expect(garbled.matches).toBeNull();
   });
@@ -110,7 +110,7 @@ describe("search filters", () => {
   it("sends only the filters that are set, and leaves the default sort out", async () => {
     const fetchImpl = respond(200, { data: [], meta: { live: true } });
     const out = await searchMedicines("croc", loc, { fetchImpl, baseUrl: "http://api.test", filters: { inStock: true, maxDistanceKm: 5, sort: "best" } });
-    expect(out).toEqual({ results: [], matches: null, live: true, sortNote: null, unverifiedCount: 0 });
+    expect(out).toEqual({ results: [], matches: null, live: true, sortNote: null, unverifiedCount: 0, rejected: [], rejectionSummary: null });
     const params = new URL(String(fetchImpl.mock.calls[0]![0])).searchParams;
     expect(Object.fromEntries(params)).toEqual({ q: "croc", lat: "19.1364", lng: "72.8296", inStock: "true", maxDistanceKm: "5" });
   });
@@ -173,5 +173,32 @@ describe("subscriptions", () => {
   it("cancelling something already fulfilled is a notFound, which callers can treat as 'already done'", async () => {
     await expect(cancelSubscription(4, "a@example.com", { fetchImpl: respond(404, { error: {} }) })).rejects.toMatchObject({ kind: "notFound" });
     await expect(cancelSubscription(4, "a@example.com", { fetchImpl: respond(500, {}) })).rejects.toMatchObject({ kind: "unknown" });
+  });
+});
+
+describe("searchMedicines: matching and rejected offers", () => {
+  const fetchOf = (meta: unknown, data: unknown[] = []) => (async () => new Response(JSON.stringify({ data, meta }), { status: 200 })) as unknown as typeof fetch;
+  const here = { latitude: 19.1, longitude: 72.8 };
+  const offer = (code: string) => ({ medicine: { id: 1, code: "M001" }, pharmacy: { id: 2, code }, price: 20, stockStatus: "OUT_OF_STOCK", distanceKm: null, updatedAt: "x", source: "live", reasons: [{ code: "OUT_OF_STOCK", filter: "inStock", message: "Out of stock, and you chose in-stock pharmacies only.", limit: null, actual: 0 }] });
+
+  it("passes on the rejected offers and their summary", async () => {
+    const summary = { total: 1, byReason: { OUT_OF_STOCK: 1 }, shown: 1, truncated: false };
+    const out = await searchMedicines("Crocin", here, { fetchImpl: fetchOf({ rejected: [offer("P004")], rejectionSummary: summary }) });
+    expect(out.rejected).toHaveLength(1);
+    expect(out.rejected[0]!.reasons[0]!.code).toBe("OUT_OF_STOCK");
+    expect(out.rejectionSummary).toEqual(summary);
+  });
+
+  it("is empty, not broken, for an older API or for rubbish in the response", async () => {
+    expect((await searchMedicines("Crocin", here, { fetchImpl: fetchOf({}) })).rejected).toEqual([]);
+    expect((await searchMedicines("Crocin", here, { fetchImpl: fetchOf({ rejected: "no", rejectionSummary: "no" }) }))).toMatchObject({ rejected: [], rejectionSummary: null });
+    const mixed = await searchMedicines("Crocin", here, { fetchImpl: fetchOf({ rejected: [offer("P004"), { reasons: [] }, null, { medicine: {}, pharmacy: {}, reasons: [] }, 7] }) });
+    expect(mixed.rejected.map((r) => r.pharmacy.code)).toEqual(["P004"]); // only an offer with a reason can be shown as rejected
+    expect((await searchMedicines("Crocin", here, { fetchImpl: fetchOf({ rejectionSummary: { total: -1 } }) })).rejectionSummary).toBeNull();
+  });
+
+  it("keeps the match fields on a result as the API sent them", async () => {
+    const out = await searchMedicines("Crocin", here, { fetchImpl: fetchOf({}, [{ rank: 1, matchPercent: 87, matchReasons: [{ code: "IN_STOCK", factor: "availability", points: 40, factorValue: 1, message: "In stock" }] }]) });
+    expect(out.results[0]).toMatchObject({ matchPercent: 87 });
   });
 });

@@ -51,3 +51,10 @@ export function formatDuration(ms: number): string {
   const hours = Math.floor(minutes / 60);
   return hours < 24 ? `${hours} hr ${minutes - hours * 60} min` : `${Math.floor(hours / 24)} d ${hours % 24} hr`;
 }
+
+/** A calendar day (YYYY-MM-DD) as "5 Nov 2026". It is read as a day, not an instant, so no time zone can move it. */
+export function formatDay(day: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  if (!m) return day;
+  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}

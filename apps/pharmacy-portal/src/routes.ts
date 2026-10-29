@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { presentPharmacy, type Db } from "@medlink/db";
-import { assessStockRisk, type ChangeResult, type Movement, type MovementResult, type PharmacySimulator, type RiskAssessment, type StockAlert } from "@medlink/pharmacy-ops";
+import { assessStockRisk, plansToCsv, RestockPlanner, type ChangeResult, type Movement, type MovementResult, type PharmacySimulator, type RestockPlan, type RiskAssessment, type StockAlert } from "@medlink/pharmacy-ops";
 import { clearedCookie, COOKIE_NAME, createSessionToken, DUMMY_HASH, hashPassword, readCookie, readSessionToken, sessionCookie, verifyPassword, type Session } from "./auth.js";
 import type { Config } from "./config.js";
 import { AppError } from "./errors.js";
@@ -36,6 +36,15 @@ const riskQuery = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).max(100_000).default(0),
 });
+const planStatuses = ["PLANNED", "IN_PROGRESS", "COMPLETED", "CANCELLED"] as const;
+const planFilter = z.enum([...planStatuses, "OPEN", "ALL"]);
+const planListQuery = z.object({ status: planFilter.default("ALL"), limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).max(100_000).default(0) });
+const planExportQuery = z.object({ status: planFilter.default("ALL") });
+const planIdParam = z.object({ id: z.string().uuid("the plan id must be a UUID") });
+// Types and unknown fields are checked here; the quantity range, the date and the notes are checked by the planner, which is the authority on them.
+// The medicine, the pharmacy and the creator are not in the patch schema: they cannot be changed, and a request that names them is refused.
+const planCreateBody = z.object({ medicineCode, quantity: z.number(), targetDate: z.string(), notes: z.string().nullable().optional() }).strict();
+const planPatchBody = z.object({ status: z.enum(planStatuses).optional(), quantity: z.number().optional(), targetDate: z.string().optional(), notes: z.string().nullable().optional() }).strict();
 const transactionBody = z.object({ medicineCode, quantity: z.number().int().min(1).max(1_000_000) }).strict();
 /** Extra query parameters are ignored, never trusted: the pharmacy always comes from the session. */
 const historyQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).max(100_000).default(0) });
@@ -76,8 +85,10 @@ function movementView(m: Movement, names: Map<string, string>, userId: number) {
   };
 }
 
-function alertView(a: StockAlert, names: Map<string, string>, threshold: number) {
+function alertView(a: StockAlert, names: Map<string, string>, threshold: number, plan: { planId: string; status: string; targetDate: string } | null) {
   return {
+    /** The open restock plan for this medicine, if staff made one (null otherwise, and for a resolved alert). Never created automatically. */
+    restockPlan: a.state === "ACTIVE" ? plan : null,
     alertId: a.alertId,
     pharmacyCode: a.pharmacyCode,
     medicineCode: a.medicineCode,
@@ -108,9 +119,30 @@ const riskView = (a: RiskAssessment) => ({
   factors: a.factors,
 });
 
+/** A restock plan as the API shows it. `currentQuantity` is for context only: planning never changes it. */
+function planView(p: RestockPlan, names: Map<string, string>, userId: number) {
+  return {
+    planId: p.planId,
+    pharmacyCode: p.pharmacyCode,
+    medicineCode: p.medicineCode,
+    medicineName: names.get(p.medicineCode) ?? p.medicineCode,
+    plannedQuantity: p.plannedQuantity,
+    status: p.status,
+    targetDate: p.targetDate,
+    notes: p.notes,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+    completedAt: p.completedAt?.toISOString() ?? null,
+    byYou: p.createdByUserId === userId,
+    currentQuantity: p.currentQuantity,
+  };
+}
+
 const summary = (c: ChangeResult) => ({ medicineCode: c.medicineCode, before: c.before, after: c.after, events: c.events.map((e) => e.eventType) });
 
 export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config }: Deps) {
+  /** Restock plans live in each pharmacy's own database, like its stock. Planning never writes stock. */
+  const planner = new RestockPlanner(pharmacies);
   /** The session behind the request's cookie. Always the source of the pharmacy: a request can never name one. */
   const requireSession = async (req: FastifyRequest): Promise<Session & { email: string }> => {
     const session = readSessionToken(readCookie(req.headers.cookie, COOKIE_NAME), config.sessionSecret);
@@ -340,10 +372,73 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     await sim.reconcileAlerts(pharmacyCode);
     const { items, total } = await sim.alertHistory(pharmacyCode, { state, limit, offset });
     const names = await medicineNames([...new Set(items.map((a) => a.medicineCode))]);
+    const plans = await planner.openPlans(pharmacyCode, [...new Set(items.filter((a) => a.state === "ACTIVE").map((a) => a.medicineCode))]);
     return {
-      data: items.map((a) => alertView(a, names, config.lowStockThreshold)),
+      data: items.map((a) => alertView(a, names, config.lowStockThreshold, plans.get(a.medicineCode) ?? null)),
       meta: { total, limit, offset, hasMore: offset + items.length < total, state, threshold: config.lowStockThreshold },
     };
+  });
+
+  // ---- Restock plans. Planning only: nothing here changes stock, the movement history or the outbox. To record stock that arrived, use POST /portal/restocks. ----
+
+  /** Plans a restock of a medicine this pharmacy lists. One open plan per medicine: a second answers 409 PLAN_ALREADY_OPEN and names the open one (details.planId). */
+  app.post("/portal/restock-plans", async (req, reply) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const body = planCreateBody.parse(req.body);
+    const plan = await planner.create(pharmacyCode, { medicineCode: body.medicineCode, quantity: body.quantity, targetDate: body.targetDate, notes: body.notes }, userId);
+    req.log.info({ pharmacy: pharmacyCode, medicine: plan.medicineCode, plan: plan.planId }, "portal restock plan created");
+    return reply.status(201).send({ data: planView(plan, await medicineNames([plan.medicineCode]), userId) });
+  });
+
+  /** The pharmacy's plans, soonest target first (then oldest first). `status` is one status, OPEN (planned or in progress) or ALL (default). Limit 1 to 100. */
+  app.get("/portal/restock-plans", async (req) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const { status, limit, offset } = planListQuery.parse(req.query);
+    const { items, total } = await planner.list(pharmacyCode, { status, limit, offset });
+    const names = await medicineNames([...new Set(items.map((p) => p.medicineCode))]);
+    return { data: items.map((p) => planView(p, names, userId)), meta: { total, limit, offset, hasMore: offset + items.length < total, status } };
+  });
+
+  /**
+   * The pharmacy's plans as a CSV download (the same `status` filter as the list). Always the signed-in pharmacy's own. Text that a spreadsheet would run
+   * as a formula is defused, and an empty export is a header-only file. At most MAX_EXPORT_ROWS plans; `x-export-truncated: true` says some were left out.
+   */
+  app.get("/portal/restock-plans/export.csv", async (req, reply) => {
+    const { pharmacyCode } = await requireSession(req);
+    const { status } = planExportQuery.parse(req.query);
+    const { plans, truncated } = await planner.forExport(pharmacyCode, status);
+    const names = await medicineNames([...new Set(plans.map((p) => p.medicineCode))]);
+    const day = new Date().toISOString().slice(0, 10);
+    // The filename is built only from the pharmacy code (P + digits), a status name and a date: nothing a request chose.
+    const filename = `restock-plans-${pharmacyCode}-${status.toLowerCase().replace("_", "-")}-${day}.csv`;
+    return reply
+      .header("content-type", "text/csv; charset=utf-8")
+      .header("content-disposition", `attachment; filename="${filename}"`)
+      .header("x-content-type-options", "nosniff")
+      .header("x-export-truncated", String(truncated))
+      .send(plansToCsv(plans, names));
+  });
+
+  app.get("/portal/restock-plans/:id", async (req) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const { id } = planIdParam.parse(req.params);
+    const plan = await planner.get(pharmacyCode, id);
+    if (!plan) throw new AppError(404, "PLAN_NOT_FOUND", "No such restock plan.");
+    return { data: planView(plan, await medicineNames([plan.medicineCode]), userId) };
+  });
+
+  /**
+   * Changes a plan: `status` (lifecycle: PLANNED to IN_PROGRESS, COMPLETED or CANCELLED; IN_PROGRESS back to PLANNED or on; COMPLETED can be reopened to IN_PROGRESS;
+   * CANCELLED is final), and, while it is open, `quantity`, `targetDate` (reschedule) and `notes`. The medicine, the pharmacy and the creator cannot change.
+   * Completing a plan does NOT add stock.
+   */
+  app.patch("/portal/restock-plans/:id", async (req) => {
+    const { pharmacyCode, userId } = await requireSession(req);
+    const { id } = planIdParam.parse(req.params);
+    const patch = planPatchBody.parse(req.body);
+    const plan = await planner.update(pharmacyCode, id, patch);
+    req.log.info({ pharmacy: pharmacyCode, plan: id, status: plan.status }, "portal restock plan updated");
+    return { data: planView(plan, await medicineNames([plan.medicineCode]), userId) };
   });
 
   app.post("/portal/stock", async (req, reply) => {

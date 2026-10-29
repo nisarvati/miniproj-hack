@@ -29,9 +29,55 @@ export interface PharmacyRef {
   inventorySimulated?: boolean;
 }
 
+/** Which of the four ranking factors a reason explains. */
+export type MatchFactor = "relevance" | "availability" | "distance" | "price";
+export type MatchReasonCode = "NAME_MATCH" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK" | "NEARBY" | "DISTANCE" | "MISSING_DISTANCE" | "PRICE_COMPARISON" | "PRICE_NO_COMPARISON" | "MISSING_PRICE";
+/** One ranking factor's part in a match percentage. The points of a result's four reasons add up to its `matchPercent`. */
+export interface MatchReason {
+  code: MatchReasonCode;
+  factor: MatchFactor;
+  points: number;
+  /** The factor's value from 0 to 1 before weighting. null: it could not be worked out. */
+  factorValue: number | null;
+  message: string;
+}
+
+export type RejectionCode = "OUT_OF_STOCK" | "PRICE_LIMIT_EXCEEDED" | "OUTSIDE_DISTANCE_LIMIT" | "MISSING_REQUIRED_DATA";
+/** Why one filter the person chose left an offer out. */
+export interface Rejection {
+  code: RejectionCode;
+  filter: "inStock" | "maxPrice" | "maxDistanceKm";
+  message: string;
+  limit: number | null;
+  actual: number | null;
+  field?: "distance" | "price";
+}
+/** An offer the chosen filters left out. Not a recommendation: it is shown only to explain why it is missing. */
+export interface RejectedOffer {
+  medicine: MedicineRef;
+  pharmacy: PharmacyRef;
+  price: number;
+  stockStatus: StockStatus;
+  distanceKm: number | null;
+  distanceVerified?: boolean;
+  updatedAt: string;
+  source: StockSource;
+  reasons: Rejection[];
+}
+export interface RejectionSummary {
+  /** Offers left out by a chosen filter (all of them, not just those listed). */
+  total: number;
+  byReason: Partial<Record<RejectionCode, number>>;
+  shown: number;
+  truncated: boolean;
+}
+
 export interface SearchResult {
   rank: number;
   score: number;
+  /** The ranking score out of 100 (whole number), and why. Missing from an older API. Not clinical suitability or a promise of stock. */
+  matchPercent?: number;
+  matchReasons?: MatchReason[];
   medicine: MedicineRef;
   pharmacy: PharmacyRef;
   quantity: number;
@@ -74,6 +120,9 @@ export interface SearchResponse {
   sortNote: string | null;
   /** Results shown without a distance because their location is not verified. */
   unverifiedCount: number;
+  /** Offers the chosen filters left out, with why. Empty when no filter was chosen, and for an older API. */
+  rejected: RejectedOffer[];
+  rejectionSummary: RejectionSummary | null;
 }
 
 export interface Substitute {
@@ -224,9 +273,12 @@ export async function searchMedicines(
     maxPrice: f.maxPrice,
     sort: f.sort && f.sort !== "best" ? f.sort : undefined,
   });
-  const body = await getJson<{ data: SearchResult[]; meta?: { live?: boolean; matches?: CatalogueMatch[]; sortNote?: string | null; unverifiedCount?: number } }>(`/api/search?${params}`, opts);
+  const body = await getJson<{ data: SearchResult[]; meta?: { live?: boolean; matches?: CatalogueMatch[]; sortNote?: string | null; unverifiedCount?: number; rejected?: unknown; rejectionSummary?: unknown } }>(`/api/search?${params}`, opts);
   const matches = Array.isArray(body.meta?.matches) ? body.meta.matches : null;
-  return { results: body.data, matches, live: body.meta?.live === true, sortNote: body.meta?.sortNote ?? null, unverifiedCount: body.meta?.unverifiedCount ?? 0 };
+  const rejected = Array.isArray(body.meta?.rejected) ? (body.meta.rejected as RejectedOffer[]).filter((r) => Array.isArray(r?.reasons) && r.reasons.length > 0 && r.medicine && r.pharmacy) : [];
+  const sum = body.meta?.rejectionSummary as Partial<RejectionSummary> | undefined;
+  const rejectionSummary = sum && typeof sum.total === "number" && sum.total >= 0 ? { total: sum.total, byReason: sum.byReason ?? {}, shown: typeof sum.shown === "number" ? sum.shown : rejected.length, truncated: sum.truncated === true } : null;
+  return { results: body.data, matches, live: body.meta?.live === true, sortNote: body.meta?.sortNote ?? null, unverifiedCount: body.meta?.unverifiedCount ?? 0, rejected, rejectionSummary };
 }
 
 /** Same-ingredient medicines that can be bought nearby, for one that is out of stock. */

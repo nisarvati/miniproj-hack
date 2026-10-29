@@ -193,6 +193,7 @@ describe("in the portal", () => {
     "GET /portal/stock": () => ({ body: { data: stock } }),
     "GET /portal/history": () => ({ body: { data: [], meta: { total: 0, limit: 10, offset: 0, hasMore: false } } }),
     "GET /portal/catalogue": () => ({ body: { data: [] } }),
+    "GET /portal/restock-plans": () => ({ body: { data: [], meta: { total: 0, limit: 10, offset: 0, hasMore: false, status: "OPEN" } } }),
   };
 
   it("'Restock this' on an alert opens the restock form for that medicine, ready for a quantity", async () => {

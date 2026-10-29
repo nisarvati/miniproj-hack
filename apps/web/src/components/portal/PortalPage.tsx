@@ -22,6 +22,7 @@ import { useDebounced } from "../../lib/use-debounced";
 import { MapPinIcon, SearchIcon, StoreIcon } from "../ui/icons";
 import { Alert, Button, Card, EmptyState, Input, Select, Skeleton } from "../ui/primitives";
 import { HistoryPanel, TransactionPanel } from "./Movements";
+import { PlanPanel, type PlanRequest } from "./RestockPlans";
 import { RiskPanel } from "./StockRisk";
 
 const message = (err: unknown) => (err instanceof PortalError ? err.message : "Something went wrong.");
@@ -178,7 +179,8 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
   const [notice, setNotice] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
-  const [restockRequest, setRestockRequest] = useState<{ medicineCode: string; nonce: number } | null>(null);
+  const [restockRequest, setRestockRequest] = useState<{ medicineCode: string; quantity?: number; nonce: number } | null>(null);
+  const [planRequest, setPlanRequest] = useState<PlanRequest | null>(null);
   const q = useDebounced(text.trim().toLowerCase(), 200);
 
   const stock = useAsync((signal) => listStock({ signal }), []);
@@ -231,7 +233,15 @@ function StockManager({ session, onSignedOut }: { session: PortalSession; onSign
         <Button variant="secondary" onClick={leave}>Sign out</Button>
       </Card>
 
-      <RiskPanel refreshKey={historyKey} onRestock={(medicineCode) => setRestockRequest({ medicineCode, nonce: Date.now() })} onSignedOut={onSignedOut} />
+      <RiskPanel
+        refreshKey={historyKey}
+        onRestock={(medicineCode) => setRestockRequest({ medicineCode, nonce: Date.now() })}
+        onPlan={(a) => setPlanRequest({ kind: "new", medicineCode: a.medicineCode, nonce: Date.now(), context: a.current && { level: a.current.level, score: a.current.score, quantity: a.current.quantity, threshold: a.current.threshold, summary: a.current.summary } })}
+        onViewPlan={(planId) => setPlanRequest({ kind: "view", planId, nonce: Date.now() })}
+        onSignedOut={onSignedOut}
+      />
+
+      <PlanPanel stock={stock.data ?? undefined} request={planRequest} refreshKey={historyKey} onRecordRestock={(medicineCode, quantity) => setRestockRequest({ medicineCode, quantity, nonce: Date.now() })} onSignedOut={onSignedOut} />
 
       <section aria-label="Stock" className="space-y-4">
         <h2 className="text-lg font-semibold">Managing inventory for {session.pharmacy.name} <span className="text-sm font-normal text-muted">({session.pharmacy.code})</span></h2>

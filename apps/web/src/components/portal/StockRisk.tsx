@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatRelativeTime } from "../../lib/format";
+import { formatDay, formatRelativeTime } from "../../lib/format";
 import { listAlerts, listRisk, PortalError, type PortalAlert, type PortalRisk, type RiskFactor, type RiskLevel } from "../../lib/portal";
 import { useAsync } from "../../lib/use-async";
 import { AlertIcon, CheckIcon } from "../ui/icons";
@@ -53,7 +53,21 @@ const errText = (err: unknown) => (err instanceof PortalError ? err.message : "S
  * low-stock threshold), not a forecast, and says so. Alerts are opened and closed by the server; this only shows them. `refreshKey` changes when
  * stock changed here, `onRestock` hands a medicine to the restock form.
  */
-export function RiskPanel({ refreshKey, onRestock, onSignedOut }: { refreshKey: number; onRestock: (medicineCode: string) => void; onSignedOut: () => void }) {
+export function RiskPanel({
+  refreshKey,
+  onRestock,
+  onSignedOut,
+  onPlan,
+  onViewPlan,
+}: {
+  refreshKey: number;
+  onRestock: (medicineCode: string) => void;
+  onSignedOut: () => void;
+  /** Start a restock plan for an active alert. Only ever a deliberate click: reading alerts never makes a plan. */
+  onPlan?: (alert: PortalAlert) => void;
+  /** Open the plan that already exists for the alert's medicine. */
+  onViewPlan?: (planId: string) => void;
+}) {
   const [page, setPage] = useState({ key: refreshKey, offset: 0 });
   const offset = page.key === refreshKey ? page.offset : 0; // stock changed here: back to the riskiest
   const [showResolved, setShowResolved] = useState(false);
@@ -90,7 +104,7 @@ export function RiskPanel({ refreshKey, onRestock, onSignedOut }: { refreshKey: 
         )}
         {alerts.data && alerts.data.items.length > 0 && (
           <ul className="space-y-2" aria-label="Active low-stock alerts">
-            {alerts.data.items.map((a) => <AlertCard key={a.alertId} a={a} onRestock={onRestock} />)}
+            {alerts.data.items.map((a) => <AlertCard key={a.alertId} a={a} onRestock={onRestock} onPlan={onPlan} onViewPlan={onViewPlan} />)}
           </ul>
         )}
         {alerts.data && alerts.data.total > alerts.data.items.length && <p className="text-sm text-muted">Showing the latest {alerts.data.items.length} of {alerts.data.total} alerts.</p>}
@@ -159,7 +173,9 @@ export function RiskPanel({ refreshKey, onRestock, onSignedOut }: { refreshKey: 
 
 const PAGE = 8;
 
-function AlertCard({ a, onRestock }: { a: PortalAlert; onRestock: (code: string) => void }) {
+const PLAN_STATUS: Record<string, string> = { PLANNED: "planned", IN_PROGRESS: "in progress" };
+
+function AlertCard({ a, onRestock, onPlan, onViewPlan }: { a: PortalAlert; onRestock: (code: string) => void; onPlan?: (a: PortalAlert) => void; onViewPlan?: (planId: string) => void }) {
   const now = a.current;
   return (
     <li>
@@ -176,7 +192,15 @@ function AlertCard({ a, onRestock }: { a: PortalAlert; onRestock: (code: string)
         </div>
         {now && <p className="text-sm">{now.summary}</p>}
         {now && <Factors factors={now.factors} />}
-        <div>
+        {a.restockPlan && (
+          <p className="text-sm">Restock plan: <span className="font-medium">{PLAN_STATUS[a.restockPlan.status] ?? a.restockPlan.status.toLowerCase()}</span>, target <time dateTime={a.restockPlan.targetDate}>{formatDay(a.restockPlan.targetDate)}</time>.</p>
+        )}
+        <div className="flex flex-wrap gap-2">
+          {a.restockPlan ? (
+            onViewPlan && <Button size="sm" variant="secondary" onClick={() => onViewPlan(a.restockPlan!.planId)} aria-label={`View the restock plan for ${a.medicineName}`}>View plan</Button>
+          ) : (
+            onPlan && <Button size="sm" variant="secondary" onClick={() => onPlan(a)} aria-label={`Plan a restock of ${a.medicineName}`}>Plan restock</Button>
+          )}
           <Button size="sm" variant="primary" onClick={() => onRestock(a.medicineCode)} aria-label={`Restock ${a.medicineName}`}>Restock this</Button>
         </div>
       </Card>

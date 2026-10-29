@@ -26,7 +26,8 @@ export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts
   });
 
   // Cookies cross from the web app's origin, so the origin must be listed and credentials allowed.
-  await app.register(cors, { origin: config.corsOrigins, credentials: true, methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"] });
+  // `exposedHeaders`: the web page is on another origin, and can read a CSV download's filename and whether it was cut short only if these are exposed.
+  await app.register(cors, { origin: config.corsOrigins, credentials: true, methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"], exposedHeaders: ["content-disposition", "x-export-truncated"] });
 
   app.addHook("onSend", async (req, reply) => {
     reply.header("x-request-id", req.id);

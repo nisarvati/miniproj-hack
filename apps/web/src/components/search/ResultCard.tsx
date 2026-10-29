@@ -8,6 +8,7 @@ import { Badge, Card, cx, LinkButton } from "../ui/primitives";
 import { DemoBadge, SimulatedInventoryNotice } from "../ui/DemoBadge";
 import { DirectionsActions } from "../pharmacies/DirectionsActions";
 import { AddToCalendar } from "../calendar/AddToCalendar";
+import { MatchInfo } from "./MatchInfo";
 
 /**
  * One pharmacy's listing of one medicine. Medicine first (what it is), then the pharmacy and its distance, then price and stock,
@@ -46,6 +47,7 @@ export function ResultCard({ result, origin, best }: { result: SearchResult; ori
                 <SimulatedInventoryNotice pharmacy={pharmacy} />
               </div>
             )}
+            <div className="mt-2"><MatchInfo result={result} /></div>
             {unavailable && <p className="mt-2 text-sm"><a href={`#alternatives-${medicine.id}`} className="font-semibold underline underline-offset-2">Show substitutes</a> in the restock options above.</p>}
           </div>
 

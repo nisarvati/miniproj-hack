@@ -114,6 +114,8 @@ export interface PortalAlert {
   resolvedAt: string | null;
   resolvedReason: "STOCK_RECOVERED" | "NO_LONGER_STOCKED" | null;
   quantityAtResolution: number | null;
+  /** The open restock plan for this medicine, if staff made one. Never made automatically. Missing from an older API. */
+  restockPlan?: { planId: string; status: PlanStatus; targetDate: string } | null;
   /** Today's assessment of an active alert. null for a resolved one. */
   current: Pick<PortalRisk, "quantity" | "threshold" | "belowThreshold" | "score" | "level" | "summary" | "factors"> | null;
 }
@@ -126,25 +128,57 @@ export interface AlertPage {
   threshold: number | null;
 }
 
+export type PlanStatus = "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+/** OPEN: planned or in progress. */
+export type PlanFilter = PlanStatus | "OPEN" | "ALL";
+/** A restock plan: a planning note only. Completing one does not add stock; recording the restock does. */
+export interface PortalPlan {
+  planId: string;
+  pharmacyCode: string;
+  medicineCode: string;
+  medicineName: string;
+  plannedQuantity: number;
+  status: PlanStatus;
+  /** YYYY-MM-DD, a calendar day. */
+  targetDate: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  completedAt: string | null;
+  byYou: boolean;
+  /** The units on the shelf now, for context. null: no longer listed. */
+  currentQuantity: number | null;
+}
+export interface PlanPage {
+  items: PortalPlan[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
 /** An error whose message is safe to show to pharmacy staff. */
 export class PortalError extends Error {
   constructor(
     message: string,
     public readonly kind: "unauthenticated" | "forbidden" | "invalid" | "notFound" | "conflict" | "tooMany" | "unavailable" | "network" | "unknown",
+    /** For a conflict with an open restock plan: the plan that is already open. */
+    public readonly planId?: string,
   ) {
     super(message);
   }
 }
 
 async function failure(res: Response): Promise<PortalError> {
-  const body = (await res.json().catch(() => ({}))) as { error?: { message?: string; details?: { message: string }[] } };
+  const body = (await res.json().catch(() => ({}))) as { error?: { code?: string; message?: string; details?: { message: string }[] | { planId?: string } } };
   // The portal's 4xx messages are written for staff ("only 3 of Crocin on the shelf"), so they are shown as they are.
-  const message = body.error?.details?.map((d) => d.message).join(". ") || body.error?.message;
+  const details = body.error?.details;
+  const message = (Array.isArray(details) ? details.map((d) => d.message).join(". ") : "") || body.error?.message;
   if (res.status === 401) return new PortalError(message ?? "Please sign in.", "unauthenticated");
   if (res.status === 400) return new PortalError(message ?? "Please check what you entered.", "invalid");
   if (res.status === 403) return new PortalError(message ?? "You don't have access yet.", "forbidden");
   if (res.status === 404) return new PortalError(message ?? "We couldn't find that.", "notFound");
-  if (res.status === 409) return new PortalError(message ?? "That conflicts with the current stock.", "conflict");
+  if (res.status === 409) return new PortalError(message ?? "That conflicts with the current stock.", "conflict", !Array.isArray(details) && typeof details?.planId === "string" ? details.planId : undefined);
   if (res.status === 429) return new PortalError(message ?? "Too many requests. Please try again later.", "tooMany");
   if (res.status === 503) return new PortalError("The portal is temporarily unavailable. Please try again in a moment.", "unavailable");
   return new PortalError("Something went wrong on our side. Please try again.", "unknown");
@@ -215,4 +249,46 @@ export async function listRisk(page: { limit: number; offset: number }, opts: Op
 export async function listAlerts(filter: { state: "ACTIVE" | "RESOLVED" | "ALL"; limit: number; offset: number }, opts: Options = {}): Promise<AlertPage> {
   const { data, meta } = await requestRaw<PortalAlert[]>("GET", `/portal/alerts?state=${filter.state}&limit=${filter.limit}&offset=${filter.offset}`, undefined, opts);
   return pageOf(data, meta, filter);
+}
+
+export async function listPlans(page: { status: PlanFilter; limit: number; offset: number }, opts: Options = {}): Promise<PlanPage> {
+  const { data, meta } = await requestRaw<PortalPlan[]>("GET", `/portal/restock-plans?status=${page.status}&limit=${page.limit}&offset=${page.offset}`, undefined, opts);
+  return { items: data, total: typeof meta.total === "number" ? meta.total : data.length, limit: typeof meta.limit === "number" ? meta.limit : page.limit, offset: typeof meta.offset === "number" ? meta.offset : page.offset, hasMore: meta.hasMore === true };
+}
+export const getPlan = (planId: string, opts: Options = {}) => request<PortalPlan>("GET", `/portal/restock-plans/${encodeURIComponent(planId)}`, undefined, opts);
+/** The pharmacy is the signed-in one and is never sent. A second open plan for the medicine is a 409 whose error carries the open plan's id (`planId`). */
+export const createPlan = (plan: { medicineCode: string; quantity: number; targetDate: string; notes?: string }, opts: Options = {}) => request<PortalPlan>("POST", "/portal/restock-plans", plan, opts);
+export const updatePlan = (planId: string, patch: { status?: PlanStatus; quantity?: number; targetDate?: string; notes?: string | null }, opts: Options = {}) =>
+  request<PortalPlan>("PATCH", `/portal/restock-plans/${encodeURIComponent(planId)}`, patch, opts);
+
+/** Hands a file to the browser as a download. */
+function saveFile(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+/**
+ * Downloads the pharmacy's plans as a CSV file (the same status filter as the list). A real download, not text on the page.
+ * `truncated`: the server cut the file at its limit.
+ */
+export async function downloadPlansCsv(status: PlanFilter, opts: Options = {}): Promise<{ filename: string; truncated: boolean }> {
+  const { signal, fetchImpl = fetch, baseUrl = PORTAL_URL } = opts;
+  let res: Response;
+  try {
+    res = await fetchImpl(`${baseUrl}/portal/restock-plans/export.csv?status=${status}`, { signal, credentials: "include" });
+  } catch (err) {
+    if ((err as Error).name === "AbortError") throw err;
+    throw new PortalError("Can't reach the pharmacy portal. Check your connection and try again.", "network");
+  }
+  if (!res.ok) throw await failure(res);
+  const named = /filename="?([^";]+)"?/.exec(res.headers.get("content-disposition") ?? "")?.[1];
+  const filename = named && /^[A-Za-z0-9._-]+$/.test(named) ? named : "restock-plans.csv";
+  saveFile(await res.blob(), filename);
+  return { filename, truncated: res.headers.get("x-export-truncated") === "true" };
 }

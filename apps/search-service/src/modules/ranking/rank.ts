@@ -97,17 +97,18 @@ export interface RankingStrategy<T extends RankInput = RankInput> {
  *   out-of-stock item should not distort the scale for medicines patients can
  *   actually purchase. If no pharmacy has stock, all items are used as fallback.
  */
-function calculateGroupPriceRanges(items: RankInput[]): Map<number, { min: number; max: number }> {
+export function calculateGroupPriceRanges(items: RankInput[]): Map<number, { min: number; max: number; count: number }> {
   const groups = new Map<number, RankInput[]>();
   for (const item of items) {
     groups.set(item.groupKey, [...(groups.get(item.groupKey) ?? []), item]);
   }
 
-  const ranges = new Map<number, { min: number; max: number }>();
+  // `count` is how many offers set the range: the comparison set a price claim can honestly be made against.
+  const ranges = new Map<number, { min: number; max: number; count: number }>();
   for (const [key, group] of groups) {
     const available = group.filter((g) => g.quantity > 0);
     const prices = (available.length > 0 ? available : group).map((g) => g.price);
-    ranges.set(key, { min: Math.min(...prices), max: Math.max(...prices) });
+    ranges.set(key, { min: Math.min(...prices), max: Math.max(...prices), count: prices.length });
   }
   return ranges;
 }

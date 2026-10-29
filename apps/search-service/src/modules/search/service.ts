@@ -6,7 +6,9 @@ import type { LiveStock } from "../live/live-stock.js";
 import { overlayLive, type BaseOffer, type Offer } from "../live/overlay.js";
 import { getMedicine, sameGeneric, searchMedicines, type Medicine } from "../medicines/repo.js";
 import { parseMedicineQuery } from "../medicines/query.js";
-import { compareDistance, rankOffers, type ScoreBreakdown } from "../ranking/rank.js";
+import { explainMatch, type MatchReason } from "../ranking/match.js";
+import { calculateGroupPriceRanges, compareDistance, rankOffers, type ScoreBreakdown } from "../ranking/rank.js";
+import { evaluateFilters, onlyDistanceUnknown, type Rejection, type RejectionCode } from "./rejection.js";
 
 export type SortKey = "best" | "distance" | "price" | "stock";
 
@@ -23,6 +25,13 @@ export interface SearchResult {
   rank: number;
   score: number;
   scoreBreakdown: ScoreBreakdown;
+  /**
+   * The ranking `score` (0 to 1) as a whole percentage, and why. It is the same score, not a second one: `matchPercent = round(score × 100)` and the
+   * `points` of `matchReasons` add up to it. A ranking-rules measure, not a probability, clinical suitability or a promise of stock (docs/matching.md).
+   * Absent where a search result is reused for something that is not a match (the substitutes list).
+   */
+  matchPercent?: number;
+  matchReasons?: MatchReason[];
   medicine: Omit<Medicine, "relevance">;
   pharmacy: { id: number; code: string; name: string; address: string; latitude: number; longitude: number; demo: boolean; independent: boolean; locationVerified: boolean; inventorySimulated: boolean };
   quantity: number;
@@ -68,7 +77,41 @@ export interface SearchOutcome {
   matches: CatalogueMatch[];
   /** Whether live stock answered. False: everything shown is the catalogue's last known value. */
   live: boolean;
+  /**
+   * Offers that were evaluated and left out by a filter the person asked for (at most REJECTED_SHOWN, in a fixed order), each with every filter it failed.
+   * Never mixed into `results`, and never counted in it. Empty when no filter was requested: there is then nothing to reject.
+   */
+  rejected: RejectedResult[];
+  rejectionSummary: RejectionSummary;
 }
+
+/** An offer a filter left out. The same public details as a result, plus why. */
+export interface RejectedResult {
+  medicine: SearchResult["medicine"];
+  pharmacy: SearchResult["pharmacy"];
+  quantity: number;
+  price: number;
+  stockStatus: StockStatus;
+  distanceKm: number | null;
+  distanceVerified: boolean;
+  updatedAt: string;
+  source: "live" | "catalogue";
+  reasons: Rejection[];
+}
+
+export interface RejectionSummary {
+  /** Offers evaluated and left out by a requested filter (all of them, not only those listed). */
+  total: number;
+  /** Offers that failed each filter. One offer can fail more than one, so these can add up to more than `total`. */
+  byReason: Partial<Record<RejectionCode, number>>;
+  /** How many are listed in `rejected`. */
+  shown: number;
+  truncated: boolean;
+}
+
+/** The most rejected offers listed in a response. The summary always counts all of them. */
+export const REJECTED_SHOWN = 20;
+const noRejections: RejectionSummary = { total: 0, byReason: {}, shown: 0, truncated: false };
 
 const round = (n: number, places: number) => Math.round(n * 10 ** places) / 10 ** places;
 
@@ -78,7 +121,7 @@ export async function searchOffers(
   params: { q: string; location: Coordinates | null; limit: number; filters?: SearchFilters },
 ): Promise<SearchOutcome> {
   const medicines = await searchMedicines(deps.db, parseMedicineQuery(params.q), params.limit);
-  return offersForMedicines(deps, medicines, params.location, params.filters);
+  return offersForMedicines(deps, medicines, params.location, params.filters, { explain: true });
 }
 
 /** The shared core: offers for a set of medicines, from the user's location. */
@@ -87,8 +130,10 @@ export async function offersForMedicines(
   medicines: Medicine[],
   location: Coordinates | null,
   filters: SearchFilters = {},
+  /** `explain`: attach the match percentage and reasons and list the offers the filters left out. Off for callers that only need offers (substitutes). */
+  opts: { explain?: boolean } = {},
 ): Promise<SearchOutcome> {
-  if (!medicines.length) return { results: [], matches: [], live: !!deps.live, sortApplied: filters.sort ?? "best", sortNote: null, unverifiedCount: 0, unverifiedFiltered: 0 };
+  if (!medicines.length) return { results: [], matches: [], live: !!deps.live, sortApplied: filters.sort ?? "best", sortNote: null, unverifiedCount: 0, unverifiedFiltered: 0, rejected: [], rejectionSummary: noRejections };
   const byCode = new Map(medicines.map((m) => [m.code, m]));
 
   const { rows } = await deps.db.query<{
@@ -130,21 +175,17 @@ export async function offersForMedicines(
   // A distance is measured only from a valid origin to a VERIFIED pharmacy point. The internal demo coordinates of a pharmacy
   // shown under a directory identity are never used to claim that it is nearby.
   const validOrigin = location !== null && Number.isFinite(location.latitude) && Number.isFinite(location.longitude);
-  let unverifiedFiltered = 0;
-  const withDistance = wanted
-    .map((o) => ({ o, distanceKm: validOrigin && o.pharmacy.locationVerified && Number.isFinite(o.pharmacy.latitude) && Number.isFinite(o.pharmacy.longitude) ? haversineKm(location, o.pharmacy) : null }))
-    .filter(({ o, distanceKm }) => {
-      if (filters.inStock && o.quantity <= 0) return false;
-      if (filters.maxPrice !== undefined && o.price > filters.maxPrice) return false;
-      if (filters.maxDistanceKm !== undefined) {
-        if (distanceKm === null) {
-          unverifiedFiltered++; // cannot be shown to be within range
-          return false;
-        }
-        if (distanceKm > filters.maxDistanceKm) return false;
-      }
-      return true;
-    });
+  const candidates = wanted.map((o) => ({
+    o,
+    distanceKm: validOrigin && o.pharmacy.locationVerified && Number.isFinite(o.pharmacy.latitude) && Number.isFinite(o.pharmacy.longitude) ? haversineKm(location, o.pharmacy) : null,
+  }));
+  // Every requested filter is evaluated on every candidate by one function (rejection.ts): what it leaves is the result list, what it removes
+  // is explained. A candidate with no failed filter is eligible, however it ranks.
+  const evaluated = candidates.map((c) => ({ ...c, rejections: evaluateFilters({ quantity: c.o.quantity, price: c.o.price, distanceKm: c.distanceKm }, filters) }));
+  const withDistance = evaluated.filter((e) => e.rejections.length === 0);
+  // Offers left out ONLY because their distance could not be established, as before.
+  const unverifiedFiltered = evaluated.filter((e) => onlyDistanceUnknown(e.rejections)).length;
+  const rejectedAll = evaluated.filter((e) => e.rejections.length > 0);
 
   const ranked = rankOffers(
     withDistance.map(({ o, distanceKm }) => ({
@@ -157,6 +198,9 @@ export async function offersForMedicines(
     })),
     { weights: deps.config.ranking.weights, maxDistanceKm: deps.config.ranking.maxDistanceKm, lowStockThreshold: deps.config.LOW_STOCK_THRESHOLD },
   );
+
+  // The price range an offer was scored against (in-stock offers of the same medicine among the eligible ones). A price claim needs 2 or more of them.
+  const priceRanges = calculateGroupPriceRanges(ranked.map((r) => ({ groupKey: r.groupKey, relevance: r.relevance, quantity: r.quantity, price: r.price, distanceKm: r.distanceKm })));
 
   const requested = filters.sort ?? "best";
   const anyVerified = ranked.some((r) => r.distanceKm !== null);
@@ -176,8 +220,34 @@ export async function offersForMedicines(
     sortNote,
     unverifiedCount: ranked.filter((r) => r.distanceKm === null).length,
     unverifiedFiltered,
-    results: ordered.map((r, i) => toResult(r.offer, r, i + 1, deps.config.LOW_STOCK_THRESHOLD)),
+    results: ordered.map((r, i) => toResult(r.offer, r, i + 1, deps.config.LOW_STOCK_THRESHOLD, opts.explain ? { ranking: deps.config.ranking, priceRange: priceRanges.get(r.groupKey) ?? null } : null)),
+    ...(opts.explain ? rejectedView(rejectedAll, deps.config.LOW_STOCK_THRESHOLD) : { rejected: [], rejectionSummary: noRejections }),
   };
+}
+
+/** The offers the filters left out, in a fixed order (medicine, then verified distance with unknown last, then price, then pharmacy), capped, with exact counts. */
+function rejectedView(rejected: { o: Offer; distanceKm: number | null; rejections: Rejection[] }[], lowStockThreshold: number): { rejected: RejectedResult[]; rejectionSummary: RejectionSummary } {
+  const byReason: Partial<Record<RejectionCode, number>> = {};
+  for (const r of rejected) for (const code of new Set(r.rejections.map((x) => x.code))) byReason[code] = (byReason[code] ?? 0) + 1;
+  const ordered = [...rejected].sort(
+    (a, b) => a.o.medicine.id - b.o.medicine.id || compareDistance(a.distanceKm, b.distanceKm) || a.o.price - b.o.price || a.o.pharmacy.id - b.o.pharmacy.id,
+  );
+  const shown = ordered.slice(0, REJECTED_SHOWN).map(({ o, distanceKm, rejections }): RejectedResult => {
+    const m = o.medicine;
+    return {
+      medicine: { id: m.id, code: m.code, brandName: m.brandName, genericName: m.genericName, dosage: m.dosage, form: m.form },
+      pharmacy: o.pharmacy,
+      quantity: o.quantity,
+      price: o.price,
+      stockStatus: stockStatus(o.quantity, lowStockThreshold),
+      distanceKm: distanceKm === null ? null : round(distanceKm, 2),
+      distanceVerified: distanceKm !== null,
+      updatedAt: o.updatedAt.toISOString(),
+      source: o.source,
+      reasons: rejections,
+    };
+  });
+  return { rejected: shown, rejectionSummary: { total: rejected.length, byReason, shown: shown.length, truncated: rejected.length > shown.length } };
 }
 
 /**
@@ -198,13 +268,29 @@ function orderBy<T extends { quantity: number; distanceKm: number | null; price:
 
 function toResult(
   o: Offer,
-  r: { score: number; breakdown: ScoreBreakdown; distanceKm: number | null },
+  r: { score: number; breakdown: ScoreBreakdown; distanceKm: number | null; relevance: number },
   rank: number,
   lowStockThreshold: number,
+  explain: { ranking: Config["ranking"]; priceRange: { min: number; max: number; count: number } | null } | null,
 ): SearchResult {
   const m = o.medicine;
+  const match = explain
+    ? explainMatch({
+        score: r.score,
+        breakdown: r.breakdown,
+        weights: explain.ranking.weights,
+        quantity: o.quantity,
+        price: o.price,
+        distanceKm: r.distanceKm,
+        relevance: r.relevance,
+        maxDistanceKm: explain.ranking.maxDistanceKm,
+        lowStockThreshold,
+        priceRange: explain.priceRange,
+      })
+    : null;
   return {
     rank,
+    ...(match && { matchPercent: match.matchPercent, matchReasons: match.reasons }),
     score: round(r.score, 4),
     scoreBreakdown: {
       availability: round(r.breakdown.availability, 4),

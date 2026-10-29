@@ -23,6 +23,7 @@ const signedIn = (extra: Record<string, () => { status?: number; body?: unknown 
   "GET /portal/history": () => ({ body: { data: [], meta: { total: 0, limit: 10, offset: 0, hasMore: false } } }),
   "GET /portal/alerts": () => ({ body: { data: [], meta: { total: 0, limit: 20, offset: 0, hasMore: false, threshold: 5 } } }),
   "GET /portal/risk": () => ({ body: { data: [], meta: { total: 0, limit: 8, offset: 0, hasMore: false, threshold: 5 } } }),
+  "GET /portal/restock-plans": () => ({ body: { data: [], meta: { total: 0, limit: 10, offset: 0, hasMore: false, status: "OPEN" } } }),
   "GET /portal/catalogue": () => ({ body: { data: [{ medicineCode: "M008", brandName: "Cetzine", genericName: "Cetirizine", dosage: "10mg", form: "tablet" }] } }),
   ...extra,
 });

@@ -103,7 +103,7 @@ same live overlay; a summary of in stock / low / out).
 | Route | What it is |
 |---|---|
 | `/` | The homepage: the V1 landing page (`components/landing/v1/V1Landing`), indexable, canonical link to `/`. It has no app chrome and carries its own header, footer and search. |
-| `/search` | The search app (`SearchPage`). Its URL is its state: `/search?q=Crocin&stock=1&sort=price`. |
+| `/search` | The search app (`SearchPage`). Its URL is its state: `/search?q=Crocin&stock=1&sort=price`. | Each result shows its match percentage and why; with filters on, the listings they left out are explained under "Not matching your filters" (see [matching.md](matching.md)).
 | `/pharmacies`, `/notifications`, `/portal` | Unchanged. |
 | `/landing` | Redirects to `/` (the old comparison index is gone). |
 | `/?q=...` | Redirects to `/search?q=...`, so searches that were shared or bookmarked before the move still work. Both redirects are in `next.config.ts` and are temporary (307) while the homepage settles. |

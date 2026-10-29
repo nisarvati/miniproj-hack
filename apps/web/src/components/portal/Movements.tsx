@@ -34,7 +34,7 @@ export function TransactionPanel({
   onRecorded: () => void;
   onSignedOut: () => void;
   /** Fills the form for a restock of this medicine (from "Restock this" on an alert). A new `nonce` applies it again. */
-  preset?: { medicineCode: string; nonce: number } | null;
+  preset?: { medicineCode: string; quantity?: number; nonce: number } | null;
 }) {
   const [kind, setKind] = useState<Kind>("sale");
   const [code, setCode] = useState("");
@@ -49,7 +49,7 @@ export function TransactionPanel({
     if (!preset) return;
     setKind("restock");
     setCode(preset.medicineCode);
-    setQuantity("");
+    setQuantity(preset.quantity ? String(preset.quantity) : ""); // a planned quantity is only a starting point: staff confirm what actually arrived
     setError(null);
     setDone(null);
     key.current = newKey();

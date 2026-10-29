@@ -1,5 +1,5 @@
 import type { FastifyError, FastifyReply, FastifyRequest } from "fastify";
-import { SimulatorError } from "@medlink/pharmacy-ops";
+import { PlanError, SimulatorError } from "@medlink/pharmacy-ops";
 import { ZodError } from "zod";
 
 /** An error whose message is safe to show to portal users. */
@@ -8,6 +8,7 @@ export class AppError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly details?: unknown,
   ) {
     super(message);
   }
@@ -23,18 +24,29 @@ const STATUS_FOR: Record<SimulatorError["code"], number> = {
   IDEMPOTENCY_KEY_REUSED: 422,
 };
 
+const STATUS_FOR_PLAN: Record<PlanError["code"], number> = {
+  INVALID: 400,
+  NOT_FOUND: 404,
+  NOT_STOCKED: 404,
+  UNKNOWN_PHARMACY: 404,
+  PLAN_ALREADY_OPEN: 409,
+  INVALID_TRANSITION: 409,
+  PLAN_CLOSED: 409,
+};
+
 function send(reply: FastifyReply, req: FastifyRequest, status: number, code: string, message: string, details?: unknown) {
   return reply.status(status).send({ error: { code, message, requestId: req.id, ...(details !== undefined && { details }) } });
 }
 
 export function errorHandler(err: FastifyError | Error, req: FastifyRequest, reply: FastifyReply) {
-  if (err instanceof AppError) return send(reply, req, err.status, err.code, err.message);
+  if (err instanceof AppError) return send(reply, req, err.status, err.code, err.message, err.details);
+  if (err instanceof PlanError) return send(reply, req, STATUS_FOR_PLAN[err.code], err.code === "NOT_FOUND" ? "PLAN_NOT_FOUND" : err.code, err.message, err.details);
   if (err instanceof SimulatorError) return send(reply, req, STATUS_FOR[err.code], err.code, err.message);
   if (err instanceof ZodError) {
     return send(reply, req, 400, "VALIDATION_ERROR", "Invalid request", err.issues.map((i) => ({ field: i.path.join("."), message: i.message })));
   }
-  // The movement history and the low-stock alerts need the pharmacy schema's 003 and 004 migrations: say what to do instead of a bare 500.
-  if ((err as { code?: string }).code === "42P01" && /inventory_movements|stock_alerts/.test(err.message)) {
+  // The movement history, the low-stock alerts and the restock plans need the pharmacy schema's 003, 004 and 005 migrations: say what to do instead of a bare 500.
+  if ((err as { code?: string }).code === "42P01" && /inventory_movements|stock_alerts|restock_plans/.test(err.message)) {
     return send(reply, req, 503, "PHARMACY_SCHEMA_OUTDATED", "This pharmacy's database has not been updated yet. Ask MedLink to run the pharmacy migrations (npm run pharmacies:migrate).");
   }
   const status = (err as FastifyError).statusCode;

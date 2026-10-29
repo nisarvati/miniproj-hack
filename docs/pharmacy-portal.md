@@ -46,6 +46,7 @@ New staff request access on the same page ("Request access for your pharmacy"); 
 | Record a sale | `POST /portal/sales` `{ medicineCode, quantity }` | `SALE`, plus a movement-history row |
 | Record a restock | `POST /portal/restocks` `{ medicineCode, quantity }` | `RESTOCK`, plus a movement-history row |
 | See the movement history | `GET /portal/history?limit&offset` | (read only) |
+| Plan a restock (a note, not stock) | `POST/GET /portal/restock-plans`, `GET/PATCH /portal/restock-plans/:id`, `GET /portal/restock-plans/export.csv` | (planning only; see [restock-planning.md](restock-planning.md)) |
 | See stock risk and low-stock alerts | `GET /portal/risk`, `GET /portal/risk/:code`, `GET /portal/alerts` | (read only; see [stock-risk.md](stock-risk.md)) |
 
 Sales, restocks and the history are described in [inventory-transactions.md](inventory-transactions.md). A quantity change through `PATCH` is also written to the history (marked as a stock count).

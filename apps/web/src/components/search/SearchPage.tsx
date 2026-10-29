@@ -14,6 +14,7 @@ import { AlertIcon, SearchIcon } from "../ui/icons";
 import { Alert, Button, EmptyState, LiveDot, Skeleton } from "../ui/primitives";
 import { FilterBar } from "./FilterBar";
 import { Hero } from "./Hero";
+import { RejectedSection } from "./RejectedSection";
 import { ResultCard } from "./ResultCard";
 import { SearchForm } from "./SearchForm";
 import { UnavailableMedicine } from "./UnavailableMedicine";
@@ -264,6 +265,9 @@ export function SearchPage() {
               <ResultsMap results={results} origin={location} directionsOrigin={explicit ? location : null} originLabel={picked.label} onOpenPharmacy={(id) => router.push(`/pharmacies/${id}`)} />
               </>
             )}
+
+            {/* Only filters the person chose can leave anything out, and only what the API evaluated is listed. Set apart from the results. */}
+            {filters > 0 && !notInCatalogue && <RejectedSection rejected={search.data.rejected} summary={search.data.rejectionSummary} />}
           </>
         )}
       </section>
