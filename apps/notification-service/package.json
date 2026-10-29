@@ -1,0 +1,24 @@
+{
+  "name": "@medlink/notification-service",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env.local src/main.ts",
+    "send-test-email": "tsx --env-file-if-exists=../../.env --env-file-if-exists=.env.local src/send-test-email.ts"
+  },
+  "dependencies": {
+    "@medlink/db": "*",
+    "@medlink/event-schema": "*",
+    "@medlink/inventory-sync": "*",
+    "@medlink/redis": "*",
+    "nodemailer": "^6.10.1",
+    "pino": "^10.0.0"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^6.4.24"
+  }
+}

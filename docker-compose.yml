@@ -1,0 +1,145 @@
+x-redis-node: &redis-node
+  image: redis:7-alpine
+  profiles: ["cluster"]
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-medlink}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-medlink}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - medlink-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-medlink} -d ${POSTGRES_DB:-medlink}"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    # AOF so accepted events survive a restart of this container.
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - medlink-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  # --- Redis Cluster (milestone 10): 3 masters + 3 replicas. Start with `npm run cluster:up`. ---
+  # Nodes announce their service name, so they find each other inside the compose network. Clients on the host
+  # reach them through the published ports and map the names to 127.0.0.1 (see REDIS_CLUSTER_NODES, natMap).
+
+  redis-node-1:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7001", "--cluster-announce-hostname", "redis-node-1", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7001:7001"
+    volumes:
+      - medlink-redis-node-1:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7001", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-node-2:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7002", "--cluster-announce-hostname", "redis-node-2", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7002:7002"
+    volumes:
+      - medlink-redis-node-2:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7002", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-node-3:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7003", "--cluster-announce-hostname", "redis-node-3", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7003:7003"
+    volumes:
+      - medlink-redis-node-3:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7003", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-node-4:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7004", "--cluster-announce-hostname", "redis-node-4", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7004:7004"
+    volumes:
+      - medlink-redis-node-4:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7004", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-node-5:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7005", "--cluster-announce-hostname", "redis-node-5", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7005:7005"
+    volumes:
+      - medlink-redis-node-5:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7005", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-node-6:
+    <<: *redis-node
+    command: ["redis-server", "--port", "7006", "--cluster-announce-hostname", "redis-node-6", "--cluster-preferred-endpoint-type", "hostname", "--cluster-enabled", "yes", "--cluster-config-file", "nodes.conf", "--cluster-node-timeout", "5000", "--appendonly", "yes", "--appendfsync", "everysec"]
+    ports:
+      - "7006:7006"
+    volumes:
+      - medlink-redis-node-6:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7006", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  redis-cluster-init:
+    image: redis:7-alpine
+    profiles: ["cluster"]
+    restart: "no"
+    depends_on:
+      redis-node-1: { condition: service_healthy }
+      redis-node-2: { condition: service_healthy }
+      redis-node-3: { condition: service_healthy }
+      redis-node-4: { condition: service_healthy }
+      redis-node-5: { condition: service_healthy }
+      redis-node-6: { condition: service_healthy }
+    # Creates the cluster once; a no-op when it already exists (the node volumes keep it across restarts).
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if redis-cli -h redis-node-1 -p 7001 cluster info | grep -q 'cluster_state:ok'; then echo "cluster already up"; exit 0; fi
+        redis-cli --cluster create redis-node-1:7001 redis-node-2:7002 redis-node-3:7003 redis-node-4:7004 redis-node-5:7005 redis-node-6:7006 --cluster-replicas 1 --cluster-yes
+
+volumes:
+  medlink-pg:
+  medlink-redis:
+  medlink-redis-node-1:
+  medlink-redis-node-2:
+  medlink-redis-node-3:
+  medlink-redis-node-4:
+  medlink-redis-node-5:
+  medlink-redis-node-6:

@@ -1,0 +1,237 @@
+/*
+ * The medicine calendar: a toolbar and a month that take everything the shared app header (rendered by AppShell above this) leaves. Colour, type and corners come from
+ * the app theme (`.app-theme`, which also supplies the paper texture) through its tokens; the six greens below are mixes of those
+ * tokens with the page's own paper colour, so they follow the theme.
+ *
+ * Tall enough (34rem) and wide enough (48rem): the page (header included, see `.app-shell-fill` in app-theme.css) is exactly the
+ * window and the six week rows share the height.
+ * Otherwise (a phone, a very short window): the page scrolls and each week keeps a readable height.
+ */
+
+.frame {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* ---- toolbar and month ---- */
+
+.main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  /* the grid reads this box's width to decide between entry names and a count */
+  container-type: inline-size;
+}
+
+.toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  padding: 0.75rem max(0.75rem, env(safe-area-inset-left)) 0.5rem;
+}
+@media (min-width: 48rem) {
+  .toolbar { padding: 0.75rem 1.5rem 0.625rem; }
+}
+
+.workspace {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  padding: 0 max(0.5rem, env(safe-area-inset-left)) 0.5rem;
+}
+@media (min-width: 48rem) {
+  .workspace { padding: 0 1.5rem 0.5rem; }
+}
+
+@media (min-width: 48rem) and (min-height: 34rem) {
+  .frame { overflow: hidden; }
+  .main { min-height: 0; }
+}
+
+.grid {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  border: 1px solid var(--ink);
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.weekdays,
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.weekdays {
+  border-bottom: 1px solid var(--ink);
+  background: var(--canvas);
+}
+.weeks {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-auto-rows: minmax(4.5rem, auto);
+}
+.week { min-height: 0; }
+
+@media (min-width: 48rem) and (min-height: 34rem) {
+  .weeks { grid-template-rows: repeat(6, minmax(0, 1fr)); grid-auto-rows: auto; }
+}
+@media (min-width: 48rem) and (max-height: 33.99rem) {
+  .weeks { grid-auto-rows: minmax(6rem, auto); }
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.2rem;
+  overflow: hidden;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0.3rem 0.35rem;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+.week > .cell:last-child { border-right: 0; }
+.week:last-child > .cell { border-bottom: 0; }
+.cell:hover { background: var(--control-hover); }
+.outside { background: color-mix(in srgb, var(--canvas) 70%, var(--surface)); color: var(--muted); }
+.outside .dayNumber { color: var(--muted); font-weight: 500; }
+.selected,
+.selected:hover {
+  background: color-mix(in srgb, var(--brand) 6%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+
+.dayNumber {
+  display: inline-flex;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 0.3rem;
+  font-family: var(--app-mono-stack);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 140ms ease;
+}
+.dayNumber:hover { background: var(--line); }
+.today,
+.today:hover {
+  background: var(--brand);
+  color: var(--on-brand);
+}
+
+.count {
+  display: none;
+  align-self: flex-start;
+  margin-top: 0.125rem;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  padding: 0 0.3rem;
+  color: var(--brand-ink);
+  font-family: var(--app-mono-stack);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+/* ---- the greens ---- */
+
+/* Each shade sets a paper-tinted fill, a hairline, and the bar down the left edge. Text is always the ink colour. */
+.shade0 { --fill: color-mix(in srgb, var(--brand) 9%, var(--surface));  --bar: var(--brand); }
+.shade1 { --fill: color-mix(in srgb, var(--live) 17%, var(--surface));  --bar: var(--live); }
+.shade2 { --fill: color-mix(in srgb, var(--brand) 18%, var(--surface)); --bar: color-mix(in srgb, var(--brand) 60%, var(--live)); }
+.shade3 { --fill: color-mix(in srgb, var(--ok) 15%, var(--surface));    --bar: var(--ok); }
+.shade4 { --fill: color-mix(in srgb, var(--ok) 26%, var(--surface));    --bar: color-mix(in srgb, var(--ok) 70%, var(--brand)); }
+.shade5 { --fill: color-mix(in srgb, var(--brand) 27%, var(--surface)); --bar: var(--brand-strong); }
+
+.chips {
+  display: flex;
+  min-height: 0;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.chip,
+.more {
+  display: flex;
+  height: 20px;
+  min-width: 0;
+  flex: none;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+}
+.chip {
+  border: 1px solid color-mix(in srgb, var(--bar) 35%, var(--surface));
+  border-left: 3px solid var(--bar);
+  border-radius: calc(var(--card-radius-sm) * 0.6);
+  /* a lightly translucent green over the cell, with a 1px cream edge: the card language, kept flat and small for dense cells */
+  background: color-mix(in srgb, var(--fill) 92%, transparent);
+  box-shadow: inset 0 1px 0 var(--card-edge);
+  color: var(--ink);
+  transition: border-color var(--card-dur) var(--card-ease), background-color var(--card-dur) var(--card-ease);
+}
+.chip svg { flex: none; color: var(--bar); }
+.chip:hover {
+  border-color: color-mix(in srgb, var(--bar) 65%, var(--surface));
+  border-left-color: var(--bar);
+  background: var(--fill);
+}
+.done { opacity: 0.72; text-decoration: line-through; }
+.more {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--app-mono-stack);
+  font-size: 0.68rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.more:hover { color: var(--ink); }
+
+/* An entry in the day dialog: the same fill and bar as its chip. */
+.row {
+  border: 1px solid color-mix(in srgb, var(--bar) 35%, var(--surface));
+  border-left: 4px solid var(--bar);
+  border-radius: var(--card-radius-sm);
+  background: color-mix(in srgb, var(--fill) 92%, transparent);
+  box-shadow: inset 0 1px 0 var(--card-edge);
+  padding: 0.75rem 0.875rem;
+}
+
+/* A narrow calendar (a phone) cannot read entry names: show a count, and the day dialog has the names. */
+@container (max-width: 38rem) {
+  .chips { display: none; }
+  .count { display: inline-flex; }
+}
+
+/* ---- motion ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .dayNumber,
+  .chip { transition: none; }
+}

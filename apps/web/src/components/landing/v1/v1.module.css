@@ -1,0 +1,331 @@
+/* Direction 1 — print-tech paper: ivory sheet, oversized grotesk, mono marginalia, one forest-green accent. */
+
+.page {
+  --paper: #f0ede0;
+  --ink: #1a1c17;
+  --soft: #55584b;
+  --rule: rgba(26, 28, 23, 0.28);
+  /* healthcare green: forest for emphasis and action, sage and pale for quiet decoration */
+  --forest: #285c45;
+  --deep: #1e4636;
+  --sage: #a8bca3;
+  --pale: #e5ede2;
+  --botanical: #6f8c70;
+  --accent: var(--forest);
+  --alert: #9a2a2a;
+
+  /* shared-control variables */
+  --lp-bg: var(--paper);
+  --lp-ink: var(--ink);
+  --lp-muted: var(--soft);
+  --lp-rule: var(--rule);
+  --lp-accent: var(--accent);
+  --lp-on-accent: #fff;
+  --lp-ok: #256b41;
+  --lp-low: #8a4a0d;
+  --lp-alert: var(--alert);
+  --ls-btn-bg: var(--forest);
+  --ls-btn-fg: #fff;
+  --ls-btn-hover-bg: var(--deep);
+  --ls-btn-hover-fg: #fff;
+  --av-note-bg: var(--pale);
+  --lp-mono: var(--lp1-mono), ui-monospace, monospace;
+  --slot-bg: #dde6d8;
+  --slot-line: rgba(40, 92, 69, 0.16);
+  --slot-ink: var(--ink);
+  --slot-font: var(--lp1-mono), ui-monospace, monospace;
+  --hdr: 5rem;
+  --footer-h: 10rem;
+  --v1-pad-l: clamp(1.75rem, 5vw, 4.5rem);
+  --v1-pad-r: clamp(1rem, 4vw, 3.5rem);
+  color-scheme: light;
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background-color: var(--paper);
+  /* a faint printed-paper grain, generated here (not an image file) */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1  0 0 0 0 .11  0 0 0 0 .09  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+  color: var(--ink);
+  font-family: var(--lp1-display), "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  padding: 0 var(--v1-pad-r) 0 var(--v1-pad-l);
+}
+
+/* film-strip ticks down the left edge */
+.page::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 14px;
+  border-right: 1px solid var(--forest);
+  background: repeating-linear-gradient(to bottom, var(--botanical) 0 1px, transparent 1px 14px) left / 7px 100% no-repeat;
+  pointer-events: none;
+}
+
+.page a { color: inherit; }
+.page :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 50;
+  padding: 0.6rem 1rem;
+  background: var(--ink);
+  color: var(--paper) !important;
+  font-family: var(--lp1-mono), monospace;
+}
+.skip:focus { top: 0.75rem; }
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  font-family: var(--lp1-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+/* ---- header ---- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: var(--hdr);
+  border-bottom: 1px solid var(--ink);
+}
+.mark {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+.mark span { font-size: 0.7rem; vertical-align: super; margin-left: 0.1rem; font-weight: 400; }
+.nav { display: flex; align-items: center; gap: clamp(0.75rem, 2.4vw, 2rem); font-family: var(--lp1-mono), monospace; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.nav a { text-decoration: none; padding: 0.5rem 0; }
+.nav a:hover { text-decoration: underline; text-underline-offset: 0.3em; }
+.nav .navCta { padding: 0.55rem 0.9rem; background: var(--forest); color: #fff; }
+.nav .navCta:hover { background: var(--deep); text-decoration: none; }
+
+/* ---- hero ---- */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2.4vw, 2.25rem);
+  padding: 0.75rem 0 clamp(0.5rem, 2.5svh, 3rem);
+}
+.hero::before,
+.hero::after {
+  content: "+";
+  position: absolute;
+  font-family: var(--lp1-mono), monospace;
+  font-size: 1rem;
+  color: var(--forest);
+  line-height: 1;
+}
+.hero::before { left: -0.35rem; top: 3.1rem; }
+.hero::after { right: -0.35rem; bottom: 1.5rem; }
+.heroMeta { grid-column: 1 / -1; justify-content: space-between; padding-bottom: clamp(0.5rem, 1.5svh, 1.1rem); }
+.heroText { grid-column: 1 / span 7; padding-top: clamp(0.25rem, 1.2svh, 1.25rem); }
+.kicker {
+  margin: 0 0 clamp(0.6rem, 2svh, 1.25rem);
+  font-family: var(--lp1-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.title {
+  margin: 0;
+  font-size: clamp(3rem, min(7.1vw, 10svh), 7.3rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+}
+.title span { display: block; }
+.title .accent { color: var(--accent); }
+.deck { max-width: 34rem; margin: clamp(0.7rem, 2svh, 1.6rem) 0 clamp(0.8rem, 2.4svh, 1.4rem); font-size: clamp(1rem, 2.4svh, 1.1rem); color: var(--ink); }
+.search { max-width: 40rem; --ls-border: 0; }
+.search [data-ls="field"] { border-bottom: 2px solid var(--ink); }
+.search [data-ls="input"] { padding-left: 0; font-size: 1.4rem; letter-spacing: -0.01em; }
+.secondary {
+  display: inline-block;
+  margin-top: clamp(0.6rem, 2svh, 1.5rem);
+  font-family: var(--lp1-mono), monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-underline-offset: 0.35em;
+}
+.heroArt { grid-column: 8 / -1; grid-row: 2; align-self: start; }
+.slot { border: 1px solid var(--ink); }
+.figCap { justify-content: space-between; margin-top: 0.6rem; }
+
+/* ---- sections ---- */
+.section {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(1rem, 2.4vw, 2.25rem);
+  padding: clamp(2.5rem, 6vw, 5.5rem) 0;
+  border-top: 1px solid var(--ink);
+}
+.section > * { grid-column: 1 / -1; }
+.sectionTag {
+  margin: 0 0 clamp(0.6rem, 2svh, 1.25rem);
+  font-family: var(--lp1-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.sectionTag span { color: var(--accent); margin-right: 0.6rem; }
+.h2 {
+  margin: 0 0 clamp(0.75rem, 2.5svh, 1.5rem);
+  max-width: 16ch;
+  font-size: clamp(2.2rem, min(5.2vw, 8.5svh), 4.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+.lede { max-width: 38rem; margin: 0 0 clamp(0.75rem, 2.5svh, 2rem); font-size: 1.15rem; }
+
+.steps { list-style: none; margin: 1rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(1rem, 2.4vw, 2.25rem); }
+.steps li {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  padding: clamp(0.75rem, 2.6svh, 1.5rem) 0;
+  border-top: 1px solid var(--rule);
+}
+.stepNo { grid-column: 1 / span 2; font-family: var(--lp1-mono), monospace; font-size: 0.85rem; color: var(--accent); }
+.steps h3 { grid-column: 3 / span 5; margin: 0; font-size: clamp(1.5rem, 2.8vw, 2.4rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.05; }
+.steps p { grid-column: 8 / -1; margin: 0; color: var(--soft); max-width: 28rem; }
+
+.avail [data-av="banner"] { border-left-color: var(--forest); }
+.avail [data-av="empty"] { border-left-color: var(--soft); }
+.avail [data-av="notice"] { border-left-color: var(--lp-low); }
+.avail [data-av="error"] { border-left-color: var(--alert); }
+.avail { --lp-bg: var(--paper); --av-head-rule: 2px solid var(--ink); font-size: 1rem; }
+.avail [data-av="table"] { font-family: var(--lp1-display), sans-serif; }
+
+.contoursHow, .contoursFinal { position: absolute; z-index: 0; pointer-events: none; color: var(--botanical); opacity: 0.34; }
+.contoursHow { right: -7rem; top: -1.5rem; width: min(44rem, 74%); }
+.contoursFinal { right: -6rem; bottom: -3rem; width: min(40rem, 70%); opacity: 0.28; }
+.how > *:not(.contoursHow), .final > *:not(.contoursFinal) { position: relative; z-index: 1; }
+
+.guide { display: flex; flex-wrap: wrap; gap: 0.3rem 1.6rem; margin: 0 0 clamp(0.6rem, 2svh, 1.25rem); font-family: var(--lp1-mono), monospace; font-size: 0.7rem; letter-spacing: 0.05em; color: var(--soft); }
+.guide b { font-weight: 500; margin-right: 0.25rem; }
+.guide .gOk { color: var(--lp-ok); }
+.guide .gLow { color: var(--lp-low); }
+.guide .gOut { color: var(--soft); }
+
+.ownership .h2 { grid-column: 1 / span 9; max-width: 18ch; font-size: clamp(2rem, 4.2vw, 3.8rem); }
+.ownCopy { grid-column: 1 / span 5; }
+.ownCopy p { max-width: 30rem; margin: 0 0 1rem; color: var(--soft); }
+.own { grid-column: 7 / -1; align-self: start; margin: 0; border-top: 2px solid var(--ink); }
+.own > div { display: grid; grid-template-columns: 9.5rem 1fr; gap: 1rem; padding: clamp(0.6rem, 1.8svh, 0.95rem) 0; border-bottom: 1px solid var(--rule); }
+.own dt { font-family: var(--lp1-mono), monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); padding-top: 0.2rem; }
+.own dd { margin: 0; font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em; }
+
+/* the perforation before the dark plate */
+.cut { display: flex; justify-content: space-between; margin: 0; padding: 0.55rem 0; border-top: 1px dashed var(--forest); font-family: var(--lp1-mono), monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--soft); }
+
+.staff > p, .staff > h2 { grid-column: 1 / span 6; }
+.staff > div { grid-column: 8 / -1; align-self: end; max-width: 28rem; }
+.staff p { margin: 0 0 1.25rem; }
+.textLink {
+  display: inline-block;
+  padding: 0.7rem 0;
+  border-bottom: 2px solid var(--accent);
+  font-family: var(--lp1-mono), monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.textLink:hover { color: var(--accent); }
+
+.limits { list-style: none; margin: 0; padding: 0; counter-reset: lim; max-width: 44rem; }
+.limits li {
+  counter-increment: lim;
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  padding: clamp(0.6rem, 2svh, 1.1rem) 0;
+  border-top: 1px solid var(--rule);
+}
+.limits li::before { content: "n." counter(lim); font-family: var(--lp1-mono), monospace; font-size: 0.75rem; color: var(--accent); padding-top: 0.3rem; }
+
+.final { position: relative; padding: clamp(3rem, 8vw, 7rem) 0; border-top: 1px solid var(--ink); }
+.finalTitle { margin: 0 0 clamp(0.75rem, 3svh, 2rem); font-size: clamp(3.4rem, min(13vw, 17svh), 13rem); font-weight: 700; line-height: 0.85; letter-spacing: -0.065em; }
+.finalSearch { max-width: 46rem; }
+.finalNote { margin: clamp(0.6rem, 2svh, 1.25rem) 0 0; font-family: var(--lp1-mono), monospace; font-size: 0.74rem; letter-spacing: 0.04em; color: var(--soft); }
+
+.footer { display: grid; gap: 0.75rem; padding: 1.25rem 0 1.5rem; border-top: 1px solid var(--ink); font-size: 0.9rem; position: relative; z-index: 1; }
+.footer p { margin: 0; max-width: 40rem; }
+.footer ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.5rem; list-style: none; margin: 0; padding: 0; font-family: var(--lp1-mono), monospace; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.footer a { display: inline-block; padding: 0.35rem 0; }
+
+/* ---- tablet and phone ---- */
+@media (max-width: 47.99rem) {
+  .heroText { grid-column: 1 / -1; }
+  .heroArt { grid-column: 1 / -1; grid-row: auto; margin-top: 2.5rem; max-width: 34rem; }
+}
+@media (max-width: 62rem) {
+  .steps h3 { grid-column: 3 / -1; }
+  .steps p { grid-column: 3 / -1; margin-top: 0.5rem; }
+  .ownership .h2, .ownCopy, .own { grid-column: 1 / -1; }
+  .own { margin-top: 1.5rem; }
+  .staff > p, .staff > h2, .staff > div { grid-column: 1 / -1; }
+}
+@media (max-width: 40rem) {
+  .search [data-ls="input"] { font-size: 1.1rem; }
+  .nav a:not(.navCta):not(.authLink) { display: none; }
+  .heroMeta span:nth-child(2) { display: none; }
+  .stepNo { grid-column: 1 / span 12; margin-bottom: 0.35rem; }
+  .steps h3, .steps p { grid-column: 1 / -1; }
+}
+
+/* ---- viewport panels (tablet and desktop) ----
+   From 48rem up, every section is one screen: its height is at least the viewport (svh, so browser chrome is
+   accounted for), its content is centred, and type and spacing above are sized with min(vw, svh) so a short window
+   shrinks them instead of overflowing. Phones keep natural height: content grows rather than shrinking or clipping. */
+@media (min-width: 48rem) {
+  .hero { min-height: calc(100svh - var(--hdr)); align-content: center; }
+  /* the slot keeps its 4:5 ratio and its place; on a short window it narrows so the whole image fits the screen */
+  .heroArt { justify-self: end; width: min(100%, calc((100svh - var(--hdr) - 7.5rem) * 0.8)); }
+  .section { min-height: 100svh; align-content: center; padding-block: clamp(1.25rem, 5svh, 5.5rem); }
+  .final { min-height: calc(100svh - var(--footer-h)); display: flex; flex-direction: column; justify-content: center; padding-block: clamp(1.25rem, 5svh, 7rem); }
+}
+@media (min-width: 48rem) and (orientation: portrait) {
+  /* a tall, narrow screen: start the hero at the top rather than floating it in the middle */
+  .hero { align-content: start; padding-top: clamp(0.75rem, 4svh, 3rem); }
+}
+@media (min-width: 48rem) and (max-height: 760px) {
+  /* the decorative meta row goes on a short window; the image slot moves up with the text */
+  .heroMeta { display: none; }
+  .heroArt { grid-row: 1; }
+}
+
+/* availability: the words on the left, the table on the right, so the whole comparison is on one screen */
+@media (min-width: 62rem) {
+  .availability { grid-template-rows: auto auto auto auto 1fr; }
+  .availability > .sectionTag { grid-column: 1 / span 3; grid-row: 1; }
+  .availability > .h2 { grid-column: 1 / span 3; grid-row: 2; max-width: none; font-size: clamp(2rem, min(3.4vw, 6.2svh), 3.4rem); }
+  .availability > .lede { grid-column: 1 / span 3; grid-row: 3; font-size: 1rem; }
+  .availability > .guide { grid-column: 1 / span 3; grid-row: 4; flex-direction: column; align-self: start; }
+  .availability > .avail { grid-column: 4 / -1; grid-row: 1 / span 5; align-self: center; font-size: 0.92rem; }
+  .availability .avail [data-av="table"] td { padding-block: clamp(0.4rem, 1.5svh, 0.9rem); padding-right: 0.75rem; }
+  .availability .avail [data-av="table"] th { padding-right: 0.75rem; }
+  /* one line less per row: the pharmacy's code follows its name, and a medicine's name stays on one line */
+  .availability .avail [data-av="code"] { display: inline; margin-left: 0.45rem; }
+  .availability .avail [data-av="medicine"] { white-space: nowrap; }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@medlink/pharmacy-portal",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "start": "tsx --env-file-if-exists=../../.env src/server.ts",
+    "seed-users": "tsx --env-file-if-exists=../../.env src/seed-users.ts",
+    "users": "tsx --env-file-if-exists=../../.env src/users.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^10.0.0",
+    "@medlink/db": "*",
+    "@medlink/pharmacy-ops": "*",
+    "fastify": "^5.0.0",
+    "zod": "^3.23.0"
+  }
+}

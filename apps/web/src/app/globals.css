@@ -1,0 +1,238 @@
+@import "tailwindcss";
+@import "./app-theme.css";
+
+/*
+ * One set of semantic tokens. Components use these names (bg-surface, text-muted, border-line, ...). MedLink has a single,
+ * light appearance: text/background pairs below keep at least WCAG AA contrast (4.5:1).
+ */
+:root {
+  --canvas: #F3F2EE;
+  --surface: #FFFFFF;
+  --surface-2: #EAE8E1;
+  --line: #DCDAD2;
+  --control-border: #D6D4CC;
+  --control-hover: #F7F6F2;
+  --control-hover-border: #B8B5AA;
+  --control-shadow: 0 1px 2px rgba(20, 26, 24, 0.04);
+  --ink: #141A18;
+  --muted: #4A5550;
+  --placeholder: #7A8580;
+
+  --brand: #1F6E64;
+  --brand-strong: #16534B;
+  --brand-soft: #E3F1EE;
+  --brand-ink: #124740;
+  --focus: #1F6E64;
+  --on-brand: #FFFFFF;
+
+  --ok: #15803D;
+  --ok-soft: #DCFCE7;
+  --ok-border: #86EFAC;
+  --warn: #92400E;
+  --warn-soft: #FFFBEB;
+  --warn-border: #FCD34D;
+  --warn-icon: #D97706;
+  --bad: #9E2432;
+  --bad-soft: #FCECEE;
+  --bad-border: #F4BCC3;
+  --info: #1F6E64;
+  --info-soft: #E3F1EE;
+
+  --action-soft: #F2F9F8;
+  --action-border: #BCE0DC;
+  --live: #10B981;
+  --live-glow: rgba(16, 185, 129, 0.22);
+
+  --shadow-card: 0 1px 2px rgb(20 26 24 / 0.035), 0 5px 18px rgb(20 26 24 / 0.045);
+  --shadow-pop: 0 10px 36px rgb(20 26 24 / 0.14);
+  color-scheme: light;
+}
+
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-control-border: var(--control-border);
+  --color-control-hover: var(--control-hover);
+  --color-control-hover-border: var(--control-hover-border);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-placeholder: var(--placeholder);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-focus: var(--focus);
+  --color-on-brand: var(--on-brand);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ok-border: var(--ok-border);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-border: var(--warn-border);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-bad-border: var(--bad-border);
+  --color-warn-icon: var(--warn-icon);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-action-soft: var(--action-soft);
+  --color-action-border: var(--action-border);
+  --color-live: var(--live);
+  --shadow-control: var(--control-shadow);
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+  --font-sans: "Satoshi", "Avenir Next", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-editorial: var(--font-newsreader), Georgia, "Times New Roman", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--canvas);
+}
+
+body {
+  @apply bg-canvas font-sans text-ink antialiased;
+  font-feature-settings: "cv11", "ss01";
+  min-height: 100vh;
+  background-image: radial-gradient(ellipse at 50% -22rem, color-mix(in srgb, var(--brand-soft) 62%, transparent), transparent 48rem);
+}
+
+::selection {
+  color: var(--brand-ink);
+  background: var(--brand-soft);
+}
+
+.editorial-title {
+  font-family: var(--font-editorial);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.surface-lift {
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.surface-lift:hover {
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--line));
+  box-shadow: var(--shadow-pop);
+  transform: translateY(-2px);
+}
+
+/* Visible keyboard focus everywhere, in the brand colour. In the base layer, so utilities such as outline-none
+   (a field whose wrapper draws its own focus ring) can still override it. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+.search-field {
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.search-field:focus-within {
+  border-width: 2px;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 15%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .surface-lift:hover {
+    transform: none;
+  }
+}
+
+/* Motion for cards, dialogs and popovers: short, one easing, small distances. (The rules that use them are in app-theme.css; the
+   global reduced-motion rule above and each rule's own reduced-motion block turn them off.) */
+@keyframes mx-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mx-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mx-scrim-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mx-panel-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes mx-panel-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(6px) scale(0.99); }
+}
+
+/* The live pulse next to "live stock". */
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 3px var(--live-glow); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 3px var(--live-glow); }
+}
+.live-dot {
+  animation: live-pulse 3s infinite;
+  box-shadow: 0 0 0 3px var(--live-glow);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Map: marker bubbles. */
+.ml-marker {
+  @apply flex items-center justify-center rounded-full border-2 border-white text-[11px] font-bold shadow-md;
+  width: 34px;
+  height: 34px;
+}
+.ml-marker-in { background: var(--ok-soft); color: var(--ok); border-color: var(--ok-border); }
+.ml-marker-low { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-border); }
+.ml-marker-out { background: var(--bad-soft); color: var(--bad); border-color: var(--bad-border); }
+.ml-marker-you { background: var(--info); color: var(--on-brand); width: 18px; height: 18px; border-width: 3px; }
+.leaflet-container { font-family: inherit; }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-pop); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted); }
+
+/* MedLink's visual language: pharmacy ledger, warm paper and clear wayfinding. */
+body { background-image: none; }
+
+.result-card { min-width: 0; }
+.result-card-best { border-left-width: 4px; }
+.pharmacies-view > header { max-width: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, .55fr); column-gap: 3rem; align-items: end; border: 0; padding-bottom: 1.25rem; }
+.pharmacies-view > header h1 { max-width: 15ch; font-size: clamp(2.7rem, 5vw, 4.6rem); }
+.pharmacies-view > header > p:first-child { grid-column: 1; grid-row: 1; }
+.pharmacies-view > header h1 { grid-column: 1; grid-row: 2; }
+.pharmacies-view > header p:last-child { grid-column: 2; grid-row: 2; max-width: 30rem; justify-self: end; line-height: 1.7; }
+.pharmacy-overview h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+.pharmacy-overview dl > div { border-top: 1px solid currentColor; border-radius: 0; padding-inline: .15rem; }
+.pharmacy-view section > ul > li { padding-block: 1.15rem; }
+.notifications-view > header { border: 0; }
+.notifications-view > header h1 { max-width: 11ch; font-size: clamp(2.8rem, 5vw, 4.3rem); line-height: .98; }
+.portal-signin h1 { font-size: 2.8rem; }
+.portal-view ul.divide-y > li { padding-block: 1.1rem; }
+.search-results-view > section > p[aria-live] { font-size: .94rem; }
+.search-results-view > section > p[aria-live] > span:first-child { font-size: 1rem; font-weight: 600; line-height: 1.4; }
+.search-results-view [role="group"] > label { min-height: 2.75rem; }
+.search-results-view select { border-radius: var(--radius-2xl); }
+.search-results-view > section > div[role="alert"], .search-results-view > section > div[role="status"] { border-radius: var(--card-radius-sm); }
+.search-results-view .empty-state { border-radius: var(--radius-2xl); }
+
+@media (max-width: 639px) {
+  .pharmacies-view > header { grid-template-columns: 1fr; gap: .85rem; }
+  .pharmacies-view > header > p:first-child, .pharmacies-view > header h1, .pharmacies-view > header p:last-child { grid-column: 1; grid-row: auto; }
+  .pharmacies-view > header p:last-child { justify-self: start; }
+  .result-card { padding: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .live-dot { animation: none; }
+}

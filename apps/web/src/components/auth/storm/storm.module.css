@@ -1,0 +1,254 @@
+/*
+ * The Medicine Particle Storm: the sign-in page's hero. Layers, back to front: atmosphere and rings, soft current ribbons,
+ * particle trails, drifting specks, then the medicines (far, middle, near). Everything is CSS transforms on nested wrappers
+ * (entrance > drift x > drift y > pointer parallax > sway/tumble > shape), so each object animates independently and nothing
+ * touches layout. Sizes use cqw (1% of the stage width) so the scene scales with its container. The stage is clipped, sits
+ * under the sign-in panel and takes no pointer events.
+ */
+
+.stage {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: clip;
+  border-radius: var(--radius-2xl);
+  pointer-events: none;
+  user-select: none;
+  animation: fadeIn 900ms ease-out both;
+  /* Soft edges: nothing is cut off by a hard line, and the medicines that cross the scene fade in and out at its sides. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 9%, #000 91%, transparent);
+  mask-composite: intersect;
+}
+@media (min-width: 40rem) {
+  .stage { aspect-ratio: 100 / 62; }
+}
+/* Tablet: one column, so keep the picture from growing to the full width of the screen. */
+@media (min-width: 40rem) and (max-width: 63.99rem) {
+  .stage { max-width: 34rem; }
+}
+/* Desktop that is tall enough for one screen: fit the box the page gives it (its container is the sign-in page's art box),
+   as large as the height allows, never wider than the column. */
+@media (min-width: 64rem) and (min-height: 41rem) {
+  .stage { width: min(100cqw, calc(100cqh * 100 / 62)); }
+}
+/* Off screen or in a background tab: stop animating. */
+.stage[data-paused="true"] * { animation-play-state: paused !important; }
+
+.defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ---- background ---- */
+
+.atmos {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 62% at 60% 48%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 72%),
+    radial-gradient(34% 44% at 10% 92%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 96% 8%, color-mix(in srgb, var(--surface-2) 90%, transparent), transparent 70%);
+  transform: translate3d(calc(var(--px) * -0.6cqw), calc(var(--py) * -0.5cqw), 0);
+}
+.ring {
+  position: absolute;
+  left: 58%;
+  top: 46%;
+  width: 72cqw;
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  opacity: 0.8;
+  translate: -50% -50%;
+  animation: breathe 23s ease-in-out infinite alternate;
+}
+.ring + .ring { width: 96cqw; opacity: 0.45; animation-duration: 31s; animation-direction: alternate-reverse; }
+
+.currents,
+.trails {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.currents {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent);
+  transform: translate3d(calc(var(--px) * 0.5cqw), calc(var(--py) * 0.4cqw), 0);
+}
+.cur { fill: none; stroke-linecap: round; }
+.curA { stroke: #a8c0a6; stroke-opacity: 0.28; animation: curA 37s ease-in-out infinite alternate; }
+.curB { stroke: #2b6a50; stroke-opacity: 0.11; stroke-dasharray: 0.62 0.38; animation: prog 41s linear infinite, curB 43s ease-in-out infinite alternate; }
+.curC { stroke: var(--surface); stroke-opacity: 0.85; animation: curC 31s ease-in-out infinite alternate; }
+
+.trails {
+  transform: translate3d(calc(var(--px) * 0.9cqw), calc(var(--py) * 0.7cqw), 0);
+  animation: fadeIn 1.2s ease-out 1s both;
+}
+.trailBase { fill: none; stroke: #a8c0a6; stroke-opacity: 0.3; stroke-width: 1; }
+.dots { fill: none; stroke-linecap: round; }
+.dotsFine { stroke: #2b6a50; stroke-opacity: 0.5; stroke-width: 3; stroke-dasharray: 0.01 15.99; animation: dash160 16s linear infinite; }
+.dotsBold { stroke: #7fa086; stroke-opacity: 0.6; stroke-width: 5; stroke-dasharray: 0.01 31.99; animation: dash320 26s linear infinite reverse; }
+.streakLine {
+  fill: none;
+  stroke: #4f9a76;
+  stroke-opacity: 0.8;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 22 780;
+  stroke-dashoffset: 22;
+  animation: streakRun var(--sdur, 12s) ease-in-out infinite;
+  animation-delay: var(--sdel, 0s);
+}
+@media (max-width: 39.99rem) {
+  .trailDesktop { display: none; }
+}
+
+/* ---- specks ---- */
+
+.specks { position: absolute; inset: 0; transform: translate3d(calc(var(--px) * 1.2cqw), calc(var(--py) * 0.9cqw), 0); }
+.speck {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: calc(var(--ss) * 1cqw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0, var(--sg) 45%, transparent 72%);
+  opacity: 0.45;
+  animation: speck var(--sd) ease-in-out infinite alternate;
+  animation-delay: var(--sp);
+}
+
+/* ---- the medicines ---- */
+
+.objects { position: absolute; inset: 0; z-index: 3; }
+.slot {
+  position: absolute;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  z-index: var(--z);
+  width: calc(var(--w) * 1cqw);
+  translate: -50% -50%;
+}
+@media (max-width: 39.99rem) {
+  .desktop { display: none; }
+}
+
+.enter { animation: enter 1.15s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--ed) * 1s); }
+.dx { animation: dx calc(var(--dxd) * 1s) ease-in-out infinite alternate; animation-delay: calc(var(--dxp) * 1s); }
+.dy { animation: dy calc(var(--dyd) * 1s) ease-in-out infinite alternate; animation-delay: calc(var(--dyp) * 1s); }
+.par { transform: translate3d(calc(var(--px) * var(--depth) * 2.4cqw), calc(var(--py) * var(--depth) * 1.8cqw), 0); }
+.tilt { transform: translate3d(calc(var(--px) * 2.4cqw), calc(var(--py) * 1.8cqw), 0) perspective(60cqw) rotateY(calc(var(--px) * 12deg)) rotateX(calc(var(--py) * -9deg)); will-change: transform; }
+.spin { transform: rotate(var(--rot)); animation: sway calc(var(--sd) * 1s) ease-in-out infinite alternate; animation-delay: calc(var(--sp) * 1s); }
+.tumble { animation: tumble calc(var(--sd) * 1s) linear infinite; animation-delay: calc(var(--sp) * 1s); }
+.body { filter: blur(calc(var(--blur, 0) * 1px)); }
+
+.shape { display: block; width: 100%; height: auto; overflow: visible; }
+.pa { fill: var(--ca); }
+.pb { fill: var(--cb); }
+.shine { transform: translateX(-80px); animation: shine calc(var(--shd, 9) * 1s) ease-in-out infinite; animation-delay: calc(var(--shp, 0) * 1s); }
+/* The hero's second highlight is timed to the first sweeping medicine, so its light rolls over as that one goes by. */
+.shineSync { transform: translateX(-90px); animation: shineSync 18s linear infinite; animation-delay: 4s; }
+
+/* ---- medicines that cross the scene and leave ---- */
+
+.slotPass {
+  position: absolute;
+  left: 0;
+  top: calc(var(--y) * 1%);
+  z-index: var(--z);
+  width: calc(var(--w) * 1cqw);
+  translate: 0 -50%;
+}
+.passer { position: relative; opacity: 0; animation: pass calc(var(--pd) * 1s) linear infinite; animation-delay: calc(var(--pdl) * 1s); }
+.rtl .passer { animation-name: passRtl; }
+.streak {
+  position: absolute;
+  top: 50%;
+  right: 55%;
+  width: calc(var(--w) * 3.6cqw);
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #4f9a76);
+  transform-origin: 100% 50%;
+  transform: translateY(-50%) rotate(var(--rot));
+  opacity: 0;
+  animation: streak calc(var(--pd) * 1s) linear infinite;
+  animation-delay: calc(var(--pdl) * 1s);
+}
+.rtl .streak { right: auto; left: 55%; background: linear-gradient(270deg, transparent, #4f9a76); transform-origin: 0 50%; transform: translateY(-50%) rotate(calc(var(--rot) + 180deg)); }
+
+/* ---- keyframes ---- */
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes breathe { from { scale: 0.97; } to { scale: 1.03; } }
+@keyframes enter {
+  from { opacity: 0; transform: translate(calc(var(--ex) * 1cqw), calc(var(--ey) * 1cqw)) scale(0.6) rotate(-14deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes dx { from { transform: translateX(calc(var(--ax) * -1cqw)); } to { transform: translateX(calc(var(--ax) * 1cqw)); } }
+@keyframes dy { from { transform: translateY(calc(var(--ay) * -1cqw)); } to { transform: translateY(calc(var(--ay) * 1cqw)); } }
+@keyframes sway {
+  from { transform: rotate(calc(var(--rot) - var(--sw) * 1deg)); }
+  to { transform: rotate(calc(var(--rot) + var(--sw) * 1deg)); }
+}
+@keyframes tumble {
+  from { transform: perspective(600px) rotate(var(--rot)) rotate3d(1, 0.35, 0, 0deg); }
+  to { transform: perspective(600px) rotate(var(--rot)) rotate3d(1, 0.35, 0, 360deg); }
+}
+@keyframes shine {
+  0% { transform: translateX(-80px); }
+  45%, 100% { transform: translateX(300px); }
+}
+@keyframes shineSync {
+  0%, 22% { transform: translateX(-90px); }
+  40%, 100% { transform: translateX(310px); }
+}
+@keyframes pass {
+  0% { opacity: 0; transform: translate(-16cqw, 0); }
+  6% { opacity: 1; }
+  44% { opacity: 1; }
+  50%, 100% { opacity: 0; transform: translate(118cqw, calc(var(--rise) * 1cqw)); }
+}
+@keyframes passRtl {
+  0% { opacity: 0; transform: translate(118cqw, 0); }
+  6% { opacity: 1; }
+  44% { opacity: 1; }
+  50%, 100% { opacity: 0; transform: translate(-16cqw, calc(var(--rise) * 1cqw)); }
+}
+@keyframes streak {
+  0%, 16% { opacity: 0; }
+  26% { opacity: 0.65; }
+  36%, 100% { opacity: 0; }
+}
+@keyframes speck {
+  from { opacity: 0.25; transform: translate(0, 0); }
+  to { opacity: 0.75; transform: translate(calc(var(--dx) * 1cqw), calc(var(--dy) * 1cqw)); }
+}
+@keyframes dash160 { to { stroke-dashoffset: -160; } }
+@keyframes dash320 { to { stroke-dashoffset: -320; } }
+@keyframes streakRun {
+  0% { stroke-dashoffset: 22; }
+  62%, 100% { stroke-dashoffset: -780; }
+}
+@keyframes prog { to { stroke-dashoffset: -1; } }
+@keyframes curA { from { transform: translate(-14px, 6px); } to { transform: translate(18px, -10px); } }
+@keyframes curB { from { transform: translate(12px, -8px) scale(1); } to { transform: translate(-16px, 10px) scale(1.04); } }
+@keyframes curC { from { transform: translate(-10px, -6px); } to { transform: translate(14px, 8px); } }
+
+/* Reduced motion: the same composition, held still. Nothing flies in, drifts, tumbles, streams or follows the pointer
+   (the pointer code is not even attached), and the crossing medicines, which only exist as movement, are left out. */
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .stage * {
+    animation: none !important;
+  }
+  .slotPass,
+  .streakLine { display: none; }
+  .speck { opacity: 0.5; }
+}

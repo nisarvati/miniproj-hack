@@ -1,0 +1,273 @@
+/*
+ * The application theme: the approved V1 landing page's identity (warm paper, forest green, grotesk headings, mono
+ * labels, hairline ink rules, almost square corners) applied to the functional pages.
+ *
+ * Everything here is scoped to `.app-theme`, the wrapper AppShell renders around the app's own pages. The homepage (/)
+ * and the landing previews (/landing/*) take AppShell's bare branch, so none of this reaches them, and V1-V5 keep their
+ * own CSS Modules.
+ *
+ * It works by re-pointing the semantic tokens that every component already uses (bg-surface, text-muted, border-line,
+ * bg-brand, ...) and Tailwind's radius scale, so pages are restyled from one place and need no per-page colours.
+ * The values mirror .page in components/landing/v1/v1.module.css.
+ */
+
+:root {
+  --app-paper: #f0ede0;
+  /* the same faint printed-paper grain V1 uses, generated here (not an image file) */
+  --paper-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .1  0 0 0 0 .11  0 0 0 0 .09  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23g)'/></svg>");
+}
+
+/* Behind the page too (overscroll, short pages), but only while an app page is showing. */
+html:has(.app-theme) { background: var(--app-paper); }
+
+.app-theme {
+  /* surfaces and ink */
+  --canvas: #f0ede0;
+  --surface: #f8f6ee;
+  --surface-2: #e5ede2;
+  --line: #cdc9b9;
+  --control-border: #8f8c7c;
+  --control-hover: #ebe8da;
+  --control-hover-border: #55584b;
+  --control-shadow: none;
+  --ink: #1a1c17;
+  --muted: #55584b;
+  --placeholder: #6b6e60;
+
+  /* forest green for action and emphasis; sage and pale green for quiet surfaces */
+  --brand: #285c45;
+  --brand-strong: #1e4636;
+  --brand-soft: #e5ede2;
+  --brand-ink: #1e4636;
+  --focus: #285c45;
+  --on-brand: #ffffff;
+  --info: #285c45;
+  --info-soft: #e5ede2;
+  --action-soft: #eef3ea;
+  --action-border: #a8bca3;
+
+  /* Status keeps its meaning (text and icon always carry it too); only the tones are warmed to sit on paper. */
+  --ok: #256b41;
+  --ok-soft: #e1eedd;
+  --ok-border: #a3cba9;
+  --warn: #7d430b;
+  --warn-soft: #f6ecd5;
+  --warn-border: #d8b46c;
+  --warn-icon: #a8620f;
+  --bad: #9a2a2a;
+  --bad-soft: #f6e4df;
+  --bad-border: #dba9a1;
+  --live: #2f9a63;
+  --live-glow: rgba(47, 154, 99, 0.22);
+
+  --shadow-card: 0 1px 0 rgb(26 28 23 / 0.06);
+  --shadow-pop: 0 10px 30px rgb(26 28 23 / 0.16);
+
+  /* Almost square: V1 has hairline rules and no soft cards. `rounded-full` (pills, dots) is not part of this scale. */
+  --radius-xs: 0;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 6px;
+
+  /* ---- cards: one set of tokens for every card, dialog and popover ----
+     Glass here is restrained: a sage-tinted paper surface that is only slightly translucent, a fine green-tinted rule, a 1px cream
+     edge, and a soft neutral shadow. Blur is for the surfaces that float over other content (dialogs, popovers), never for lists. */
+  --card-tint: color-mix(in srgb, var(--brand) 5%, var(--surface));
+  --card-bg: color-mix(in srgb, var(--card-tint) 88%, transparent);
+  --card-bg-dense: color-mix(in srgb, var(--surface) 97%, transparent);
+  --card-bg-overlay: color-mix(in srgb, var(--surface) 76%, transparent);
+  --card-border: color-mix(in srgb, var(--brand) 16%, var(--line));
+  --card-border-hover: color-mix(in srgb, var(--brand) 40%, var(--line));
+  --card-border-selected: var(--brand);
+  --card-edge: rgb(255 253 246 / 0.7);
+  /* Cards are rounded (the theme's own radii stay nearly square for controls). Nested panels, entries and banners inside a card use the smaller one. */
+  --card-radius: 16px;
+  --card-radius-sm: 10px;
+  --card-blur: 10px;
+  --card-shadow: 0 1px 2px rgb(26 28 23 / 0.04), 0 4px 14px rgb(26 28 23 / 0.05);
+  --card-shadow-hover: 0 1px 2px rgb(26 28 23 / 0.05), 0 8px 22px rgb(26 28 23 / 0.09);
+  --card-lift: -2px;
+  --scrim-blur: 3px;
+  --card-dur: 180ms;
+  --card-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* V1's type, loaded in the root layout (next/font): a grotesk for text and headings, a mono for labels. */
+  --font-editorial: var(--app-display), "Helvetica Neue", Arial, sans-serif;
+  --app-mono-stack: var(--app-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--canvas);
+  background-image: var(--paper-grain);
+  color: var(--ink);
+  font-family: var(--app-display), "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  color-scheme: light;
+}
+
+
+/* Dropdown lists are drawn by the browser: say outright that they are paper and ink, not the browser's default white. */
+.app-theme option,
+.app-theme optgroup {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+/* ---- type ---- */
+
+/* Headings: V1's heavy, tightly set grotesk (the class was a serif before). Line height stays with each heading. */
+.app-theme .editorial-title {
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+/* Small caps labels and kickers are set in the mono, as on V1. */
+.app-theme .uppercase,
+.app-theme .ui-mono {
+  font-family: var(--app-mono-stack);
+}
+
+/* Hero.tsx sets its group titles with the font-editorial utility, which is a literal serif; follow the theme instead. */
+.app-theme .font-editorial {
+  font-family: var(--font-editorial);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.app-theme .section-kicker {
+  font-family: var(--app-mono-stack);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+
+/* ---- cards ----
+   In the components layer, so a utility on one card (a different border colour, padding, overflow) still wins over these defaults. */
+@layer components {
+  .app-theme .mx-card {
+    position: relative;
+    border: 1px solid var(--card-border);
+    border-radius: var(--card-radius);
+    background-color: var(--surface);
+    box-shadow: var(--card-shadow), inset 0 1px 0 var(--card-edge);
+    transition:
+      border-color var(--card-dur) var(--card-ease),
+      box-shadow var(--card-dur) var(--card-ease),
+      background-color var(--card-dur) var(--card-ease),
+      transform var(--card-dur) var(--card-ease);
+  }
+
+  /* Variants. glass: the default, lightly tinted. solid: forms and dense information. quiet: explanatory panels, no depth.
+     overlay: dialogs and popovers. */
+  .app-theme .mx-card--quiet {
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .app-theme .mx-card--overlay {
+    border-color: var(--ink);
+    /* a pane of glass: the shadow below it, a bright edge along the top, and a faint rim all round */
+    box-shadow: var(--shadow-pop), inset 0 1px 0 var(--card-edge), inset 0 0 0 1px rgb(255 253 246 / 0.35);
+  }
+
+  @supports (color: color-mix(in srgb, red, blue)) {
+    .app-theme .mx-card { background-color: var(--card-bg); }
+    .app-theme .mx-card--solid { background-color: var(--card-bg-dense); }
+    .app-theme .mx-card--quiet { background-color: var(--card-bg-dense); }
+    .app-theme .mx-card--overlay { background-color: var(--card-bg-dense); }
+  }
+  /* Blur only where a surface floats over other content, and only if the browser can do it; otherwise the overlay stays near-opaque.
+     The panel is the glass layer (it frosts what is under it); the page behind is only lightly blurred, so it stays recognisable. */
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) and (color: color-mix(in srgb, red, blue)) {
+    .app-theme .mx-card--overlay {
+      background-color: var(--card-bg-overlay);
+      -webkit-backdrop-filter: blur(var(--card-blur));
+      backdrop-filter: blur(var(--card-blur));
+    }
+  }
+
+  /* The page behind a dialog: a light ink veil that frosts what is under it (a blurred, slightly dimmed calendar), so the dialog
+     reads as a pane of glass over the page. Without backdrop-filter support the veil is a little darker instead. */
+  .app-theme .mx-scrim { background-color: rgb(26 28 23 / 0.45); }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .app-theme .mx-scrim {
+      background-color: rgb(26 28 23 / 0.16);
+      -webkit-backdrop-filter: blur(var(--scrim-blur)) saturate(1.1);
+      backdrop-filter: blur(var(--scrim-blur)) saturate(1.1);
+    }
+  }
+
+  /* Feedback: a small lift, a firmer rule, a deeper (still neutral) shadow. Transform only, so nothing around it moves. */
+  @media (hover: hover) {
+    .app-theme .mx-card--interactive:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: var(--card-shadow-hover), inset 0 1px 0 var(--card-edge);
+      transform: translateY(var(--card-lift));
+    }
+  }
+  .app-theme .mx-card--interactive:focus-within { border-color: var(--card-border-hover); }
+  .app-theme .mx-card--interactive:active { transform: none; }
+
+  /* Selected: a solid forest-green rule (no glow). */
+  .app-theme .mx-card--selected,
+  .app-theme .mx-card[aria-current="true"] {
+    border-color: var(--card-border-selected);
+    box-shadow: var(--card-shadow), 0 0 0 1px var(--card-border-selected);
+  }
+
+  /* A card that opens: its content eases in. */
+  .app-theme .mx-details[open] > :not(summary) { animation: mx-fade-in var(--card-dur) var(--card-ease) backwards; }
+  /* A card that appears (a new result): eases in once, never delays the content. */
+  .app-theme .mx-enter { animation: mx-fade-in var(--card-dur) var(--card-ease) backwards; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-theme .mx-card { transition: none; }
+    .app-theme .mx-card--interactive:hover { transform: none; }
+    .app-theme .mx-details[open] > :not(summary),
+    .app-theme .mx-enter { animation: none; }
+  }
+}
+
+/* ---- the shell ---- */
+
+/* The calendar's page: the shared header, then the calendar filling the rest. From tablet width, and tall enough, the page is exactly
+   the window (the calendar manages its own overflow); otherwise it scrolls, with room kept for the phone tab bar. */
+.app-theme.app-shell-fill {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+@media (max-width: 47.99rem) {
+  .app-theme.app-shell-fill { padding-bottom: calc(4rem + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 48rem) and (min-height: 34rem) {
+  .app-theme.app-shell-fill {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+.app-theme .app-theme-header {
+  border-bottom: 1px solid var(--ink);
+  background: color-mix(in srgb, var(--canvas) 94%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.app-theme .app-theme-footer {
+  border-top: 1px solid var(--ink);
+}
+
+/* V1's printed registration mark in the corner of a page, kept faint so dense screens stay calm. */
+.app-theme .app-theme-main::before {
+  content: "+";
+  position: absolute;
+  left: 0.25rem;
+  top: 0.2rem;
+  font-family: var(--app-mono-stack);
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--brand);
+  pointer-events: none;
+}

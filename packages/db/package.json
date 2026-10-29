@@ -1,0 +1,22 @@
+{
+  "name": "@medlink/db",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "migrate": "tsx --env-file-if-exists=../../.env src/cli.ts migrate",
+    "seed": "tsx --env-file-if-exists=../../.env src/cli.ts seed",
+    "catalogue:import": "tsx --env-file-if-exists=../../.env src/cli.ts catalogue:import",
+    "reset": "tsx --env-file-if-exists=../../.env src/cli.ts reset",
+    "pharmacies:setup": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:setup",
+    "pharmacies:status": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:status",
+    "pharmacies:reset": "tsx --env-file-if-exists=../../.env src/cli.ts pharmacies:reset"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  }
+}

@@ -1,0 +1,219 @@
+/*
+ * The patient sign-in page. Colour, type and corners come from the app theme (`.app-theme` in app-theme.css) through its
+ * tokens; nothing here introduces a palette of its own. Motion is brief and decorative, and every animation is switched
+ * off for people who ask for reduced motion (see the last block).
+ */
+
+.page {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+  overflow-x: clip;
+}
+
+.top,
+.grid,
+.foot {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+}
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: max(clamp(0.625rem, 2vh, 1rem), env(safe-area-inset-top));
+}
+
+/* Phone: intro, then the sign-in panel (so the button is on the first screen), then a small picture. */
+.grid {
+  display: grid;
+  flex: 1;
+  align-content: start;
+  gap: 1.25rem;
+  padding-block: 1.25rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "intro" "panel" "art";
+}
+.intro { grid-area: intro; }
+.panelWrap { grid-area: panel; }
+.art { grid-area: art; }
+
+/* Desktop: two columns. The left column is the text, then the picture in whatever height is left; the card is centred on the
+   whole content area. Spacing follows the viewport's height, so a short window gives up gaps before it gives up anything else. */
+@media (min-width: 64rem) {
+  .grid {
+    align-content: stretch;
+    align-items: stretch;
+    column-gap: clamp(3rem, 6vw, 5.5rem);
+    row-gap: clamp(0.5rem, 2vh, 1.5rem);
+    padding-block: clamp(0.5rem, 2.5vh, 2rem) clamp(0.75rem, 3vh, 2.5rem);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 26rem);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas: "intro panel" "art panel";
+  }
+  .panelWrap { align-self: center; }
+}
+
+/* Tall enough for the whole page: it is exactly one screen high, and the picture shrinks to fit what the text leaves.
+   Shorter than this, the page keeps its natural height and scrolls, rather than squeezing the card or the text. */
+@media (min-width: 64rem) and (min-height: 41rem) {
+  .page {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .grid { min-height: 0; }
+  .art {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+  }
+  .artBox {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 0;
+    align-items: flex-end;
+    /* the picture sizes itself from this box (see storm.module.css), so it never makes the page taller */
+    container-type: size;
+  }
+}
+
+.headline {
+  margin-top: 0.75rem;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+.lede {
+  margin-top: 1rem;
+  max-width: 36rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+@media (min-width: 40rem) {
+  .headline { font-size: 3rem; }
+}
+@media (min-width: 64rem) {
+  .headline { margin-top: clamp(0.375rem, 1.2vh, 0.75rem); font-size: clamp(2rem, 0.9rem + 4.7vh, 3.4rem); }
+  .lede { margin-top: clamp(0.5rem, 1.6vh, 1rem); font-size: clamp(0.875rem, 0.55rem + 1.1vh, 1rem); }
+}
+
+/* ---- panel ---- */
+
+.panel {
+  position: relative;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-2xl);
+  background: var(--surface);
+  padding: clamp(1.25rem, 4vw, 2rem);
+  box-shadow: var(--shadow-card);
+}
+.panel::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--brand) 0 28%, transparent 28% 100%);
+  content: "";
+}
+
+.google {
+  display: flex;
+  width: 100%;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: 0.5rem 1rem;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+@media (hover: hover) {
+  .google:not([aria-disabled="true"]):hover {
+    background: var(--control-hover);
+    box-shadow: var(--shadow-pop);
+    transform: translateY(-1px);
+  }
+}
+.google:not([aria-disabled="true"]):active {
+  box-shadow: none;
+  transform: translateY(0) scale(0.99);
+}
+.google[aria-disabled="true"] {
+  background: var(--control-hover);
+  cursor: progress;
+}
+.glyph {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+}
+.spinner {
+  width: 18px;
+  height: 18px;
+  animation: spin 0.9s linear infinite;
+}
+
+/* Always takes its line, so showing the message never moves the panel. */
+.status {
+  display: flex;
+  min-height: 1.5rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* ---- picture ---- */
+
+/* Under the sign-in panel in stacking order: the storm is clipped to its own box and cannot reach the button. */
+.art { position: relative; z-index: 0; min-width: 0; }
+.artBox { min-width: 0; }
+.panelWrap { position: relative; z-index: 2; }
+
+/* ---- entrance ---- */
+
+.foot {
+  padding-bottom: max(clamp(0.625rem, 2vh, 1.25rem), env(safe-area-inset-bottom));
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.foot p { padding-top: clamp(0.5rem, 1.6vh, 1rem); }
+
+.rise {
+  animation: rise 620ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Reduced motion: nothing moves or fades in. The picture is drawn in full, the button still changes, and "Connecting to
+   Google…" is text, so the loading state is understood without the spinner turning. */
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .spinner {
+    animation: none !important;
+  }
+  .google { transition: none; }
+  .google:not([aria-disabled="true"]):hover,
+  .google:not([aria-disabled="true"]):active { transform: none; }
+}

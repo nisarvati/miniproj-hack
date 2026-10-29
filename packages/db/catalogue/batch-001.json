@@ -1,0 +1,2635 @@
+{
+  "batch": "001",
+  "description": "Common, specialty and niche Indian-market medicines. Catalogue identity only: no stock, price or pharmacy association.",
+  "verifiedOn": "2026-10-22",
+  "sources": {
+    "retail-listings": "Product facts (composition, strength, form) read from at least one Indian pharmacy or distributor listing per record (URLs in each record). Facts only; no text, images or prices were copied. These are not regulator records.",
+    "manufacturer-document": "A manufacturer's own product information (Alkem, GSK India, Sanofi India, Torrent, ...) agrees with the listing.",
+    "multiple-sources": "Two or more independent sources, including a regulator or manufacturer document, agree.",
+    "official-list": "Generic names, strengths and forms taken from the Government of India's Pradhan Mantri Bhartiya Janaushadhi Pariyojana (PMBJP) product list, published as an annexure by the Press Information Bureau. Public government information; the record cites the PMBJP drug code.",
+    "single-source": "Only one source was found for the composition, strength and form (a listing, or one regulator document). Treat as needing a second source."
+  },
+  "records": [
+    {
+      "code": "M016",
+      "kind": "brand",
+      "brand": "Zerodol-SP",
+      "generic": "Aceclofenac + Paracetamol + Serratiopeptidase",
+      "dosage": "100mg/325mg/15mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "manufacturer": "Ipca Laboratories",
+      "pack": "10 tablets",
+      "sources": [
+        "https://gnhindia.com/products/zerodol-sp-tablet",
+        "https://truemeds.in/medicine/zerodol-sp-tablet-tm-tacr1-044727",
+        "https://pacehospital.com/zerodol-sp-uses-side-effects-composition-indications-and-price"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M017",
+      "kind": "brand",
+      "brand": "Levocet",
+      "generic": "Levocetirizine",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "manufacturer": "Hetero Healthcare",
+      "pack": "10 tablets",
+      "sources": [
+        "https://medibuddy.in/order-medicines/levocet-tablet-1000464142"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M018",
+      "kind": "brand",
+      "brand": "Montair-LC",
+      "generic": "Montelukast + Levocetirizine",
+      "dosage": "10mg/5mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "pack": "15 tablets",
+      "sources": [
+        "https://medibuddy.in/order-medicines/montair-lc-tablet-410962",
+        "https://truemeds.in/medicine/montair-lc-105-mg-tablet-10-tm-tacr1-025049"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M019",
+      "kind": "brand",
+      "brand": "Omez",
+      "generic": "Omeprazole",
+      "dosage": "20mg",
+      "form": "capsule",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "sources": [
+        "https://gnhindia.com/products/omez-20mg-capsule"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M020",
+      "kind": "brand",
+      "brand": "Omez",
+      "generic": "Omeprazole",
+      "dosage": "40mg",
+      "form": "capsule",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "sources": [
+        "https://gnhindia.com/products/omez-40mg-capsule"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M021",
+      "kind": "brand",
+      "brand": "Pan-D",
+      "generic": "Pantoprazole + Domperidone",
+      "dosage": "40mg/30mg",
+      "form": "capsule",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Alkem Laboratories",
+      "sources": [
+        "https://pacehospital.com/pan-d-capsule-uses-side-effects-composition-dosage-price",
+        "https://truemeds.in/medicine/pan-d-70mg-capsule-pr-15-tm-cacr1-004257"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M022",
+      "kind": "brand",
+      "brand": "Domstal",
+      "generic": "Domperidone",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Torrent Pharmaceuticals",
+      "pack": "10 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/domstal-10mg-strip-of-10-tablets-44258",
+        "https://medibuddy.in/order-medicines/domstal-10mg-tablet-331552"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M023",
+      "kind": "brand",
+      "brand": "Udiliv",
+      "generic": "Ursodeoxycholic Acid",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://gnhindia.com/products/udiliv-300-tablet",
+        "https://pharmeasy.in/online-medicine-order/udiliv-300mg-strip-of-10-tablets-710",
+        "https://medibuddy.in/order-medicines/udiliv-300-tablet-10056277"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M024",
+      "kind": "brand",
+      "brand": "Rifagut",
+      "generic": "Rifaximin",
+      "dosage": "550mg",
+      "form": "tablet",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/medicine/RIF0041",
+        "https://pharmeasy.in/hi/online-medicine-order/rifagut-550mg-tablet-25611",
+        "https://medibuddy.in/order-medicines/rifagut-550-tablet-10195828"
+      ],
+      "evidence": "3-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M025",
+      "kind": "brand",
+      "brand": "Retaunch",
+      "generic": "N-Acetylcysteine + Taurine",
+      "dosage": "150mg/500mg",
+      "form": "tablet",
+      "category": "Nephrology",
+      "status": "verified",
+      "manufacturer": "Medigen Life Sciences",
+      "pack": "10 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/retaunch-strip-of-10-tablets-3580744",
+        "https://truemeds.in/medicine/retaunch-tablet-10-tm-tacr1-109656",
+        "https://platinumrx.in/medicines/retaunch-tablet/1153544",
+        "https://1mg.com/drugs/retaunch-tablet-683534"
+      ],
+      "evidence": "4-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M026",
+      "kind": "brand",
+      "brand": "Thyronorm",
+      "generic": "Levothyroxine",
+      "dosage": "50mcg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://medibuddy.in/order-medicines/thyronorm-50mcg-tablet-412514",
+        "https://pharmeasy.in/online-medicine-order/thyronorm-50mcg-bottle-of-120-tablets-175229",
+        "https://gnhindia.com/products/thyronorm-50mcg-tablet"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M027",
+      "kind": "brand",
+      "brand": "Nexito",
+      "generic": "Escitalopram",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://apollopharmacy.in/otc/nexito-10mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/nexito-10mg-tablet-25091"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M028",
+      "kind": "brand",
+      "brand": "Susten",
+      "generic": "Progesterone",
+      "dosage": "200mg",
+      "form": "capsule",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://apollopharmacy.in/medicine/susten-200mg-capsule",
+        "https://medibuddy.in/order-medicines/susten-200-soft-gelatin-capsule-10196080",
+        "https://pharmeasy.in/online-medicine-order/susten-200mg-strip-of-10-capsules-25244"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M029",
+      "kind": "brand",
+      "brand": "Duphaston",
+      "generic": "Dydrogesterone",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://apollopharmacy.in/medicine/duphaston-10mg-tab-30-s",
+        "https://m.indiamart.com/proddetail/duphaston-10-mg-dydrogesterone-tablet-2857160617033.html"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M030",
+      "kind": "brand",
+      "brand": "Mintop",
+      "generic": "Minoxidil",
+      "dosage": "5%",
+      "form": "solution",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "pack": "60 ml",
+      "sources": [
+        "https://apollopharmacy.in/otc/mintop-5-hair-solution-60-ml",
+        "https://m.indiamart.com/impcat/mintop.html"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M031",
+      "kind": "brand",
+      "brand": "Finpecia",
+      "generic": "Finasteride",
+      "dosage": "1mg",
+      "form": "tablet",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://gnhindia.com/products/finasteride-tablets-ip/",
+        "https://m.indiamart.com/impcat/finpecia-tablet.html"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M032",
+      "kind": "brand",
+      "brand": "Veenat",
+      "generic": "Imatinib",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "manufacturer": "Natco Pharma",
+      "pack": "10 tablets",
+      "sources": [
+        "https://apollopharmacy.in/medicine/veenat-400mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/veenat-400mg-strip-of-10-tablets-25429",
+        "https://gnhindia.com/products/veenat-tablet"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M033",
+      "kind": "brand",
+      "brand": "Tamodex",
+      "generic": "Tamoxifen",
+      "dosage": "20mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "manufacturer": "Zydus Lifesciences",
+      "sources": [
+        "https://gnhindia.com/products/tamodex-20-tablet",
+        "https://apollopharmacy.in/medicine/tamodex-20mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M034",
+      "kind": "brand",
+      "brand": "Femara",
+      "generic": "Letrozole",
+      "dosage": "2.5mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://gnhindia.com/products/femara-2-5-mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/femara-2-5mg-tablet-20753"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M035",
+      "kind": "brand",
+      "brand": "Zytiga",
+      "generic": "Abiraterone Acetate",
+      "dosage": "250mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://gnhindia.com/products/zytiga-250mg-tablet-4202",
+        "https://apollopharmacy.in/medicine/zytiga-250mg-tablet"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M036",
+      "kind": "brand",
+      "brand": "Xeloda",
+      "generic": "Capecitabine",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://gnhindia.com/products/xeloda-500mg-tablet-196",
+        "https://vademecum.es/india/equivalencias/38005866/xeloda-film-coated-tablet-500-mg"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M037",
+      "kind": "brand",
+      "brand": "Folitrax",
+      "generic": "Methotrexate",
+      "dosage": "7.5mg",
+      "form": "tablet",
+      "category": "Oncology and supportive care",
+      "status": "verified",
+      "manufacturer": "Ipca Laboratories",
+      "pack": "10 tablets",
+      "sources": [
+        "https://medibuddy.in/order-medicines/folitrax-7-5-tablet-331377",
+        "https://pharmeasy.in/online-medicine-order/folitrax-7-5mg-strip-of-10-tablets-47763"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M038",
+      "kind": "brand",
+      "brand": "Ondem",
+      "generic": "Ondansetron",
+      "dosage": "4mg",
+      "form": "tablet",
+      "category": "Oncology and supportive care",
+      "status": "verified",
+      "manufacturer": "Alkem Laboratories",
+      "sources": [
+        "https://gnhindia.com/products/ondem-4-mg-tablet",
+        "https://truemeds.in/medicine/ondem-of-4-mg-tablet-6-tm-tacr1-029194"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M039",
+      "kind": "brand",
+      "brand": "Xarelto",
+      "generic": "Rivaroxaban",
+      "dosage": "20mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://gnhindia.com/products/xarelto-20mg-tablet-13",
+        "https://pharmeasy.in/online-medicine-order/xarelto-20mg-box-of-98-tablets-235582"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M040",
+      "kind": "brand",
+      "brand": "Clexane",
+      "generic": "Enoxaparin",
+      "dosage": "40mg/0.4ml",
+      "form": "injection",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Sanofi",
+      "pack": "prefilled syringe",
+      "sources": [
+        "https://gnhindia.com/products/clexane-40mg-0-4ml-pfs",
+        "https://m.indiamart.com/impcat/clexane.html"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M041",
+      "kind": "brand",
+      "brand": "Voritek",
+      "generic": "Voriconazole",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "pack": "4 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/6700",
+        "https://dir.indiamart.com/impcat/voritek-antifungal-drugs.html"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M042",
+      "kind": "brand",
+      "brand": "Pangraf",
+      "generic": "Tacrolimus",
+      "dosage": "1mg",
+      "form": "capsule",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/otc/pangraf-capsule-1mg",
+        "https://pharmeasy.in/online-medicine-order/pangraf-1mg-capsule-21626"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M043",
+      "kind": "brand",
+      "brand": "Exemptia",
+      "generic": "Adalimumab",
+      "dosage": "40mg/0.8ml",
+      "form": "injection",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Zydus Lifesciences",
+      "pack": "prefilled syringe",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/exemptia-40mg-prefilled-syringe-injection-0-8ml-173472",
+        "https://zyduslife.com/public/pdf/pressrelease/PressNote09-12-14.pdf"
+      ],
+      "evidence": "2-sources",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M044",
+      "kind": "brand",
+      "brand": "Zyvox",
+      "generic": "Linezolid",
+      "dosage": "600mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Pfizer",
+      "sources": [
+        "https://gnhindia.com/products/zyvox-600-mg-1-tablet-film-coated",
+        "https://pfizermedicalinformation.com/zyvox/description"
+      ],
+      "evidence": "2-sources",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M045",
+      "kind": "brand",
+      "brand": "Glycomet-GP 1",
+      "generic": "Glimepiride + Metformin",
+      "dosage": "1mg/500mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "USV",
+      "sources": [
+        "https://apollopharmacy.in/otc/glycomet-gp-1mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/glycomet-gp-1mg-tablet-49209",
+        "https://medibuddy.in/order-medicines/glycomet-gp-1-tablet-pr-10176167"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M046",
+      "kind": "brand",
+      "brand": "Amaryl",
+      "generic": "Glimepiride",
+      "dosage": "2mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "Sanofi India",
+      "pack": "30 tablets",
+      "sources": [
+        "https://myupchar.com/en/medicine/amaryl-p37087018/-v103276",
+        "https://m.indiamart.com/impcat/amaryl.html",
+        "https://truemeds.in/medicine/amaryl-2-mg-tablet-30-tm-tacr1-001820"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M047",
+      "kind": "brand",
+      "brand": "Januvia",
+      "generic": "Sitagliptin",
+      "dosage": "100mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/medicine/januvia-100-mg-tablet-7-s",
+        "https://medicines.org.uk/emc/product/7887/smpc/print"
+      ],
+      "evidence": "2-sources (manufacturer sources disagree: omitted)",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M048",
+      "kind": "brand",
+      "brand": "Forxiga",
+      "generic": "Dapagliflozin",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "AstraZeneca",
+      "sources": [
+        "https://gnhindia.com/products/forxiga-10-mg-tablet",
+        "https://hpra.ie/find-a-medicine/for-human-use/authorised-medicines/details/9649"
+      ],
+      "evidence": "2-sources",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M049",
+      "kind": "brand",
+      "brand": "Jardiance",
+      "generic": "Empagliflozin",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "Boehringer Ingelheim",
+      "sources": [
+        "https://apollopharmacy.in/medicine/jardiance-10mg-tablet",
+        "https://gnhindia.com/products/jardiance-10mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M050",
+      "kind": "brand",
+      "brand": "Amlong",
+      "generic": "Amlodipine",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "manufacturer": "Micro Labs",
+      "sources": [
+        "https://apollopharmacy.in/medicine/amlong-5-mg-tablet-30-s",
+        "https://pharmeasy.in/online-medicine-order/amlong-5mg-strip-of-15-tablets-34447"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M051",
+      "kind": "brand",
+      "brand": "Rosuvas",
+      "generic": "Rosuvastatin",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/rosuvas-10mg-strip-of-15-tablets-23026",
+        "https://mercury.1mg.com/medicines/rosuvas-6369"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M052",
+      "kind": "brand",
+      "brand": "Concor",
+      "generic": "Bisoprolol",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "manufacturer": "Merck",
+      "sources": [
+        "https://apollopharmacy.in/medicine/concor-5mg-tablet",
+        "https://gnhindia.com/products/concor-5-mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M053",
+      "kind": "brand",
+      "brand": "Nikoran",
+      "generic": "Nicorandil",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "manufacturer": "Torrent Pharmaceuticals",
+      "sources": [
+        "https://apollopharmacy.in/medicine/nikoran-5mg-tablet",
+        "https://torrentpharma.com/assets/128_5c0a919069.pdf"
+      ],
+      "evidence": "manufacturer-document",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M013",
+      "kind": "brand",
+      "brand": "Telma",
+      "generic": "Telmisartan",
+      "dosage": "40mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "manufacturer": "Glenmark",
+      "sources": [
+        "https://apollopharmacy.in/otc/telma-40mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/telma-40mg-strip-of-15-tablets-11848"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M054",
+      "kind": "brand",
+      "brand": "Shelcal",
+      "generic": "Calcium + Cholecalciferol",
+      "dosage": "500mg/250iu",
+      "form": "tablet",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "manufacturer": "Torrent Pharmaceuticals",
+      "sources": [
+        "https://apollopharmacy.in/medicine/shelcal-500mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/shelcal-500mg-strip-of-15-tablets-9033"
+      ],
+      "evidence": "2-listings (500 mg is elemental calcium)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M055",
+      "kind": "brand",
+      "brand": "Limcee",
+      "generic": "Ascorbic Acid",
+      "dosage": "500mg",
+      "form": "chewable tablet",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "pack": "15 tablets",
+      "sources": [
+        "https://apollopharmacy.in/otc/limcee-500mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/limcee-500mg-orange-flavour-chewable-tablets-15-s-176340"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M056",
+      "kind": "brand",
+      "brand": "Calcirol",
+      "generic": "Cholecalciferol",
+      "dosage": "60000iu",
+      "form": "granules",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "manufacturer": "Cadila Pharmaceuticals",
+      "pack": "1 g sachet",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/calcirol-60000-iu-sachet-1gm-38729",
+        "https://truemeds.in/medicine/calcirol-60000-iu-granules-1-gm-TM-GRES1-000018"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M057",
+      "kind": "brand",
+      "brand": "Betadine",
+      "generic": "Povidone Iodine",
+      "dosage": "5%",
+      "form": "ointment",
+      "category": "First aid and topical",
+      "status": "verified",
+      "manufacturer": "Win-Medicare",
+      "pack": "25 g",
+      "sources": [
+        "https://pharmeasy.in/health-care/products/betadine-5-oint-25gm-29201",
+        "https://apollopharmacy.in/otc/betadine-cream-20g"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M058",
+      "kind": "brand",
+      "brand": "Soframycin",
+      "generic": "Framycetin",
+      "dosage": "1%",
+      "form": "cream",
+      "category": "First aid and topical",
+      "status": "verified",
+      "sources": [
+        "https://sanofi.com/assets/countries/india/docs/science-and-innovation/for-healthcare-professionals/product-information/pharmaceuticals/soframycin-cream.pdf",
+        "https://apollopharmacy.in/otc/soframycin-skin-cream-30gm"
+      ],
+      "evidence": "manufacturer-document (marketer sources disagree: omitted)",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M059",
+      "kind": "brand",
+      "brand": "Candid",
+      "generic": "Clotrimazole",
+      "dosage": "1%",
+      "form": "cream",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "manufacturer": "Glenmark",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/candid-1-cream-30gm-11975",
+        "https://qapharmacyfe.apollopharmacy.in/otc/candid-1-w-w-cream-50g"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M060",
+      "kind": "brand",
+      "brand": "T-Bact",
+      "generic": "Mupirocin",
+      "dosage": "2%",
+      "form": "ointment",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "manufacturer": "GlaxoSmithKline",
+      "sources": [
+        "https://india-pharma.gsk.com/media/6413/t-bact-ointment.pdf",
+        "https://medibuddy.in/order-medicines/t-bact-2-ointment-824956"
+      ],
+      "evidence": "manufacturer-document",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M061",
+      "kind": "brand",
+      "brand": "Electral",
+      "generic": "Oral Rehydration Salts",
+      "dosage": "21.8g",
+      "form": "powder",
+      "category": "First aid and topical",
+      "status": "verified",
+      "manufacturer": "FDC Limited",
+      "pack": "21.8 g sachet",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/electral-powder-21-80gm-45104",
+        "https://pharmeasy.in/online-medicine-order/electral-orange-flavour-sachet-of-21-80gm-powder-237096"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M062",
+      "kind": "brand",
+      "brand": "Asthalin",
+      "generic": "Salbutamol",
+      "dosage": "100mcg",
+      "form": "inhaler",
+      "category": "Respiratory",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "pack": "200 doses",
+      "sources": [
+        "https://apollopharmacy.in/otc/asthalin-inhaler-200mg",
+        "https://medicines.org.uk/emc/product/15454/smpc/print"
+      ],
+      "evidence": "2-sources (per metered dose)",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M063",
+      "kind": "brand",
+      "brand": "Deriphyllin Retard",
+      "generic": "Etofylline + Theophylline",
+      "dosage": "115mg/35mg",
+      "form": "prolonged-release tablet",
+      "category": "Respiratory",
+      "status": "verified",
+      "manufacturer": "Zydus Healthcare",
+      "pack": "30 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/deriphyllin-retard-150-strip-of-30-tablets-30336",
+        "https://lybrate.com/medicine/deriphyllin-retard-150-tablet-pr"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M002",
+      "kind": "brand",
+      "brand": "Dolo",
+      "generic": "Paracetamol",
+      "dosage": "650mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "manufacturer": "Micro Labs",
+      "pack": "15 tablets",
+      "sources": [
+        "https://apollopharmacy.in/otc/dolo-650mg-tablet-15-s",
+        "https://medibuddy.in/order-medicines/dolo-650-tablet-10234972",
+        "https://pacehospital.com/paracetamol-dolo-650-uses-side-effects-composition-and-price"
+      ],
+      "evidence": "3-listings (already seeded as M002; kept so the importer matches it)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M064",
+      "kind": "brand",
+      "brand": "Meftal-Spas",
+      "generic": "Mefenamic Acid + Dicyclomine",
+      "dosage": "250mg/10mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "manufacturer": "Blue Cross Laboratories",
+      "sources": [
+        "https://pharmeasy.in/medicines/meftal-spas-tablet-5071/",
+        "https://myupchar.com/bn/medicine/meftal-spas-p37087408"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M065",
+      "kind": "brand",
+      "brand": "Ultracet",
+      "generic": "Tramadol + Paracetamol",
+      "dosage": "37.5mg/325mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/ultracet-15-s-tablets-15456",
+        "https://practo.com/medicine-info/ultracet-325-37-5-mg-tablet-39737"
+      ],
+      "evidence": "2-listings (marketer entity names differ: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M066",
+      "kind": "brand",
+      "brand": "Avil",
+      "generic": "Pheniramine",
+      "dosage": "25mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "manufacturer": "Sanofi India",
+      "sources": [
+        "https://sanofi.com/assets/countries/india/docs/consumer-healthcare/for-healthcare-professionals/products-information/avil-pi-25072019.pdf",
+        "https://apollopharmacy.in/otc/avil-25mg-tablet"
+      ],
+      "evidence": "manufacturer-document",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M067",
+      "kind": "brand",
+      "brand": "Atarax",
+      "generic": "Hydroxyzine",
+      "dosage": "25mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/medicine/atarax-25mg-tab-10-s",
+        "https://medibuddy.in/order-medicines/atarax-25mg-tablet-10188144",
+        "https://truemeds.in/medicine/atarax-25-mg-tablet-15-TM-TACR1-003369"
+      ],
+      "evidence": "3-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M068",
+      "kind": "brand",
+      "brand": "Razo",
+      "generic": "Rabeprazole",
+      "dosage": "20mg",
+      "form": "tablet",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "sources": [
+        "https://apollopharmacy.in/ta/medicine/razo-20mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/razo-20mg-strip-of-15-tablets-8446"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M069",
+      "kind": "brand",
+      "brand": "Duphalac",
+      "generic": "Lactulose",
+      "dosage": "10g/15ml",
+      "form": "solution",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/duphalac-lemon-flavour-solution-250ml-206732",
+        "https://vidal.fr/medicaments/duphalac-10-g-15-ml-sol-buv-en-sachet-5701.html"
+      ],
+      "evidence": "2-sources (10 g/15 ml = 3.335 g/5 ml)",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M070",
+      "kind": "brand",
+      "brand": "Mesacol",
+      "generic": "Mesalazine",
+      "dosage": "800mg",
+      "form": "delayed-release tablet",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/mesacol-800mg-tablet-25052",
+        "https://truemeds.in/medicine/mesacol-800-mg-tablet-dr-15-tm-tacr1-023972"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M071",
+      "kind": "brand",
+      "brand": "Creon",
+      "generic": "Pancreatin",
+      "dosage": "25000iu",
+      "form": "capsule",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://gnhindia.com/products/creon-25000-77",
+        "https://truemeds.in/medicine/creon-25000-capsule-10-tm-cacr1-001172"
+      ],
+      "evidence": "2-listings (lipase units per capsule)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M072",
+      "kind": "brand",
+      "brand": "Mucinac",
+      "generic": "Acetylcysteine",
+      "dosage": "600mg",
+      "form": "effervescent tablet",
+      "category": "Respiratory",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "sources": [
+        "https://gnhindia.com/products/mucinac-600-tablet",
+        "https://pharmeasy.in/online-medicine-order/mucinac-600mg-orange-flavour-sugar-free-strip-of-10-tablets-6208"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M073",
+      "kind": "brand",
+      "brand": "Ascoril LS",
+      "generic": "Ambroxol + Levosalbutamol + Guaifenesin",
+      "dosage": "30mg/1mg/50mg",
+      "form": "syrup",
+      "category": "Respiratory",
+      "status": "verified",
+      "manufacturer": "Glenmark",
+      "sources": [
+        "https://pharmeasy.in/medicines/ascoril-ls-expectorant-100ml-35526/",
+        "https://pacehospital.com/ascoril-ls-syrup"
+      ],
+      "evidence": "2-listings (per 5 ml; one dissenting listing)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M074",
+      "kind": "brand",
+      "brand": "Eptoin",
+      "generic": "Phenytoin",
+      "dosage": "100mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://apollopharmacy.in/medicine/eptoin-100mg-tablet",
+        "https://gnhindia.com/products/eptoin-100mg-tablet",
+        "https://medibuddy.in/order-medicines/eptoin-tablet-1000048159"
+      ],
+      "evidence": "3-listings (salt form differs between listings)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M075",
+      "kind": "brand",
+      "brand": "Tegrital",
+      "generic": "Carbamazepine",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Novartis India",
+      "sources": [
+        "https://myupchar.com/bn/medicine/tegrital-p37094960/-v123046"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M076",
+      "kind": "brand",
+      "brand": "Levipil",
+      "generic": "Levetiracetam",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://medibuddy.in/order-medicines/levipil-500-tablet-41541",
+        "https://pharmeasy.in/online-medicine-order/levipil-500mg-strip-of-10-tablets-25014",
+        "https://truemeds.in/medicine/levipil-500-mg-tablet-15-TM-TACR1-069172"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M077",
+      "kind": "brand",
+      "brand": "Vertin",
+      "generic": "Betahistine",
+      "dosage": "16mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Abbott India",
+      "sources": [
+        "https://apollopharmacy.in/medicine/vertin-16mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/vertin-16mg-strip-of-10-tablets-715"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M078",
+      "kind": "brand",
+      "brand": "Serta",
+      "generic": "Sertraline",
+      "dosage": "50mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/otc/serta-50mg-tablet",
+        "https://truemeds.in/medicine/serta-50-mg-tablet-15-tm-tacr1-036222"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M079",
+      "kind": "brand",
+      "brand": "Restyl",
+      "generic": "Alprazolam",
+      "dosage": "0.25mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/restyl-0-25mg-tablet-6321",
+        "https://netmeds.com/product/restyl-025mg-tablet-15s-lugecy-7857600"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M080",
+      "kind": "brand",
+      "brand": "Syndopa",
+      "generic": "Levodopa + Carbidopa",
+      "dosage": "100mg/10mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://gnhindia.com/products/syndopa-110-tablet",
+        "https://pharmeasy.in/online-medicine-order/syndopa-110mg-tablet-25252",
+        "https://apollopharmacy.in/medicine/syndopa-110mg-tablet"
+      ],
+      "evidence": "3-listings (the 110 in the name is the combined 100+10 mg)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M081",
+      "kind": "brand",
+      "brand": "Suminat",
+      "generic": "Sumatriptan",
+      "dosage": "50mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://apollopharmacy.in/otc/suminat-50mg-tablet-1-s",
+        "https://gnhindia.com/products/suminat-50mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M082",
+      "kind": "brand",
+      "brand": "Pregeb",
+      "generic": "Pregabalin",
+      "dosage": "75mg",
+      "form": "capsule",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Torrent Pharmaceuticals",
+      "sources": [
+        "https://apollopharmacy.in/medicine/pregeb-75mg-capsule",
+        "https://pharmeasy.in/online-medicine-order/pregeb-75mg-capsule-26843"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M083",
+      "kind": "brand",
+      "brand": "Lithosun",
+      "generic": "Lithium Carbonate",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://apollopharmacy.in/otc/lithosun-300mg-tablet",
+        "https://gnhindia.com/products/lithosun-300mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M084",
+      "kind": "brand",
+      "brand": "Nefrosave",
+      "generic": "N-Acetylcysteine + Taurine",
+      "dosage": "150mg/500mg",
+      "form": "tablet",
+      "category": "Nephrology",
+      "status": "verified",
+      "manufacturer": "Fourrts India Laboratories",
+      "pack": "15 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/nefrosave-tablet-10772",
+        "https://apollopharmacy.in/otc/nefrosave-tablet",
+        "https://truemeds.in/medicine/nefrosave-tablet-15-TM-TACR1-026091"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M085",
+      "kind": "brand",
+      "brand": "Nefrozon",
+      "generic": "N-Acetylcysteine + Taurine",
+      "dosage": "150mg/500mg",
+      "form": "tablet",
+      "category": "Nephrology",
+      "status": "verified",
+      "manufacturer": "Mankind Pharma",
+      "pack": "10 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/nefrozon-tablet-18394",
+        "https://netmeds.com/product/nefrozon-tablet-10s-lui5tp-8310912",
+        "https://apollopharmacy.in/medicine/nefrozon-tablet"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M086",
+      "kind": "brand",
+      "brand": "Renosave",
+      "generic": "N-Acetylcysteine + Taurine",
+      "dosage": "150mg/500mg",
+      "form": "tablet",
+      "category": "Nephrology",
+      "status": "verified",
+      "manufacturer": "Alniche Life Sciences",
+      "pack": "15 tablets",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/renosave-tab-3065",
+        "https://apollopharmacy.in/otc/renosave-tablet",
+        "https://csc.1mg.com/drugs/renosave-tablet-990123"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M087",
+      "kind": "brand",
+      "brand": "Taxim-O",
+      "generic": "Cefixime",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Alkem Laboratories",
+      "pack": "10 tablets",
+      "sources": [
+        "https://alkemlabs.com/pdf/adverse/Taxim-O%20200%20%26%20400mg%20Tablet.pdf",
+        "https://apollopharmacy.in/medicine/taxim-o-200mg-tablet"
+      ],
+      "evidence": "manufacturer-document",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M088",
+      "kind": "brand",
+      "brand": "Clavam",
+      "generic": "Amoxicillin + Clavulanic Acid",
+      "dosage": "625mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Alkem Laboratories",
+      "pack": "10 tablets",
+      "sources": [
+        "https://apollopharmacy.in/medicine/clavam-625mg-tablet",
+        "https://medibuddy.in/order-medicines/clavam-625-tablet-359326",
+        "https://gnhindia.com/products/clavam-625-tablet"
+      ],
+      "evidence": "3-listings (625 = 500 mg amoxicillin + 125 mg clavulanic acid; same convention as Augmentin M006)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M089",
+      "kind": "brand",
+      "brand": "Monocef",
+      "generic": "Ceftriaxone",
+      "dosage": "1g",
+      "form": "injection",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Aristo Pharmaceuticals",
+      "pack": "1 vial",
+      "sources": [
+        "https://apollopharmacy.in/otc/monocef-injection-1gm",
+        "https://pharmeasy.in/online-medicine-order/monocef-1gm-inj-3604",
+        "https://truemeds.in/medicine/monocef-1000-mg-injection-1-gm-tm-inon2-005263"
+      ],
+      "evidence": "3-listings (powder for injection)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M090",
+      "kind": "brand",
+      "brand": "Zifi",
+      "generic": "Cefixime",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "FDC Limited",
+      "pack": "10 tablets",
+      "sources": [
+        "https://apollopharmacy.in/otc/zifi-200mg-tablet",
+        "https://medibuddy.in/order-medicines/zifi-200-tablet-379715",
+        "https://pharmeasy.in/medicines/zifi-200mg-tablet-10311/"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M091",
+      "kind": "brand",
+      "brand": "Oflox",
+      "generic": "Ofloxacin",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "sources": [
+        "https://extranet.who.int/prequal/sites/default/files/whopar_files/TB224part6v1.pdf"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M092",
+      "kind": "brand",
+      "brand": "Zovirax",
+      "generic": "Aciclovir",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "GlaxoSmithKline",
+      "pack": "10 tablets",
+      "sources": [
+        "https://medkart.in/hi/composition/aciclovir-acyclovir-400-mg",
+        "https://gnhindia.com/products/zovirax-400mg-tablet"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M093",
+      "kind": "brand",
+      "brand": "Fluvir",
+      "generic": "Oseltamivir",
+      "dosage": "75mg",
+      "form": "capsule",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Hetero Healthcare",
+      "pack": "10 capsules",
+      "sources": [
+        "https://apollopharmacy.in/medicine/fluvir-75mg-capsule",
+        "https://gnhindia.com/products/fluvir-75mg"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M094",
+      "kind": "brand",
+      "brand": "Tenvir",
+      "generic": "Tenofovir Disoproxil Fumarate",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "pack": "30 tablets",
+      "sources": [
+        "https://apollopharmacy.in/otc/tenvir-300mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/tenvir-300mg-bottle-of-30-tablets-6374",
+        "https://gnhindia.com/products/tenvir-tablet"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M095",
+      "kind": "brand",
+      "brand": "HCQS",
+      "generic": "Hydroxychloroquine",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Ipca Laboratories",
+      "sources": [
+        "https://apollopharmacy.in/medicine/hcqs-200mg-tablet-10-s",
+        "https://ndf.gov.sg/about-drugs/product-information/SIN16632P/"
+      ],
+      "evidence": "2-sources",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M096",
+      "kind": "brand",
+      "brand": "Akurit-4",
+      "generic": "Rifampicin + Isoniazid + Pyrazinamide + Ethambutol",
+      "dosage": "150mg/75mg/400mg/275mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "manufacturer": "Lupin",
+      "pack": "6 tablets per blister",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/akurit-4-tablet-33310",
+        "https://apollopharmacy.in/medicine/akurit-4-kit-tablet",
+        "https://truemeds.in/medicine/akurit-4-15075275400-mg-tablet-10-tm-tacr1-001082"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M097",
+      "kind": "brand",
+      "brand": "Ivecop",
+      "generic": "Ivermectin",
+      "dosage": "12mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://1mg.com/drugs/ivecop-12-tablet-33374",
+        "https://medibuddy.in/order-medicines/ivecop-12-tablet-303427"
+      ],
+      "evidence": "2-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M098",
+      "kind": "brand",
+      "brand": "Scabper",
+      "generic": "Permethrin",
+      "dosage": "5%",
+      "form": "lotion",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/otc/scabper-lotion-60ml",
+        "https://pharmeasy.in/online-medicine-order/scabper-5-lotion-60ml-19228",
+        "https://1mg.com/medicines/scabper-22542"
+      ],
+      "evidence": "3-listings (manufacturer sources disagree: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M099",
+      "kind": "brand",
+      "brand": "Unwanted-72",
+      "generic": "Levonorgestrel",
+      "dosage": "1.5mg",
+      "form": "tablet",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "manufacturer": "Mankind Pharma",
+      "sources": [
+        "https://apollopharmacy.in/otc/UNW0005",
+        "https://csc.1mg.com/otc/unwanted-72-tablet-otc191883"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M100",
+      "kind": "brand",
+      "brand": "Cabgolin",
+      "generic": "Cabergoline",
+      "dosage": "0.5mg",
+      "form": "tablet",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "pack": "4 tablets",
+      "sources": [
+        "https://apollopharmacy.in/medicine/cabgolin-0-5mg-tablet",
+        "https://truemeds.in/medicine/cabgolin-05-mg-tablet-4-tm-tacr1-006005",
+        "https://pharmeasy.in/online-medicine-order/cabgolin-0-5mg-tablet-38552"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M101",
+      "kind": "brand",
+      "brand": "Pregnyl",
+      "generic": "Chorionic Gonadotrophin",
+      "dosage": "5000iu",
+      "form": "injection",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "manufacturer": "Organon India",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/pregnyl-5000iu-inj-1ml-21330",
+        "https://truemeds.in/medicine/pregnyl-5000-iu-injection-1-ml-tm-inon2-006623"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M102",
+      "kind": "brand",
+      "brand": "Dutas",
+      "generic": "Dutasteride",
+      "dosage": "0.5mg",
+      "form": "capsule",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "sources": [
+        "https://m.indiamart.com/proddetail/dutas-0-5mg-capsules-25670471062.html",
+        "https://gnhindia.com/products/dutas-capsule",
+        "https://dev-pharmacy.apollopharmacy.in/medicine/dutas-capsule"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M103",
+      "kind": "brand",
+      "brand": "Lulifin",
+      "generic": "Luliconazole",
+      "dosage": "1%",
+      "form": "cream",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "manufacturer": "Sun Pharma",
+      "sources": [
+        "https://apollopharmacy.in/medicine/lulifin-cream-10gm",
+        "https://gnhindia.com/products/lulifin-cream"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M104",
+      "kind": "brand",
+      "brand": "Temodal",
+      "generic": "Temozolomide",
+      "dosage": "100mg",
+      "form": "capsule",
+      "category": "Oncology",
+      "status": "verified",
+      "manufacturer": "MSD",
+      "sources": [
+        "https://medkart.in/hi/order-medicine/temodal-100mg-capsule-5s",
+        "https://medicines.org.uk/emc/medicine/7027"
+      ],
+      "evidence": "2-sources",
+      "verification": "multiple-sources"
+    },
+    {
+      "code": "M105",
+      "kind": "brand",
+      "brand": "Eltroxin",
+      "generic": "Levothyroxine",
+      "dosage": "100mcg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "manufacturer": "GlaxoSmithKline",
+      "sources": [
+        "https://india-pharma.gsk.com/media/6368/eltroxin-tablets.pdf",
+        "https://pharmeasy.in/online-medicine-order/eltroxin-100mcg-tab-100-s-45199"
+      ],
+      "evidence": "manufacturer-document (the GSK document calls the ingredient thyroxine sodium)",
+      "verification": "manufacturer-document"
+    },
+    {
+      "code": "M106",
+      "kind": "brand",
+      "brand": "Duolin",
+      "generic": "Levosalbutamol + Ipratropium",
+      "dosage": "1.25mg/500mcg",
+      "form": "inhalation solution",
+      "category": "Respiratory",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/duolin-1-25mg-500mcg-packet-of-2-5ml-1-5-respules-44586",
+        "https://kogland.com/duolin-3-respule-3-ml"
+      ],
+      "evidence": "2-listings (Duolin LD is a different strength: not imported)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M107",
+      "kind": "brand",
+      "brand": "Evion",
+      "generic": "Tocopheryl Acetate",
+      "dosage": "400mg",
+      "form": "capsule",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "sources": [
+        "https://apollopharmacy.in/otc/evion-400mg-capsule",
+        "https://pharmeasy.in/online-medicine-order/evion-400mg-strip-of-20-capsule-3110481"
+      ],
+      "evidence": "2-listings (marketer changed Merck to P&G: omitted)",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M108",
+      "kind": "brand",
+      "brand": "Nise",
+      "generic": "Nimesulide",
+      "dosage": "100mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "manufacturer": "Dr Reddy's Laboratories",
+      "sources": [
+        "https://apollopharmacy.in/otc/nise-100mg-tablet",
+        "https://truemeds.in/medicine/nise-100-mg-tablet-15-tm-tacr1-027023"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M109",
+      "kind": "brand",
+      "brand": "Cellcept",
+      "generic": "Mycophenolate Mofetil",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "manufacturer": "Roche",
+      "sources": [
+        "https://vademecum.es/india/equivalencias/38015828/cellcept-film-coated-tablet-500-mg"
+      ],
+      "evidence": "1-source",
+      "verification": "single-source"
+    },
+    {
+      "code": "M110",
+      "kind": "brand",
+      "brand": "Okacet",
+      "generic": "Cetirizine",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "manufacturer": "Cipla",
+      "sources": [
+        "https://apollopharmacy.in/otc/okacet-10mg-tablet",
+        "https://pharmeasy.in/online-medicine-order/okacet-10mg-tab-6261"
+      ],
+      "evidence": "2-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M111",
+      "kind": "brand",
+      "brand": "Cyclopam",
+      "generic": "Dicyclomine + Paracetamol",
+      "dosage": "20mg/500mg",
+      "form": "tablet",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "manufacturer": "Indoco Remedies",
+      "sources": [
+        "https://pharmeasy.in/online-medicine-order/cyclopam-tab-10-s-42474",
+        "https://medibuddy.in/order-medicines/cyclopam-tablet-10182080",
+        "https://pacehospital.com/cyclopam-tablet-uses-side-effects-composition-and-dosage"
+      ],
+      "evidence": "3-listings",
+      "verification": "retail-listings"
+    },
+    {
+      "code": "M112",
+      "kind": "generic",
+      "brand": "Paracetamol",
+      "generic": "Paracetamol",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 23"
+    },
+    {
+      "code": "M113",
+      "kind": "generic",
+      "brand": "Ibuprofen",
+      "generic": "Ibuprofen",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Pain and fever",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 16"
+    },
+    {
+      "code": "M114",
+      "kind": "generic",
+      "brand": "Diclofenac",
+      "generic": "Diclofenac",
+      "dosage": "1.16%",
+      "form": "gel",
+      "category": "Pain and fever",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 7"
+    },
+    {
+      "code": "M115",
+      "kind": "generic",
+      "brand": "Metformin",
+      "generic": "Metformin",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 145"
+    },
+    {
+      "code": "M116",
+      "kind": "generic",
+      "brand": "Glimepiride",
+      "generic": "Glimepiride",
+      "dosage": "2mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 138"
+    },
+    {
+      "code": "M117",
+      "kind": "generic",
+      "brand": "Sitagliptin",
+      "generic": "Sitagliptin",
+      "dosage": "100mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1803"
+    },
+    {
+      "code": "M118",
+      "kind": "generic",
+      "brand": "Vildagliptin",
+      "generic": "Vildagliptin",
+      "dosage": "50mg",
+      "form": "tablet",
+      "category": "Endocrinology and chronic care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1461"
+    },
+    {
+      "code": "M119",
+      "kind": "generic",
+      "brand": "Amlodipine",
+      "generic": "Amlodipine",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 264"
+    },
+    {
+      "code": "M120",
+      "kind": "generic",
+      "brand": "Telmisartan",
+      "generic": "Telmisartan",
+      "dosage": "40mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 300"
+    },
+    {
+      "code": "M121",
+      "kind": "generic",
+      "brand": "Clopidogrel",
+      "generic": "Clopidogrel",
+      "dosage": "75mg",
+      "form": "tablet",
+      "category": "Cardiology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 269"
+    },
+    {
+      "code": "M122",
+      "kind": "generic",
+      "brand": "Rivaroxaban",
+      "generic": "Rivaroxaban",
+      "dosage": "20mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1781"
+    },
+    {
+      "code": "M123",
+      "kind": "generic",
+      "brand": "Pantoprazole",
+      "generic": "Pantoprazole",
+      "dosage": "40mg",
+      "form": "gastro-resistant tablet",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 212"
+    },
+    {
+      "code": "M124",
+      "kind": "generic",
+      "brand": "Ondansetron",
+      "generic": "Ondansetron",
+      "dosage": "4mg",
+      "form": "tablet",
+      "category": "Oncology and supportive care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 209"
+    },
+    {
+      "code": "M125",
+      "kind": "generic",
+      "brand": "Domperidone",
+      "generic": "Domperidone",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 186"
+    },
+    {
+      "code": "M126",
+      "kind": "generic",
+      "brand": "Ursodeoxycholic Acid",
+      "generic": "Ursodeoxycholic Acid",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 466"
+    },
+    {
+      "code": "M127",
+      "kind": "generic",
+      "brand": "Rifaximin",
+      "generic": "Rifaximin",
+      "dosage": "550mg",
+      "form": "tablet",
+      "category": "Gastroenterology and hepatology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1952"
+    },
+    {
+      "code": "M128",
+      "kind": "generic",
+      "brand": "Lactulose",
+      "generic": "Lactulose",
+      "dosage": "10g/15ml",
+      "form": "solution",
+      "category": "Gastrointestinal",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 197"
+    },
+    {
+      "code": "M129",
+      "kind": "generic",
+      "brand": "Montelukast",
+      "generic": "Montelukast",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Respiratory",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 251"
+    },
+    {
+      "code": "M130",
+      "kind": "generic",
+      "brand": "Montelukast + Levocetirizine",
+      "generic": "Montelukast + Levocetirizine",
+      "dosage": "10mg/5mg",
+      "form": "tablet",
+      "category": "Allergy",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 252"
+    },
+    {
+      "code": "M131",
+      "kind": "generic",
+      "brand": "Salbutamol",
+      "generic": "Salbutamol",
+      "dosage": "4mg",
+      "form": "tablet",
+      "category": "Respiratory",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 260"
+    },
+    {
+      "code": "M132",
+      "kind": "generic",
+      "brand": "Salbutamol",
+      "generic": "Salbutamol",
+      "dosage": "100mcg",
+      "form": "inhaler",
+      "category": "Respiratory",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 255"
+    },
+    {
+      "code": "M133",
+      "kind": "generic",
+      "brand": "Cefixime",
+      "generic": "Cefixime",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 55"
+    },
+    {
+      "code": "M134",
+      "kind": "generic",
+      "brand": "Amoxicillin",
+      "generic": "Amoxicillin",
+      "dosage": "500mg",
+      "form": "capsule",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 45"
+    },
+    {
+      "code": "M135",
+      "kind": "generic",
+      "brand": "Doxycycline",
+      "generic": "Doxycycline",
+      "dosage": "100mg",
+      "form": "capsule",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 92"
+    },
+    {
+      "code": "M136",
+      "kind": "generic",
+      "brand": "Fluconazole",
+      "generic": "Fluconazole",
+      "dosage": "150mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1246"
+    },
+    {
+      "code": "M137",
+      "kind": "generic",
+      "brand": "Albendazole",
+      "generic": "Albendazole",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1236"
+    },
+    {
+      "code": "M138",
+      "kind": "generic",
+      "brand": "Aciclovir",
+      "generic": "Aciclovir",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 29"
+    },
+    {
+      "code": "M139",
+      "kind": "generic",
+      "brand": "Oseltamivir",
+      "generic": "Oseltamivir",
+      "dosage": "75mg",
+      "form": "capsule",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1220"
+    },
+    {
+      "code": "M140",
+      "kind": "generic",
+      "brand": "Tenofovir Disoproxil Fumarate",
+      "generic": "Tenofovir Disoproxil Fumarate",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1076"
+    },
+    {
+      "code": "M141",
+      "kind": "generic",
+      "brand": "Linezolid",
+      "generic": "Linezolid",
+      "dosage": "600mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 382"
+    },
+    {
+      "code": "M142",
+      "kind": "generic",
+      "brand": "Ceftriaxone",
+      "generic": "Ceftriaxone",
+      "dosage": "1g",
+      "form": "injection",
+      "category": "Anti-infectives",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 75"
+    },
+    {
+      "code": "M143",
+      "kind": "generic",
+      "brand": "Voriconazole",
+      "generic": "Voriconazole",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 2034"
+    },
+    {
+      "code": "M144",
+      "kind": "generic",
+      "brand": "Hydroxychloroquine",
+      "generic": "Hydroxychloroquine",
+      "dosage": "200mg",
+      "form": "tablet",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 509"
+    },
+    {
+      "code": "M145",
+      "kind": "generic",
+      "brand": "Tacrolimus",
+      "generic": "Tacrolimus",
+      "dosage": "1mg",
+      "form": "capsule",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 2029"
+    },
+    {
+      "code": "M146",
+      "kind": "generic",
+      "brand": "Enoxaparin",
+      "generic": "Enoxaparin",
+      "dosage": "40mg/0.4ml",
+      "form": "injection",
+      "category": "Hospital and specialty",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 276"
+    },
+    {
+      "code": "M147",
+      "kind": "generic",
+      "brand": "Clotrimazole",
+      "generic": "Clotrimazole",
+      "dosage": "1%",
+      "form": "cream",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 87"
+    },
+    {
+      "code": "M148",
+      "kind": "generic",
+      "brand": "Mupirocin",
+      "generic": "Mupirocin",
+      "dosage": "2%",
+      "form": "ointment",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 463"
+    },
+    {
+      "code": "M149",
+      "kind": "generic",
+      "brand": "Permethrin",
+      "generic": "Permethrin",
+      "dosage": "5%",
+      "form": "cream",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1003"
+    },
+    {
+      "code": "M150",
+      "kind": "generic",
+      "brand": "Povidone Iodine",
+      "generic": "Povidone Iodine",
+      "dosage": "5%",
+      "form": "ointment",
+      "category": "First aid and topical",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 125"
+    },
+    {
+      "code": "M151",
+      "kind": "generic",
+      "brand": "Minoxidil",
+      "generic": "Minoxidil",
+      "dosage": "5%",
+      "form": "solution",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1709"
+    },
+    {
+      "code": "M152",
+      "kind": "generic",
+      "brand": "Finasteride",
+      "generic": "Finasteride",
+      "dosage": "1mg",
+      "form": "tablet",
+      "category": "Dermatology and trichology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1861"
+    },
+    {
+      "code": "M153",
+      "kind": "generic",
+      "brand": "Dydrogesterone",
+      "generic": "Dydrogesterone",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Fertility and reproductive health",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 496"
+    },
+    {
+      "code": "M154",
+      "kind": "generic",
+      "brand": "Folic Acid",
+      "generic": "Folic Acid",
+      "dosage": "5mg",
+      "form": "tablet",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 224"
+    },
+    {
+      "code": "M155",
+      "kind": "generic",
+      "brand": "Calcium + Cholecalciferol",
+      "generic": "Calcium + Cholecalciferol",
+      "dosage": "500mg/250iu",
+      "form": "tablet",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 220"
+    },
+    {
+      "code": "M156",
+      "kind": "generic",
+      "brand": "Cholecalciferol",
+      "generic": "Cholecalciferol",
+      "dosage": "60000iu",
+      "form": "granules",
+      "category": "Vitamins and nutrition",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 585"
+    },
+    {
+      "code": "M157",
+      "kind": "generic",
+      "brand": "Gabapentin",
+      "generic": "Gabapentin",
+      "dosage": "300mg",
+      "form": "capsule",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 901"
+    },
+    {
+      "code": "M158",
+      "kind": "generic",
+      "brand": "Escitalopram",
+      "generic": "Escitalopram",
+      "dosage": "10mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 321"
+    },
+    {
+      "code": "M159",
+      "kind": "generic",
+      "brand": "Levetiracetam",
+      "generic": "Levetiracetam",
+      "dosage": "500mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 508"
+    },
+    {
+      "code": "M160",
+      "kind": "generic",
+      "brand": "Sertraline",
+      "generic": "Sertraline",
+      "dosage": "50mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1049"
+    },
+    {
+      "code": "M161",
+      "kind": "generic",
+      "brand": "Levodopa + Carbidopa",
+      "generic": "Levodopa + Carbidopa",
+      "dosage": "100mg/10mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 2085"
+    },
+    {
+      "code": "M162",
+      "kind": "generic",
+      "brand": "Lithium Carbonate",
+      "generic": "Lithium Carbonate",
+      "dosage": "300mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 2323"
+    },
+    {
+      "code": "M163",
+      "kind": "generic",
+      "brand": "Betahistine",
+      "generic": "Betahistine",
+      "dosage": "16mg",
+      "form": "tablet",
+      "category": "Neurology and psychiatry",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 1525"
+    },
+    {
+      "code": "M164",
+      "kind": "generic",
+      "brand": "Letrozole",
+      "generic": "Letrozole",
+      "dosage": "2.5mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 935"
+    },
+    {
+      "code": "M165",
+      "kind": "generic",
+      "brand": "Tamoxifen",
+      "generic": "Tamoxifen",
+      "dosage": "20mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 164"
+    },
+    {
+      "code": "M166",
+      "kind": "generic",
+      "brand": "Imatinib",
+      "generic": "Imatinib",
+      "dosage": "400mg",
+      "form": "tablet",
+      "category": "Oncology",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 916"
+    },
+    {
+      "code": "M167",
+      "kind": "generic",
+      "brand": "Methotrexate",
+      "generic": "Methotrexate",
+      "dosage": "7.5mg",
+      "form": "tablet",
+      "category": "Oncology and supportive care",
+      "status": "verified",
+      "sources": [
+        "https://static.pib.gov.in/WriteReadData/specificdocs/documents/2026/feb/doc202626781701.pdf"
+      ],
+      "verification": "official-list",
+      "evidence": "PMBJP drug code 413"
+    },
+    {
+      "kind": "brand",
+      "brand": "Viotace",
+      "status": "needs-review",
+      "reason": "No product page found by any search. The closest names (Viokace, a US pancrelipase tablet; Viropace; Vitrace) are different products. Do not import until the exact name and pack are confirmed against a pack photo, a manufacturer catalogue or the CDSCO register."
+    },
+    {
+      "kind": "brand",
+      "brand": "Gabapin",
+      "status": "needs-review",
+      "reason": "Search returned only generic gabapentin pages, no brand page naming the strength and maker."
+    },
+    {
+      "kind": "brand",
+      "brand": "Letroz",
+      "status": "needs-review",
+      "reason": "No brand page found (only other letrozole brands). Femara 2.5 mg is imported instead."
+    },
+    {
+      "kind": "brand",
+      "brand": "Jalra",
+      "status": "needs-review",
+      "reason": "Only European product information found; no Indian listing."
+    },
+    {
+      "kind": "brand",
+      "brand": "Clopitab",
+      "status": "needs-review",
+      "reason": "No page naming its composition or manufacturer."
+    },
+    {
+      "kind": "brand",
+      "brand": "Neurobion Forte",
+      "status": "needs-review",
+      "reason": "Component amounts differ between listings."
+    },
+    {
+      "kind": "brand",
+      "brand": "Burnol",
+      "status": "needs-review",
+      "reason": "Strength expression is unclear in listings."
+    },
+    {
+      "kind": "brand",
+      "brand": "Voveran",
+      "status": "needs-review",
+      "reason": "Listings mix plain, GE and D variants; dosage form is ambiguous."
+    },
+    {
+      "kind": "brand",
+      "brand": "Foracort",
+      "status": "needs-review",
+      "reason": "Formoterol dose per inhalation differs between sources."
+    },
+    {
+      "kind": "brand",
+      "brand": "Donep",
+      "status": "needs-review",
+      "reason": "No brand page found (only Aricept and US generics)."
+    },
+    {
+      "kind": "brand",
+      "brand": "Oleanz",
+      "status": "needs-review",
+      "reason": "Dosage form is unclear (orally disintegrating vs film-coated) across sources."
+    },
+    {
+      "kind": "brand",
+      "brand": "Bicalox",
+      "status": "needs-review",
+      "reason": "No brand page found."
+    },
+    {
+      "kind": "brand",
+      "brand": "Arcoxia",
+      "status": "needs-review",
+      "reason": "The Indian brand is 60 mg; evidence for 90 mg is from other markets only."
+    }
+  ]
+}

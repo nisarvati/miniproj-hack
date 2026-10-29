@@ -1,0 +1,977 @@
+{
+  "directory": "mumbai-demo-independent",
+  "label": "Demo directory listing — not a confirmed MedLink partner.",
+  "description": "Independent neighbourhood pharmacies in Mumbai used as DEMO DIRECTORY LISTINGS. They are candidates, not MedLink partners: none has agreed to the use of its name, and any stock, price or availability shown for them is synthetic demo data, never their actual inventory. Entries P001 to P005 are a DISPLAY MAPPING: the app shows these names and addresses for the existing demo pharmacies of the same IDs, but the persisted pharmacy rows, local databases, inventory, events and Redis state are untouched and remain the fictional demo identities. P006 stays inactive until a database is provisioned for it and PHARMACY_P006_DATABASE_URL is set.",
+  "retrieved": "2026-10-22",
+  "method": "Your 18 research leads were checked first, then the earlier OpenStreetMap-based candidates. Each entry needs the shop to appear at the stated address in at least two independent sources, no sign of a chain, and a recorded provenance for every source (read directly, or only seen as a search snippet). Directories that copy OpenStreetMap do not count. Justdial returns 403 to automated reads and was not bypassed, so its facts are marked search-snippet.",
+  "locationRule": "A point is 'verified' only when two independent map sources agree within 100 m. Otherwise the observed points are kept as candidates and are never used for directions or distances; Google Maps directions then use the address. Neighbourhood-centre points are never recorded.",
+  "verification": "Verified here means the shop was found at this address in two independent sources and shows no sign of being a chain. It does not mean the pharmacy is a partner, is open today, or holds a valid licence.",
+  "notVerified": [
+    {
+      "name": "Noble Medicals, Andheri East",
+      "reason": "Only the Noble Plus chain was found; excluded as a chain."
+    },
+    {
+      "name": "Liberty Medical & Super Market, Bandra West",
+      "reason": "No listing found. 'New Liberty Drug Corner' (Khar) and 'New Liberty Pharmacy' exist but were not confirmed to be the same business."
+    },
+    {
+      "name": "New Grace Medical and General Stores, Chandivali",
+      "reason": "No listing found."
+    },
+    {
+      "name": "Krishna Medical and General Stores, Borivali West",
+      "reason": "Only a trade listing in Kandar Pada (Dahisar side); several unrelated 'Krishna Medical' stores exist."
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Apollo Pharmacy (all branches)",
+      "reason": "National chain."
+    },
+    {
+      "name": "Tata 1mg Pharmacy (Kastur Park, Borivali West)",
+      "reason": "Tata 1mg: chain and online-first retailer."
+    },
+    {
+      "name": "Zeno Health Pharmacy (Parasmani Tower, Dadar East)",
+      "reason": "National chain."
+    },
+    {
+      "name": "Noble Plus / Noble Chemist / Noble Medicals",
+      "reason": "Multi-branch Mumbai chain (more than ten OpenStreetMap branches across the target areas). This includes the 'Noble Medicals' example you suggested."
+    },
+    {
+      "name": "Wellness Forever",
+      "reason": "National chain."
+    },
+    {
+      "name": "MG365, MedPlus, Lifecare, Shoppers Drug Mart, Generic Medicine Pharmacy",
+      "reason": "Chains or branded generic-medicine networks."
+    },
+    {
+      "name": "SuperDoc Medical",
+      "reason": "The same name appears at two outlets (Andheri East and Kherwadi) in OpenStreetMap: multi-branch."
+    },
+    {
+      "name": "Jan Aushadhi Kendras",
+      "reason": "A government franchise network, not independent neighbourhood chemists."
+    },
+    {
+      "name": "Dava India / Davaindia franchise stores (e.g. Jay Maharashtra Medical)",
+      "reason": "Branded generic-medicine franchise chain."
+    },
+    {
+      "name": "Noble Plus / Noble Chemist / Noble Medicals in Andheri East, Chandivali and Powai",
+      "reason": "Multi-branch chain."
+    }
+  ],
+  "unresolved": [
+    {
+      "name": "Arihant Chemist & Druggist (Gharkul Society, Sangeetkar N. Dutta Marg, Andheri West)",
+      "area": "Andheri West",
+      "reason": "No listing at this address. Sulekha has an Arihant Chemist & Druggist in Andheri (400069) with no street, and Justdial one on Eksar Road, Borivali West: different or unplaced outlets, so the name alone is not evidence."
+    },
+    {
+      "name": "Annpurna Medical and General Store (Jijamata Road, Parsi Colony, Andheri East)",
+      "area": "Andheri East",
+      "reason": "No Andheri East listing found; the Annapurna stores found are in Malvani and other cities."
+    },
+    {
+      "name": "Sangam Medical Stores and Distributors (Gundawali, Andheri East)",
+      "area": "Andheri East",
+      "reason": "Not found at Gundawali. Other 'Sangam' businesses exist in Chakala and on Mahakali Caves Road; none matches the address."
+    },
+    {
+      "name": "Rajesh Medical and General Store (Saki Vihar Road, Chandivali)",
+      "area": "Chandivali",
+      "reason": "No listing found."
+    },
+    {
+      "name": "New Grace Medical and General Stores / New Grace Medical Store (Sun Grace Building, Raheja Vihar, Chandivali)",
+      "area": "Chandivali",
+      "reason": "Exists on one directory only (magicpin: Shop No 6, Sun Grace Building, with a map point 19.1167334, 72.8949829; the listing is old). No second source, no ownership evidence."
+    },
+    {
+      "name": "Get Well Chemists (Linking Road, Bandra West)",
+      "area": "Bandra West",
+      "reason": "Justdial marks 'Get Well Chemist' at Plot 269/A, Linking Road as Closed Down; Sulekha and magicpin still list it at Link Square Mall, not near a petrol pump."
+    },
+    {
+      "name": "Bombay Medical and General Stores (National Library Road, Bandra West)",
+      "area": "Bandra West",
+      "reason": "Justdial (44/2, near Akbar Academy, est. 1999) and Sulekha (Shop 2, NL Road) agree on the road but not the shop number, and magicpin lists a separate 'Bombay Medical' in Gandhi Nagar, so a second outlet of the same name may exist."
+    },
+    {
+      "name": "SSA / Shree Siddh Ambica Medical and General Stores (Vini Classic, Kandivali West)",
+      "area": "Kandivali West",
+      "reason": "One directory (magicpin) and it marks the outlet as shut down."
+    },
+    {
+      "name": "Medicentre Medical & General Stores (Kandivali West)",
+      "area": "Kandivali West",
+      "reason": "Only a Sulekha description without an address; Rashmi Enclave / Makecha School not found."
+    },
+    {
+      "name": "Sahakar Medical (Hanuman Nagar, Kandivali East)",
+      "area": "Kandivali East",
+      "reason": "No listing found."
+    },
+    {
+      "name": "Golden Pharmacy (Shrinivas Society, Patharli Road, Dombivli East)",
+      "area": "Dombivli East",
+      "reason": "One directory (Justdial, two pages of the same listing); no second source. Also outside Mumbai city."
+    },
+    {
+      "name": "Jay Maharashtra Medical (Parshwabhakti, Dombivli East)",
+      "area": "Dombivli East",
+      "reason": "The magicpin listing is titled 'Jay Maharashtra Medical | Davaindia | Generic Pharmacy', a franchise of the Dava India chain: excluded as a chain."
+    },
+    {
+      "name": "Shree Laxmi Medical and General Store (Dawadi Gaon Road, Dombivli East)",
+      "area": "Dombivli East",
+      "reason": "No listing found; same-named stores exist in Pune and Mumbra."
+    },
+    {
+      "name": "Jai Gurudev Pharmacy and General Store (Manpada Road, Sagaon, Dombivli East)",
+      "area": "Dombivli East",
+      "reason": "Only a magicpin page whose address is in Kilpauk, Chennai."
+    },
+    {
+      "name": "Leelavati Medical",
+      "area": "Bandra West (Hill Road)",
+      "reason": "Justdial (Shop 5, Rizvi Chambers No. 13, Hill Road) and magicpin ('Leelavati Medical Chemist Shop', Bal Krishna Jyot A-222) give different addresses, so it may be two outlets. OSM node exists (19.05476, 72.83648)."
+    },
+    {
+      "name": "Solanki Medical (Shop / Stores)",
+      "area": "Bandra West (Pali)",
+      "reason": "Several Solanki listings (shop 56/B vs 14/B Dheeraj Arcade, a separate Nutan Nagar one): possible multiple outlets, conflicting shop numbers."
+    },
+    {
+      "name": "Mount Medical Store",
+      "area": "Bandra West",
+      "reason": "Only one non-OpenStreetMap source (magicpin, 4 Lilly Villa, St John Baptist Road); ownership not established."
+    },
+    {
+      "name": "Metro Medicals / Metro Medical",
+      "area": "Bandra West",
+      "reason": "OpenStreetMap places it on 4th Road, Khar; Justdial and Sulekha place 'Metro Medical' at Rizvi Mahal, Waterfield Road. Location conflict."
+    },
+    {
+      "name": "Mamta Medical and General Store",
+      "area": "Bandra West (Chapel Road)",
+      "reason": "The only corroboration is a directory derived from OpenStreetMap; a Justdial entry says 'opposite Lilavati'. GST records show other Mamta stores (Mahim West, Powai, Thane): ownership and location unclear."
+    },
+    {
+      "name": "Al Medica",
+      "area": "Bandra West (Chapel Road)",
+      "reason": "Only an OpenStreetMap-derived directory; no independent source."
+    },
+    {
+      "name": "Johnson Medical and General Store (OpenStreetMap: 'Jhonson Medical')",
+      "area": "Powai",
+      "reason": "Justdial text says 'next to Dr L H Hiranandani Hospital, opposite IIT main gate' (Fiji GL Complex), which does not obviously match the OpenStreetMap node on Powai Road; spelling differs; page not readable."
+    },
+    {
+      "name": "Ashwin Medical and General Stores",
+      "area": "Powai (Central Avenue, Hiranandani Gardens)",
+      "reason": "Justdial listing seen only as photo captions; the OpenStreetMap node is duplicated; no ownership evidence."
+    },
+    {
+      "name": "Ambaji Medicals / Ambaji Medical Surgical & Ayurvedic",
+      "area": "Powai",
+      "reason": "Two listings at two addresses (Galleria shop 78; Cypress CHS): possibly two outlets."
+    },
+    {
+      "name": "Adie Pharmacy",
+      "area": "Dadar East",
+      "reason": "Strong location evidence (OSM + Justdial + magicpin + Sulekha), but listings show more than one outlet or entity ('Adie Chemist', 'Adie Enterprises'): independence not established."
+    },
+    {
+      "name": "Sai Krupa chemist / Saairam Medical",
+      "area": "Dadar East (Dr Ambedkar Marg)",
+      "reason": "OpenStreetMap only; a magicpin entry lacks a street number; no corroboration of the specific shop."
+    },
+    {
+      "name": "Shastri Medical",
+      "area": "Andheri East (Sahar Road)",
+      "reason": "Justdial lists a 'Shastri Medical (Closed Down)' at the same address."
+    },
+    {
+      "name": "Ashirwad Medical",
+      "area": "Andheri East (M C Chagla Road)",
+      "reason": "magicpin says the outlet has shut down; Sulekha still lists it."
+    },
+    {
+      "name": "Esswell Pharma",
+      "area": "Bandra East",
+      "reason": "The directory entry found ('Esswell Pharma Plus') is an ayurvedic shop in Dadar East; the Bandra East node could not be corroborated."
+    },
+    {
+      "name": "Gajanand Pharmacy, Apple Medical, Vora Medico, Krishnam",
+      "area": "Bandra East / Andheri East",
+      "reason": "On OpenStreetMap only; no corroborating listing found."
+    },
+    {
+      "name": "Welcome Medical & General Stores / Bafna Medical and General Stores",
+      "area": "Juhu (Andheri West ward)",
+      "reason": "Two OpenStreetMap nodes at the same point; directories give a different road (Fatima Palace Road); Juhu rather than Andheri West."
+    },
+    {
+      "name": "Pratik Medical",
+      "area": "Andheri East (Sahar Road, Koldongri)",
+      "reason": "One directory (yappe.in) gives an address, but there is no OpenStreetMap node or other source, hence no storefront coordinates."
+    },
+    {
+      "name": "Shree Gajanan Prasad Medico / Medical & General Store (Shivhara, Kasturba Cross Road No. 2, opposite BMC Hospital, Borivali East)",
+      "area": "Borivali East",
+      "reason": "Three directories (Justdial, Sulekha, magicpin) agree on the shop and building, but magicpin labels the area Dattapada (Borivali West), and a 'Shree Gajanan Prasad Chemist and General Stores' sits at Ambamata Chowk, so a multi-outlet business cannot be ruled out. No independent map point."
+    },
+    {
+      "name": "Archana Medical & General Stores (Panch Kutir, Ganesh Nagar, Ad Marg, Powai)",
+      "area": "Powai",
+      "reason": "Exists on magicpin (with a map point 19.123182, 72.909151) and Justdial/Sulekha give only the area; no street-level second source, so the point is a single-source candidate."
+    },
+    {
+      "name": "Harsha Chemist & General Stores (Pundalik Building, Villa Hare Krishna Road, Powai)",
+      "area": "Powai",
+      "reason": "Justdial snippet only; Sulekha lists the area without a street."
+    },
+    {
+      "name": "Shushrusha Medical (Hendre Castle, Gokhale Road, Dadar West)",
+      "area": "Dadar West",
+      "reason": "Sulekha only; a Justdial snippet names a different shop (Mahavir Medical) near the hospital."
+    },
+    {
+      "name": "Millennium Chemist (Deewan Prakash Building, Sir Balchandra Road, Dadar East)",
+      "area": "Dadar East",
+      "reason": "Sulekha lists it, but Justdial marks a Millennium Chemist in Hindu Colony as Closed Down; unclear whether it is the same shop."
+    },
+    {
+      "name": "Kubal Pharmacy (Bhanupadma, R. K. Vaidya Marg, Dadar West)",
+      "area": "Dadar West",
+      "reason": "Justdial snippet and a Sulekha area entry without a street; no second street-level source."
+    },
+    {
+      "name": "Sheshadri Chemist, Parkway Chemist (Dadar East; Borivali East)",
+      "area": "Dadar East / Borivali East",
+      "reason": "Area-level Sulekha listings only: no street address."
+    }
+  ],
+  "pharmacies": [
+    {
+      "code": "P001",
+      "status": "display-mapping",
+      "name": "Paras Medical and General Store",
+      "neighbourhood": "SVP Nagar, Four Bungalows (Versova)",
+      "area": "Andheri West",
+      "address": "35/D-2, Vaibhav CHS, SVP Nagar, Versova, Andheri West, Mumbai, Maharashtra 400053",
+      "addressAsListed": "plot 35, d/2, vaibhav soc s.v.p. ngr, near four banglow, andhari, Mumbai, Maharashtra, 400053 (GST registry); OpenStreetMap: 35, Vibhav Cooperative Housing Society",
+      "location": {
+        "status": "single-source",
+        "candidates": [
+          {
+            "latitude": 19.13639,
+            "longitude": 72.82323,
+            "source": "https://www.openstreetmap.org/node/12317765975",
+            "kind": "osm-storefront-node",
+            "note": "Community-mapped pharmacy node at house number 35. No second map source agrees or disagrees, so this point is not used for directions. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22."
+          }
+        ],
+        "note": "Directions use the verified address until a second map source confirms the point."
+      },
+      "confidence": "high",
+      "classification": {
+        "independent": "established",
+        "evidence": [
+          "Registered for GST as a proprietorship (individually owned) with one place of business at this address, active since 13 Jul 2017 (record read directly; the owner's legal name is deliberately not recorded).",
+          "No brand or operator tag on the OpenStreetMap node; no other outlet of this name found.",
+          "Not a known chain or e-pharmacy."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://piceapp.com/gst-number-search/paras-medical-and-gen-stores-27adgpy8292f1zv/",
+          "type": "gst-registry",
+          "verifies": "Existence as a registered retail business at plot 35, D/2, Vaibhav Soc, SVP Nagar, near Four Bungalows, Andheri 400053; proprietorship; active.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.openstreetmap.org/node/12317765975",
+          "type": "openstreetmap",
+          "verifies": "A pharmacy named 'Paras Medical and General Store' at house number 35, Vibhav/Vaibhav CHS, K/W ward.",
+          "inspected": "directly (Nominatim API)"
+        },
+        {
+          "url": "https://www.latlong.net/poi/paras-medical-and-general-store-412329",
+          "type": "directory-derived-from-osm",
+          "verifies": "Repeats the OpenStreetMap record; not counted.",
+          "inspected": "search-snippet",
+          "countsAsIndependent": false
+        }
+      ],
+      "discrepancies": [
+        "Building spelled Vaibhav (GST) / Vibhav (OpenStreetMap).",
+        "The earlier explurger.com listing cited for this shop turned out to be a different 'Paras Medical Store' (Bahrojpur) and was removed."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner.",
+      "displaysOver": "Pharmacy A - Andheri West",
+      "demoIdentityKept": true
+    },
+    {
+      "code": "P002",
+      "status": "display-mapping",
+      "name": "Roopam Medical and General Stores",
+      "neighbourhood": "Bhavani Nagar, Marol",
+      "area": "Andheri East",
+      "address": "Shop 8, Shopping Centre, 18-A M.M. Road, Bhavani Nagar, Marol, Andheri East, Mumbai, Maharashtra 400059",
+      "addressAsListed": "18-A, Shop No.8, Bhavani Shopping Centre, near Lucky Snacks and Sweets, Marol Maroshi Road, Andheri East 400059 (Justdial); Shop No. 8, Bhavani Nagar Shopping Centre, MM Road, Marol, near Seven Health Hospital, 400059 (Sulekha); Shop Number 8, Zenith Society, Bhawani Nagar Rd, Marol (magicpin)",
+      "location": {
+        "status": "conflicting",
+        "candidates": [
+          {
+            "latitude": 19.119136,
+            "longitude": 72.880293,
+            "source": "https://magicpin.in/Mumbai/Marol/Pharmacy/Roopam-Medical-And-General-Stores/store/293799",
+            "kind": "directory-directions-link",
+            "note": "From the page's Directions link."
+          },
+          {
+            "latitude": 19.1178507,
+            "longitude": 72.8843856,
+            "source": "https://www.sulekha.com/roopam-medical-andheri-east-mumbai-contact-address",
+            "kind": "directory-directions-link",
+            "note": "From the page's Directions link. About 440 m from the magicpin point."
+          }
+        ],
+        "note": "The two directory points disagree by about 450 m, so neither is used. Directions use the address."
+      },
+      "confidence": "medium",
+      "classification": {
+        "independent": "single-outlet-evidence",
+        "evidence": [
+          "Listed as one outlet on Justdial (established 2008, search-reported), magicpin and Sulekha; none of the pages lists another branch.",
+          "The name is shop-specific, not a known chain or e-pharmacy.",
+          "Ownership not confirmed from a registry."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://magicpin.in/Mumbai/Marol/Pharmacy/Roopam-Medical-And-General-Stores/store/293799",
+          "type": "directory",
+          "verifies": "Name, Shop 8 Zenith Society / Bhawani Nagar, Marol; hours 9 AM to 11 PM.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.sulekha.com/roopam-medical-andheri-east-mumbai-contact-address",
+          "type": "directory",
+          "verifies": "Name, Shop No. 8, Bhavani Nagar Shopping Centre, MM Road, Marol, Andheri East 400059.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.justdial.com/Mumbai/Roopam-Medical-General-Stores-Near-Lucky-Snacks-and-Sweets-Andheri-East/022PXX22-XX22-120127112357-U7X9_BZDET",
+          "type": "directory",
+          "verifies": "18-A, Shop No.8, Bhavani Shopping Centre, Marol Maroshi Road, Andheri East; established 2008.",
+          "inspected": "search-snippet (Justdial returns 403 to automated reads)"
+        }
+      ],
+      "discrepancies": [
+        "Building named Bhavani Nagar Shopping Centre / Bhavani Shopping Centre / Zenith Society across directories (shop 8 and 18-A M.M. Road agree).",
+        "Directory map points disagree by about 450 m."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner.",
+      "displaysOver": "Pharmacy B - Andheri East",
+      "demoIdentityKept": true
+    },
+    {
+      "code": "P003",
+      "status": "display-mapping",
+      "name": "United Medical and General Stores",
+      "neighbourhood": "Chakala",
+      "area": "Andheri East",
+      "address": "Chakala, Andheri East, Mumbai, Maharashtra 400099",
+      "addressAsListed": "Shop No.2, Chakala Road, Andheri East, Mumbai - 400099 (Next to Samraj Hotel) (Justdial, search-reported); Cardinal Gracias Road, Chakala Village (OpenStreetMap). The exact storefront is NOT established: no shop number or street is used as the address.",
+      "location": {
+        "status": "single-source",
+        "candidates": [
+          {
+            "latitude": 19.11118,
+            "longitude": 72.85865,
+            "source": "https://www.openstreetmap.org/node/12317845292",
+            "kind": "osm-storefront-node",
+            "note": "Community-mapped pharmacy node. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22."
+          }
+        ],
+        "note": "One map source only, and the street differs between sources. Directions use the address."
+      },
+      "confidence": "low",
+      "classification": {
+        "independent": "single-outlet-evidence",
+        "evidence": [
+          "One outlet found on Justdial (established 1998, search-reported); no brand or operator tag on the OpenStreetMap node.",
+          "Ownership not confirmed from a registry."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://www.openstreetmap.org/node/12317845292",
+          "type": "openstreetmap",
+          "verifies": "A pharmacy of this name in Chakala Village, Andheri East.",
+          "inspected": "directly (Nominatim API)"
+        },
+        {
+          "url": "https://www.justdial.com/Mumbai/United-Medical-General-Stores-Next-to-Samraj-Hotel-Andheri-East/022P8125382_BZDET",
+          "type": "directory",
+          "verifies": "Shop No. 2, Chakala Road, Andheri East 400099; established 1998.",
+          "inspected": "search-snippet only (Justdial returns 403; never opened)"
+        }
+      ],
+      "discrepancies": [
+        "Street differs (Cardinal Gracias Road vs Chakala Road next to Samraj Hotel); both are in Chakala.",
+        "The second source was never opened."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner.",
+      "displaysOver": "Pharmacy C - Juhu",
+      "demoIdentityKept": true
+    },
+    {
+      "code": "P004",
+      "status": "display-mapping",
+      "name": "Bandra Medical Stores",
+      "neighbourhood": "Hill Road",
+      "area": "Bandra West",
+      "address": "Shop 139, Hill Road, near Union Bank of India, Bandra West, Mumbai, Maharashtra 400050",
+      "addressAsListed": "Shop No. 139, Hill Road, Near Union Bank of India, Bandra West, Mumbai - 400050 (Sulekha); Shop No.139, 60/B, Hill Road, Near Elco Shopping Center (magicpin)",
+      "location": {
+        "status": "verified",
+        "latitude": 19.05548,
+        "longitude": 72.83152,
+        "kind": "two-map-sources-agree",
+        "candidates": [
+          {
+            "latitude": 19.05548,
+            "longitude": 72.83152,
+            "source": "https://www.openstreetmap.org/node/4312909188",
+            "kind": "osm-storefront-node",
+            "note": "© OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22."
+          },
+          {
+            "latitude": 19.0555568,
+            "longitude": 72.8314678,
+            "source": "https://magicpin.in/Mumbai/Bandra-West/Pharmacy/Bandra-Medical-Store/store/2528ab/",
+            "kind": "directory-directions-link",
+            "note": "From the page's Directions link; about 10 m from the OpenStreetMap node."
+          }
+        ],
+        "note": "An OpenStreetMap node and a directory map point agree to about 10 m. The OpenStreetMap point is used."
+      },
+      "confidence": "high",
+      "classification": {
+        "independent": "single-outlet-evidence",
+        "evidence": [
+          "One outlet only across Sulekha, magicpin and Justdial; Justdial describes it as established 1950 (search-reported).",
+          "No brand or operator tag on the OpenStreetMap node; not a known chain.",
+          "Ownership not confirmed from a registry."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://www.sulekha.com/bandra-medical-stores-bandra-west-mumbai-contact-address",
+          "type": "directory",
+          "verifies": "Shop No. 139, Hill Road, near Union Bank of India, Bandra West 400050; hours 8 AM to 10 PM.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://magicpin.in/Mumbai/Bandra-West/Pharmacy/Bandra-Medical-Store/store/2528ab/",
+          "type": "directory",
+          "verifies": "Shop 139, 60/B, Hill Road near Elco Shopping Center, with a map point.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.openstreetmap.org/node/4312909188",
+          "type": "openstreetmap",
+          "verifies": "A pharmacy of this name on Hill Road, with a map point.",
+          "inspected": "directly (Nominatim API)"
+        },
+        {
+          "url": "https://www.justdial.com/Mumbai/Bandra-Medical-Stores-Near-Union-Bank-Of-India-Bandra-West/022PGE04127_BZDET",
+          "type": "directory",
+          "verifies": "Near Union Bank of India, Bandra West; established 1950.",
+          "inspected": "search-snippet"
+        }
+      ],
+      "discrepancies": [
+        "Shop number given as 139 and 60/B (same shop, two numbering schemes).",
+        "Opening hours differ between directories."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner.",
+      "displaysOver": "Pharmacy D - Bandra West",
+      "demoIdentityKept": true
+    },
+    {
+      "code": "P005",
+      "status": "display-mapping",
+      "name": "Faiza Medical and General Stores",
+      "neighbourhood": "Ahmed Zakaria Nagar, Kherwadi",
+      "area": "Bandra East",
+      "address": "Shop 19, near Mina Centre, Ahmed Zakaria Nagar, Bandra East, Mumbai, Maharashtra 400051",
+      "addressAsListed": "Shop No.19, Next to Mina Centre Building, Ahmed Zakaria Compound, Ahmed Zakaria Nagar, Kherwadi (magicpin); same shop number and landmark, 400051 (Justdial, search-reported)",
+      "location": {
+        "status": "single-source",
+        "candidates": [
+          {
+            "latitude": 19.056411,
+            "longitude": 72.843954,
+            "source": "https://magicpin.in/Mumbai/Bandra-East/Pharmacy/Faiza-Medical-&-General-Stores/store/293a42/",
+            "kind": "directory-directions-link",
+            "note": "From the page's Directions link; no second map source."
+          }
+        ],
+        "note": "One directory point only. Directions use the address."
+      },
+      "confidence": "low",
+      "classification": {
+        "independent": "single-outlet-evidence",
+        "evidence": [
+          "One outlet on magicpin and Justdial (established 2005, search-reported); the page lists no other branch.",
+          "Ownership not confirmed from a registry."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://magicpin.in/Mumbai/Bandra-East/Pharmacy/Faiza-Medical-&-General-Stores/store/293a42/",
+          "type": "directory",
+          "verifies": "Shop 19, next to Mina Centre, Ahmed Zakaria Nagar; hours 9 AM to midnight.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.justdial.com/Mumbai/Faiza-Medical-And-Ganeral-Stores-Bandra-East/022PXX22-XX22-160923161044-Y3M9_BZDET",
+          "type": "directory",
+          "verifies": "Faiza Medical And Ganeral Stores, Bandra East; shop 19, Mina Centre; established 2005.",
+          "inspected": "search-snippet"
+        }
+      ],
+      "discrepancies": [
+        "A second Justdial listing of the same name gives Anant Kanekar Marg instead.",
+        "Justdial's 'License Received' field reads 'No' (a directory field, not an official finding): check the drug licence before use.",
+        "Justdial spells the name 'Ganeral'."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner.",
+      "displaysOver": "Pharmacy E - Powai",
+      "demoIdentityKept": true
+    },
+    {
+      "code": "P006",
+      "status": "inactive-until-configured",
+      "name": "Mahavir Chemist",
+      "neighbourhood": "I.C. Colony",
+      "area": "Borivali West",
+      "address": "Shops 7 and 8, I.C. Colony Road, opposite the post office / near I.C. Church, I.C. Colony, Borivali West, Mumbai 400103",
+      "addressAsListed": "Ludovic Mansion Building, Shop No. 7/8, IC Colony, Near IC Church, 400103 (Sulekha); Shop No 7 & 8, The Palazzo Building, IC Colony Road (magicpin); Ludovic/Palazzo, opposite Post Office (Justdial, search-reported)",
+      "location": {
+        "status": "single-source",
+        "candidates": [
+          {
+            "latitude": 19.2447426,
+            "longitude": 72.8515683,
+            "source": "https://magicpin.in/Mumbai/Borivali-West/Pharmacy/Mahavir-Chemist/store/409649/",
+            "kind": "directory-directions-link",
+            "note": "From the page's Directions link; no second map source."
+          }
+        ],
+        "note": "One directory point only. Directions use the address."
+      },
+      "confidence": "medium",
+      "classification": {
+        "independent": "single-outlet-evidence",
+        "evidence": [
+          "One outlet on Sulekha, magicpin and Justdial (established 1984, search-reported); none lists another branch.",
+          "A separate 'Shree Mahavir Chemist' exists elsewhere (Mahavir Nagar) and is a different listing.",
+          "Ownership not confirmed from a registry."
+        ]
+      },
+      "sources": [
+        {
+          "url": "https://www.sulekha.com/mahavir-chemist-borivali-west-mumbai-contact-address",
+          "type": "directory",
+          "verifies": "Shop 7/8, Ludovic Mansion, IC Colony, near IC Church, Borivali West 400103.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://magicpin.in/Mumbai/Borivali-West/Pharmacy/Mahavir-Chemist/store/409649/",
+          "type": "directory",
+          "verifies": "Shop 7 & 8, The Palazzo Building, IC Colony Road.",
+          "inspected": "directly"
+        },
+        {
+          "url": "https://www.justdial.com/Mumbai/Mahavir-Chemist-Opposite-Post-Office-Ic-Colony-Borivali-West/022P1006368_BZDET",
+          "type": "directory",
+          "verifies": "Opposite Post Office, IC Colony; established 1984.",
+          "inspected": "search-snippet"
+        }
+      ],
+      "discrepancies": [
+        "Building named Ludovic Mansion (your lead, Sulekha) and The Palazzo (magicpin, Justdial); shop numbers agree.",
+        "Opening hours differ between directories."
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    }
+  ],
+  "candidates": [
+    {
+      "code": "P007",
+      "name": "Arihant Chemist & Druggist",
+      "area": "Andheri West",
+      "address": "D-1, Sangeetkar N. Dutta Marg, Gharkul Society, Indira Nagar, Andheri West, Mumbai 400053",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "No listing at this address. Sulekha lists an Arihant Chemist & Druggist in Andheri (400069) with no street, and Justdial one on Eksar Road, Borivali West: different or unplaced outlets, so the name alone is not evidence.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P008",
+      "name": "Annpurna Medical and General Store",
+      "area": "Andheri East",
+      "address": "Jijamata Road, Parsi Colony, Andheri East, Mumbai 400093",
+      "addressStatus": "incomplete",
+      "listingStatus": "needs-review",
+      "reason": "No Andheri East listing found; the Annapurna stores found are in Malvani and other cities. No shop number was supplied.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P009",
+      "name": "Sangam Medical Stores and Distributors",
+      "area": "Andheri East",
+      "address": "Shop 9, Prathmesh Apartment, Gundawali Azad Road, Andheri East, Mumbai 400069",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Not found at Gundawali. Other 'Sangam' businesses exist in Chakala and on Mahakali Caves Road; none matches the address.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P010",
+      "name": "Rajesh Medical and General Store",
+      "area": "Powai / Chandivali",
+      "address": "Shop 7, Saraswati Pawar Chawl, Saki Vihar Road, near Oxford Chambers, Chandivali/Powai, Mumbai 400072",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Searched on 2026-10-22; no listing for this shop at this address was found. The address is exactly as supplied and unconfirmed.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P011",
+      "name": "New Grace Medical and General Stores",
+      "area": "Powai / Chandivali",
+      "address": "Shop 6, Sungrace Society, Circular Road, Raheja Vihar, Chandivali, Mumbai 400072",
+      "addressStatus": "complete",
+      "listingStatus": "provisional",
+      "reason": "Found on one directory only (magicpin: Shop No 6, Sun Grace Building, Raheja Vihar; the listing is old). The society is spelled 'Sungrace' in the supplied address and 'Sun Grace' by magicpin. No second source and no ownership evidence, so it is not accepted.",
+      "location": {
+        "status": "single-source",
+        "candidates": [
+          {
+            "latitude": 19.1167334,
+            "longitude": 72.8949829,
+            "source": "https://magicpin.in/Mumbai/Raheja-Vihar/Pharmacy/New-Grace-Medical-Store/store/4910c8/",
+            "kind": "directory-map-point",
+            "note": "From the magicpin listing; no second map source. Not used for directions, pins or distance."
+          }
+        ],
+        "note": "One directory point only; never shown as a pin."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "One outlet seen; ownership not established."
+      },
+      "sources": [
+        {
+          "url": "https://magicpin.in/Mumbai/Raheja-Vihar/Pharmacy/New-Grace-Medical-Store/store/4910c8/",
+          "type": "directory",
+          "verifies": "A 'New Grace Medical Store' at Shop No 6, Sun Grace Building, Raheja Vihar.",
+          "inspected": "directly"
+        }
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P012",
+      "name": "Cure Chemist Medical",
+      "area": "Powai / Chandivali",
+      "address": "Shop 16, Building 12, MHADA Colony, near DMart, Chandivali/Powai, Mumbai 400072",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Searched on 2026-10-22; no listing for this shop at this address was found. The address is exactly as supplied and unconfirmed.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P013",
+      "name": "Dharamnath Chemist",
+      "area": "Borivali East",
+      "address": "Gumpha Darshan C CHS, Asara Colony Road, opposite Shri Gaon Devi Temple, Borivali East, Mumbai 400066",
+      "addressStatus": "incomplete",
+      "listingStatus": "needs-review",
+      "reason": "The building (Gumpha Darshan, Borivali East) exists in property listings, but no pharmacy listing for this name was found. No shop number was supplied.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P014",
+      "name": "Medicentre Medical & General Stores",
+      "area": "Kandivali West",
+      "address": "Shop 2, Rashmi Enclave of Dattani CHS, near Makecha School, Kandivali West, Mumbai 400067",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Only a Sulekha description without an address was seen (its URL was not kept); Rashmi Enclave / Makecha School could not be matched to it.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P015",
+      "name": "K.D. Chemist & General Store",
+      "area": "Kandivali East",
+      "address": "A/2, Yadav Chawl, Akurli Road, Damu Nagar, Kandivali East, Mumbai 400101",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Searched on 2026-10-22; no listing for this shop at this address was found. The address is exactly as supplied and unconfirmed.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P016",
+      "name": "All India Drug House",
+      "area": "Kandivali West",
+      "address": "Shop 2, Dalvi Hospital Building, Dr. Dalvi Road, Jethava Nagar, Kandivali West, Mumbai 400067",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "Searched on 2026-10-22; no listing for this shop at this address was found. The address is exactly as supplied and unconfirmed.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P017",
+      "name": "Sahakar Medical",
+      "area": "Kandivali East",
+      "address": "Hanuman Nagar, Kandivali East, Mumbai 400101",
+      "addressStatus": "incomplete",
+      "listingStatus": "needs-review",
+      "reason": "No listing found, and the supplied address has no shop, building or road, so no directions are offered.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P018",
+      "name": "Golden Pharmacy",
+      "area": "Dombivli East",
+      "address": "Shop 2, Srinivas CHS, Patharli Road, near Matoshree Lunch Home, Gograswadi, Dombivli East, Maharashtra 421201",
+      "addressStatus": "complete",
+      "listingStatus": "provisional",
+      "reason": "Found on one directory only (Justdial, seen as a search snippet; the society is spelled 'Shrinivas' there). No second source. Dombivli is also outside Mumbai city.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "One outlet seen; ownership not established."
+      },
+      "sources": [
+        {
+          "url": "https://www.justdial.com/Thane/Golden-Pharmacy-Near-Matoshree-Lunch-Home-Grograswadi-Dombivli-East-Dombivli-East/022PXX22-XX22-220919172100-K7N3_BZDET",
+          "type": "directory",
+          "verifies": "A 'Golden Pharmacy' near Matoshree Lunch Home, Gograswadi, Dombivli East.",
+          "inspected": "search-snippet"
+        }
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P019",
+      "name": "Shree Laxmi Medical and General Store",
+      "area": "Dombivli East",
+      "address": "Shop 5, Shree Sai Building, Dawadi Gaon Road, near Dawdi Hospital, Sonar Pada, Dombivli East, Maharashtra 421203",
+      "addressStatus": "complete",
+      "listingStatus": "needs-review",
+      "reason": "No listing found; same-named stores exist in Pune and Mumbra.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "unknown",
+        "note": "No ownership or single-outlet evidence was found."
+      },
+      "sources": [],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    },
+    {
+      "code": "P020",
+      "name": "Zeelab Pharmacy",
+      "area": "Dombivli West",
+      "address": "Shop 1, Shantiniketan Building, Kopar Road, near Shastri Nagar Hospital, Dombivli West, Maharashtra 421202",
+      "addressStatus": "complete",
+      "listingStatus": "excluded",
+      "reason": "Zeelab Pharmacy is a generic-medicine chain with hundreds of company-owned and franchise stores, so this outlet is not an independent pharmacy. No listing for this specific outlet was found.",
+      "location": {
+        "status": "unavailable",
+        "candidates": [],
+        "note": "No map point is recorded. Directions, where offered, use the address as supplied."
+      },
+      "classification": {
+        "independent": "chain",
+        "note": "Funded multi-outlet chain (reported 225 to 240+ stores)."
+      },
+      "sources": [
+        {
+          "url": "https://www.biospectrumindia.com/features/20/28170/startup-of-the-day-12-zeelab-pharmacy-.html",
+          "type": "press",
+          "verifies": "Zeelab Pharmacy is a venture-backed generic-pharmacy chain.",
+          "inspected": "search-snippet"
+        },
+        {
+          "url": "https://entrackr.com/snippets/otp-ventures-leads-24-mn-round-in-zeelab-pharmacy-8643423",
+          "type": "press",
+          "verifies": "Zeelab Pharmacy raised venture funding as a multi-store chain.",
+          "inspected": "search-snippet"
+        }
+      ],
+      "checkedOn": "2026-10-22",
+      "demo": true,
+      "label": "Demo directory listing — not a confirmed MedLink partner."
+    }
+  ]
+}

@@ -1,0 +1,251 @@
+/* "The Living Pharmacy Network". Colours come from the page's own tokens (--paper, --ink, --forest, ...) with the original
+   artwork's values as fallbacks. Continuous motion lives only in the `no-preference` block at the end. */
+.root {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--ink, #1a1c17);
+  background: #e9e6da;
+  color: var(--ink, #1a1c17);
+  font-family: var(--lp1-mono), ui-monospace, monospace;
+  touch-action: manipulation;
+  container-type: inline-size;
+  contain: layout paint;
+}
+.svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* ---- artwork ---- */
+.lineHeavy { stroke: var(--ink, #1a1c17); stroke-width: 5; stroke-linejoin: round; }
+.glintSoft { fill: none; stroke: #fff; stroke-width: 16; opacity: 0.35; stroke-linecap: round; }
+.hatchInk { fill: none; stroke: var(--ink, #1a1c17); stroke-width: 1.6; opacity: 0.28; stroke-dasharray: 4 7; }
+.line { stroke: var(--ink, #1a1c17); stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; }
+.lineThin { stroke: var(--ink, #1a1c17); stroke-width: 2; }
+.thin { fill: none; stroke: var(--ink, #1a1c17); stroke-width: 1.8; stroke-linecap: round; opacity: 0.75; }
+.thinForest { fill: none; stroke: var(--forest, #285c45); stroke-width: 2.4; }
+.hatch { stroke: var(--ink, #1a1c17); stroke-width: 1.4; stroke-dasharray: 3 5; opacity: 0.35; fill: none; }
+.glint { fill: none; stroke: #fff; stroke-width: 12; opacity: 0.45; stroke-linecap: round; }
+.fPale { fill: var(--pale, #e5ede2); }
+.fSage { fill: var(--sage, #a8bca3); }
+.fSoft { fill: #d3dfcf; }
+.fForest { fill: var(--forest, #285c45); }
+.fDeep { fill: var(--deep, #1e4636); }
+.fPaper { fill: var(--paper, #f0ede0); }
+.fGlass { fill: #cfdccb; }
+.roadInk { fill: none; stroke: var(--forest, #285c45); stroke-width: 2; opacity: 0.6; stroke-dasharray: 100; stroke-dashoffset: 100; }
+.river { fill: none; stroke: #b6c9b3; stroke-width: 70; stroke-linecap: round; opacity: 0.9; }
+.roadEdge { fill: none; stroke: #9aab97; stroke-width: 19; stroke-linecap: butt; }
+.road { fill: none; stroke: #f1eee0; stroke-width: 14; }
+.grid { fill: none; stroke: #9aab97; stroke-width: 1.6; opacity: 0.7; }
+.speck { fill: #8da28b; opacity: 0.8; }
+.tick { fill: none; stroke: #6f8c70; stroke-width: 2.4; stroke-linecap: round; }
+
+/* ---- reveal: what each step switches on ---- */
+/* the hidden world, before the click: faint contours that breathe, and tiny marks in the margins */
+.contour { fill: none; stroke: #7e9a7e; stroke-width: 2; stroke-dasharray: 3 9; opacity: 0.55; }
+.contours { transition: opacity 1s ease 0.5s; }
+.contoursGone { opacity: 0; }
+.marginalia { opacity: 0.8; }
+
+/* the capsule: the position is an attribute on the outer group; CSS moves only the inner ones */
+.capsuleSpin { transform: rotate(-28deg); transition: transform 0.9s cubic-bezier(0.5, 0, 0.2, 1); }
+.capsuleUpright { transform: rotate(0deg); }
+.halfL, .halfR { transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease 0.3s; }
+.halfSplit.halfL { transform: translateX(-190px); }
+.halfSplit.halfR { transform: translateX(190px); }
+.seam { fill: none; stroke: var(--forest, #285c45); stroke-width: 3; stroke-dasharray: 3 9; opacity: 0; transition: opacity 0.5s ease 0.3s; }
+.seamOn { opacity: 0.8; }
+.capsuleFloat { transition: opacity 0.9s ease 0.2s; }
+.capsuleGone .capsuleFloat { opacity: 0; pointer-events: none; }
+.capsuleGone .halfL { transform: translate(-440px, -150px) scale(0.55); }
+.capsuleGone .halfR { transform: translate(440px, 150px) scale(0.55); }
+
+/* the map: forest lines are drawn first, then the cream roads and the sage ground settle in beneath */
+.mapGround { opacity: 0; transition: opacity 0.9s ease; }
+.road, .roadEdge { opacity: 0; transition: opacity 0.8s ease; }
+.roadInk { transition: stroke-dashoffset 0.01s; }
+.mapDrawn .roadInk { stroke-dashoffset: 0; transition: stroke-dashoffset 1.3s ease calc(var(--i) * 0.14s); }
+.mapDrawn .mapGround { opacity: 1; transition-delay: 0.9s; }
+.mapDrawn .road, .mapDrawn .roadEdge { opacity: 1; transition-delay: 1s; }
+
+/* shops and pavement rise from the ground one after another; markers drop in; links appear with them */
+.emerge { opacity: 0; transform: translateY(110px); }
+.emergeOn { opacity: 1; transform: none; transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.08), opacity 0.5s ease; }
+.drop { opacity: 0; transform: translateY(-150px); }
+.dropOn { opacity: 1; transform: none; transition: transform 0.7s cubic-bezier(0.3, 1.35, 0.5, 1) calc(var(--i) * 0.16s), opacity 0.3s ease calc(var(--i) * 0.16s); }
+.linkWrap { opacity: 0; transition: opacity 0.6s ease 0.4s; }
+.linkWrapOn { opacity: 1; }
+.shopA, .shopB, .shopC, .shopD { cursor: pointer; }
+.ring { fill: none; stroke: var(--forest, #285c45); stroke-width: 5; stroke-dasharray: 16 9; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+.ringOn { opacity: 0.9; }
+
+/* ---- links, the network and pins ---- */
+.linkLine { fill: none; stroke: var(--forest, #285c45); stroke-width: 3; stroke-dasharray: 2 9; stroke-linecap: round; opacity: 0.8; transition: stroke-width 0.3s, opacity 0.3s; }
+.linkGlow { fill: none; stroke: var(--forest, #285c45); stroke-width: 7; stroke-linecap: round; opacity: 0; transition: opacity 0.4s; }
+.anchor { stroke: var(--forest, #285c45); stroke-width: 3; }
+.linkLit .linkLine { stroke-width: 5; stroke-dasharray: 1 7; opacity: 1; }
+.linkLit .linkGlow { opacity: 0.22; }
+.linkPulse { fill: none; stroke: var(--forest, #285c45); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 5 95; stroke-dashoffset: 105; opacity: 0; }
+
+.netDots { fill: none; stroke: var(--forest, #285c45); stroke-width: 4; stroke-dasharray: 2 11; stroke-linecap: round; opacity: 0.9; transition: opacity 0.4s, stroke-width 0.4s; }
+.netReveal { fill: none; stroke: #fff; stroke-width: 24; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 0.01s; }
+.networkOn .netReveal { stroke-dashoffset: 0; transition: stroke-dashoffset 1.1s ease calc(var(--i) * 0.22s); }
+.netPulse { fill: none; stroke: var(--forest, #285c45); stroke-width: 10; stroke-linecap: round; stroke-dasharray: 5 95; stroke-dashoffset: 105; opacity: 0; }
+.netLit .netDots { opacity: 1; stroke-width: 6; stroke-dasharray: 1 8; }
+.netQuiet .netDots { opacity: 0.3; }
+
+.tokenText { font-family: var(--lp1-mono), ui-monospace, monospace; font-size: 24px; letter-spacing: 0.04em; fill: var(--ink, #1a1c17); text-transform: uppercase; }
+
+.pinOuter { cursor: pointer; transition: opacity 0.35s ease; }
+.pinShadow { fill: #7f947d; opacity: 0.45; transition: opacity 0.3s; }
+.pinFloat { transform-box: fill-box; transform-origin: 50% 100%; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.35s; }
+.halo { fill: none; stroke: var(--forest, #285c45); stroke-width: 3; stroke-dasharray: 4 7; opacity: 0; transition: opacity 0.4s; }
+.pinRelevant .halo { opacity: 0.75; }
+.pinActive .pinFloat { transform: translateY(-14px) scale(1.12); filter: drop-shadow(0 6px 0 rgba(26, 28, 23, 0.14)); }
+.pinActive .pinShadow { opacity: 0.7; }
+.pinDim { opacity: 0.45; }
+
+/* ---- HTML overlay: the invitation, the real controls, the card, replay ---- */
+.invite {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  transition: opacity 0.6s ease, transform 0.6s ease, visibility 0s linear 0.6s;
+}
+.inviteGone { opacity: 0; transform: translateY(10px); visibility: hidden; pointer-events: none; }
+.inviteText { margin: 0; max-width: 17rem; font-size: 0.625rem; line-height: 1.6; letter-spacing: 0.14em; text-transform: uppercase; color: var(--soft, #55584b); }
+.explore, .replay {
+  border: 1px solid var(--ink, #1a1c17);
+  background: var(--paper, #f0ede0);
+  color: var(--ink, #1a1c17);
+  font: inherit;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, box-shadow 0.25s, opacity 0.4s;
+}
+.explore { padding: 0.6rem 1.1rem; min-height: 2.5rem; box-shadow: 3px 3px 0 var(--forest, #285c45); }
+.explore:hover { background: var(--forest, #285c45); color: #fff; }
+.explore:focus-visible, .replay:focus-visible { outline: 3px solid var(--forest, #285c45); outline-offset: 3px; }
+.replay { position: absolute; left: 3%; bottom: 2.2%; padding: 0.35rem 0.6rem; min-height: 1.9rem; font-size: 0.5625rem; opacity: 0; visibility: hidden; }
+.replayOn { opacity: 1; visibility: visible; }
+.replay:hover { background: var(--forest, #285c45); color: #fff; }
+.replay::after { content: ""; position: absolute; inset: -0.4rem; }
+
+.chip {
+  position: absolute;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.6rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--ink, #1a1c17);
+  background: var(--paper, #f0ede0);
+  color: var(--ink, #1a1c17);
+  font: inherit;
+  font-size: 0.625rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, opacity 0.3s, box-shadow 0.25s;
+}
+.chip::after { content: ""; position: absolute; inset: -0.55rem -0.4rem; }
+.chipWord { display: none; }
+.chipFull .chipWord { display: inline; }
+.chip:hover, .chipActive { background: var(--forest, #285c45); color: #fff; }
+.chip[aria-pressed="true"] { background: var(--deep, #1e4636); color: #fff; box-shadow: 2px 2px 0 var(--ink, #1a1c17); }
+.chipDim { opacity: 0.55; }
+.chip:focus-visible { outline: 3px solid var(--forest, #285c45); outline-offset: 3px; background: var(--paper, #f0ede0); color: var(--ink, #1a1c17); }
+
+.card {
+  position: absolute;
+  z-index: 2;
+  --cw: min(15.5rem, 46%);
+  width: var(--cw);
+  padding: 0.6rem 0.75rem 0.55rem;
+  border: 1px solid var(--ink, #1a1c17);
+  background: var(--paper, #f0ede0);
+  box-shadow: 3px 3px 0 rgba(26, 28, 23, 0.16);
+  transform: translateY(8px) rotate(-1deg);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s linear 0.4s;
+}
+.card[data-visible="true"] { opacity: 1; transform: translateY(0) rotate(-1deg); visibility: visible; transition-delay: 0s; }
+.card::before { content: ""; position: absolute; left: 1.1rem; top: -0.5rem; width: 2.6rem; height: 0.9rem; background: rgba(168, 188, 163, 0.75); transform: rotate(-3deg); }
+.cardEyebrow { margin: 0; font-size: 0.5rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft, #55584b); }
+.cardTitle { margin: 0.15rem 0 0.25rem; font-family: var(--lp1-display), "Helvetica Neue", Arial, sans-serif; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.cardRow { margin: 0; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.15rem 0.6rem; font-size: 0.6875rem; line-height: 1.35; }
+.cardRow strong { font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--forest, #285c45); }
+.cardFoot { margin: 0.3rem 0 0; padding-top: 0.3rem; border-top: 1px dotted var(--rule, rgba(26, 28, 23, 0.4)); font-size: 0.5625rem; letter-spacing: 0.04em; color: var(--soft, #55584b); }
+.cardClose { position: absolute; right: 0.15rem; top: 0.1rem; width: 1.9rem; height: 1.9rem; border: 0; background: transparent; font: inherit; font-size: 1.1rem; line-height: 1; color: var(--ink, #1a1c17); cursor: pointer; pointer-events: auto; }
+.cardClose:focus-visible { outline: 3px solid var(--forest, #285c45); outline-offset: -2px; }
+.caption { display: inline-block; }
+
+/* a small frame: simplify */
+@container (max-width: 22rem) {
+  .cardFoot { display: none; }
+  .card { --cw: 64%; padding: 0.45rem 0.55rem; }
+  .cardTitle { font-size: 1rem; }
+  .chip { font-size: 0.5625rem; padding: 0.15rem 0.35rem; }
+  .chipFull .chipWord { display: none; }
+  .inviteText { font-size: 0.5625rem; max-width: 13rem; }
+  .invite { gap: 0.5rem; bottom: 4%; }
+}
+
+/* ---- ambient motion: quiet, staggered, and only when the visitor has not asked for less ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .capsuleFloat { animation: capsuleBob 7s ease-in-out infinite; }
+  .contour { animation: breathe 9s ease-in-out infinite; animation-delay: calc(var(--c) * -2.2s); }
+  .marginalia { animation: breathe 11s ease-in-out infinite; }
+  .pinFloat { animation: bob 6.5s ease-in-out infinite; }
+  .floatB { animation-duration: 7.2s; animation-delay: -2.2s; }
+  .floatC { animation-duration: 6.9s; animation-delay: -4.1s; }
+  .floatD { animation-duration: 7.6s; animation-delay: -5.3s; }
+  .pinActive .pinFloat { animation: none; }
+  .netPulse { animation: pulse 9s ease-in-out infinite; animation-delay: calc(var(--i) * 2.1s); }
+  .token { animation: fadeIn 0.5s ease 0.05s both; }
+  .chip { animation: fadeIn 0.5s ease both; }
+  .caption { animation: capIn 0.5s ease both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root * { transition-duration: 0.01s !important; transition-delay: 0s !important; animation: none !important; }
+}
+.floatA { animation-delay: 0s; }
+@keyframes capsuleBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(1.5deg); }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+/* a pulse of "information" crosses a connection, then the connection rests for a long while */
+@keyframes pulse {
+  0%, 62% { stroke-dashoffset: 5; opacity: 0; }
+  65% { opacity: 1; }
+  90% { opacity: 1; }
+  94%, 100% { stroke-dashoffset: -100; opacity: 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes capIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}

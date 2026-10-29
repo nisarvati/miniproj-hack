@@ -1,0 +1,163 @@
+/* "Under the surface" — another plate in the same print-tech publication: the page's own paper and grain (this
+   section paints no background), charcoal type, fine forest-green linework and sage node fills. Colours come from
+   the V1 tokens set on the page (--ink, --soft, --forest, ...), with fallbacks so the module also stands alone.
+   Every rule hangs off a class in this file, so nothing here reaches the rest of the page or the other directions.
+   Typography reuses direction 1's fonts. */
+
+.band {
+  --pl-ink: var(--ink, #1a1c17);
+  --pl-soft: var(--soft, #55584b);
+  --pl-forest: var(--forest, #285c45);
+  --pl-deep: var(--deep, #1e4636);
+  --pl-sage: var(--sage, #a8bca3);
+  --pl-pale: var(--pale, #e5ede2);
+  --pl-botanical: var(--botanical, #6f8c70);
+  --pl-paper: var(--paper, #f0ede0);
+
+  position: relative;
+  display: block;
+  padding: clamp(2.5rem, 6vw, 5.5rem) 0;
+  color: var(--pl-ink);
+  font-family: var(--lp1-display), "Helvetica Neue", Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.inner { max-width: 82rem; }
+.head { display: block; }
+.mono { font-family: var(--lp1-mono), ui-monospace, monospace; }
+
+.eyebrow {
+  margin: 0 0 clamp(0.6rem, 2svh, 1.25rem);
+  font-family: var(--lp1-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pl-forest);
+}
+.title {
+  margin: 0;
+  max-width: 17ch;
+  font-size: clamp(2.4rem, min(6.2vw, 9svh), 5.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+.copy {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+  gap: 1rem clamp(1.5rem, 4vw, 4rem);
+  margin: clamp(1rem, 2.5svh, 2.5rem) 0 clamp(1rem, 3svh, 3rem);
+  max-width: 64rem;
+}
+.lead { margin: 0; font-size: clamp(1rem, 2.4svh, 1.15rem); }
+.plain { margin: 0; font-size: clamp(0.88rem, 2svh, 1rem); color: var(--pl-soft); }
+
+.figure { position: relative; margin: 0; }
+/* a registration mark at the plate's corner, as on the hero */
+.figure::before { position: absolute; content: "+"; font-family: var(--lp1-mono), monospace; font-size: 1rem; line-height: 1; color: var(--pl-forest); }
+.figure::before { left: -0.4rem; top: 0.45rem; }
+.ruler {
+  height: 10px;
+  margin-bottom: 0.5rem;
+  background:
+    repeating-linear-gradient(90deg, rgba(40, 92, 69, 0.35) 0 1px, transparent 1px 12px) left bottom / 100% 6px repeat-x,
+    repeating-linear-gradient(90deg, var(--pl-forest) 0 1px, transparent 1px 120px) left bottom / 100% 10px repeat-x;
+}
+.svg { display: block; width: 100%; height: auto; max-height: 28svh; border: 1px solid var(--pl-ink); background: transparent; }
+.caption { margin: 0.6rem 0 0; max-width: 78rem; font-size: 0.82rem; line-height: 1.6; color: var(--pl-soft); }
+.caption strong { color: var(--pl-forest); font-weight: 600; }
+
+/* schematic parts */
+.box { fill: var(--pl-sage); fill-opacity: 0.38; stroke: var(--pl-ink); stroke-opacity: 0.8; stroke-width: 1; }
+.boxText { fill: var(--pl-ink); font-size: 13px; letter-spacing: 0.2px; }
+.outbox { fill: var(--pl-paper); stroke: var(--pl-forest); stroke-width: 1.2; }
+.lane { fill: none; stroke: var(--pl-botanical); stroke-width: 1.3; stroke-dasharray: 6 6; }
+.laneOut { stroke-opacity: 0.9; }
+.event { fill: var(--pl-forest); }
+.gate { fill: var(--pl-pale); stroke: var(--pl-forest); stroke-width: 1.3; }
+.gateText { fill: var(--pl-deep); font-size: 12px; letter-spacing: 1.2px; }
+.patternDot { fill: var(--pl-botanical); }
+.stateFill { opacity: 0.6; }
+.stateEdge { fill: none; stroke: var(--pl-forest); stroke-width: 1.3; }
+.stateLabelBox { fill: var(--pl-paper); stroke: var(--pl-forest); stroke-width: 1; }
+.stateText { fill: var(--pl-ink); font-size: 13px; letter-spacing: 1px; }
+.out { fill: none; stroke: var(--pl-forest); stroke-width: 1.8; }
+.outHead { fill: var(--pl-forest); }
+.search { fill: var(--pl-forest); stroke: var(--pl-deep); stroke-width: 1.2; }
+.searchText { fill: #fff; font-size: 13px; letter-spacing: 1px; }
+.marker { fill: var(--pl-paper); stroke: var(--pl-forest); stroke-width: 1.3; }
+.markerText { fill: var(--pl-forest); font-size: 12px; }
+.axis { stroke: var(--pl-botanical); stroke-width: 1; fill: none; }
+.coord { fill: var(--pl-soft); font-size: 12px; letter-spacing: 1px; }
+
+/* The lanes drift only when motion is welcome. Without it the diagram is the same picture, standing still. */
+@media (prefers-reduced-motion: no-preference) {
+  .laneIn, .laneOut { animation: plFlow 2.6s linear infinite; }
+}
+@keyframes plFlow { to { stroke-dashoffset: -24; } }
+
+/* the five stages in words */
+.stages {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0 clamp(1rem, 2vw, 1.75rem);
+  margin: clamp(0.9rem, 2.6svh, 3rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.stages li { position: relative; padding: clamp(0.8rem, 2.2svh, 1.4rem) 0 0; border-top: 1px solid var(--pl-forest); }
+.stages li::before { content: ""; position: absolute; top: -5px; left: 0; width: 9px; height: 9px; border-radius: 50%; background: var(--pl-paper); border: 1.5px solid var(--pl-forest); }
+/* the number sits in the corner (the schematic's markers repeat it) so it costs no line of height */
+.stageNo { position: absolute; top: 0.45rem; right: 0; font-size: 0.7rem; letter-spacing: 0.1em; color: var(--pl-forest); }
+.stages h3 { margin: 0 1.75rem 0.4rem 0; font-size: clamp(1rem, 2.5svh, 1.15rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+.stages p { margin: 0 0 clamp(0.4rem, 1.2svh, 0.9rem); font-size: clamp(0.82rem, 2svh, 0.93rem); line-height: 1.45; color: var(--pl-soft); }
+.note { display: block; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.5; color: var(--pl-forest); }
+
+/* the head: title on the left, the words on the right */
+@media (min-width: 48rem) {
+  .title { font-size: clamp(2rem, min(4.4vw, 6.2svh), 4.6rem); }
+}
+@media (min-width: 62rem) {
+  .head { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 1rem clamp(1.5rem, 4vw, 4rem); align-items: end; }
+  .copy { margin: 0; gap: 0.5rem; grid-template-columns: 1fr; }
+  .head + .figure { margin-top: clamp(0.9rem, 2.6svh, 2rem); }
+}
+
+/* a narrower desktop or landscape tablet: a little less type so the five stages still fit under the schematic */
+@media (min-width: 62rem) and (max-width: 75rem) {
+  .lead { font-size: clamp(0.92rem, 2svh, 1.05rem); }
+  .svg { max-height: 25svh; }
+  .stages h3 { font-size: clamp(0.92rem, 2.2svh, 1.02rem); }
+  .stages p { font-size: clamp(0.78rem, 1.9svh, 0.86rem); line-height: 1.4; }
+  .note { font-size: 0.58rem; }
+}
+
+/* panel: the whole section is one screen on tablets and desktops */
+@media (min-width: 48rem) {
+  .band { min-height: 100svh; display: grid; align-content: center; padding-block: clamp(1.25rem, 4.5svh, 5.5rem); }
+}
+@media (min-width: 48rem) and (max-height: 780px) {
+  .ruler { display: none; }
+}
+
+@media (max-width: 62rem) {
+  .copy { grid-template-columns: 1fr; }
+  .stages { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 1.25rem; }
+}
+/* phones: the stages become a timeline and grow as tall as they need */
+@media (max-width: 47.99rem) {
+  .stages { grid-template-columns: 1fr; margin-top: 1.5rem; }
+  .stages li { padding: 0 0 1.75rem 1.75rem; border-top: 0; border-left: 1px solid var(--pl-forest); }
+  .stages li::before { top: 0.3rem; left: -5px; }
+  .stageNo { position: static; display: block; margin-bottom: 0.4rem; }
+  .stages h3 { margin-right: 0; }
+}
+
+/* on a phone the wide schematic is unreadable; the stages below say the same thing, so they carry it */
+@media (max-width: 47.99rem) {
+  .svg { display: none; }
+  .ruler { margin-bottom: 0; }
+  .caption { margin-top: 0.5rem; }
+  .figure::before { display: none; }
+}
