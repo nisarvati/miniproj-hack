@@ -33,6 +33,7 @@ export const ArrowLeftIcon = (p: IconProps) => base({ ...p, children: <path d="M
 export const ExternalIcon = (p: IconProps) => base({ ...p, children: <path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> });
 export const NavigationIcon = (p: IconProps) => base({ ...p, children: <path d="m3 11 19-9-9 19-2-8-8-2Z" /> });
 export const MailIcon = (p: IconProps) => base({ ...p, children: (<><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 6L2 7" /></>) });
+export const ShieldIcon = (p: IconProps) => base({ ...p, children: (<><path d="M12 3 4.5 6v5.5c0 4.6 3.1 7.8 7.5 9.5 4.4-1.7 7.5-4.9 7.5-9.5V6L12 3Z" /><path d="m9 12 2 2 4-4" /></>) });
 export const StoreIcon = (p: IconProps) => base({ ...p, children: (<><path d="M4 9 5.5 4h13L20 9" /><path d="M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9" /><path d="M5 12v8h14v-8M10 20v-5h4v5" /></>) });
 export const SwapIcon = (p: IconProps) => base({ ...p, children: <path d="m17 3 4 4-4 4M21 7H8M7 21l-4-4 4-4M3 17h13" /> });
 export const TrashIcon = (p: IconProps) => base({ ...p, children: <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /> });

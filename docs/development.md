@@ -5,6 +5,7 @@
 * Node.js 22 and `npm install` at the repo root.
 * Docker, for PostgreSQL and Redis: `npm run infra:up` (starts both if they are not running; a no-op for containers that are).
 * After pulling a change that adds a pharmacy schema migration (for example `003_movements.sql` to `005_restock_plans.sql`), run `npm run pharmacies:migrate`: it applies only the pending pharmacy migrations to each pharmacy's own database and never seeds or changes stock (unlike `pharmacies:setup` and `pharmacies:reset`).
+* Central migrations (for example `007_pharmacy_user_roles.sql`, which adds staff/administrator roles) are applied with `npm run db:migrate`; it applies only pending ones. Create an administrator with `PORTAL_ADMIN_PASSWORD=... npm run portal:users -- create-admin <email>`.
 * `.env` copied from `.env.example` (never commit it), then once: `npm run db:migrate && npm run db:seed && npm run pharmacies:setup`.
 
 ## Start everything: `npm run dev:all`

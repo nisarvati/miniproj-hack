@@ -14,7 +14,7 @@ import {
   signOut,
   signUp,
   updateStock,
-  type PortalSession,
+  type StaffSession,
   type PortalStockItem,
 } from "../../lib/portal";
 import { useAsync } from "../../lib/use-async";
@@ -22,6 +22,7 @@ import { useDebounced } from "../../lib/use-debounced";
 import { MapPinIcon, SearchIcon, StoreIcon } from "../ui/icons";
 import { Alert, Button, Card, EmptyState, Input, Select, Skeleton } from "../ui/primitives";
 import { HistoryPanel, TransactionPanel } from "./Movements";
+import { AdminPanel } from "./AdminPanel";
 import { PlanPanel, type PlanRequest } from "./RestockPlans";
 import { RiskPanel } from "./StockRisk";
 
@@ -51,7 +52,13 @@ export function PortalPage() {
       </Alert></>
     );
   }
-  return <StockManager session={session.data!} onSignedOut={session.reload} />;
+  const signedIn = session.data!;
+  // The page only chooses what to show; the server refuses the other role's requests whatever is shown (403).
+  if (signedIn.role === "ADMIN") return <AdminPanel session={signedIn} onSignedOut={session.reload} />;
+  if (!signedIn.pharmacy) {
+    return <><h1 className="sr-only">Pharmacy portal</h1><Alert tone="bad" title="This account has no pharmacy">Ask a MedLink administrator to check your access.</Alert></>;
+  }
+  return <StockManager session={signedIn as StaffSession} onSignedOut={session.reload} />;
 }
 
 function SignIn({ onSignedIn, onRequestAccess }: { onSignedIn: () => void; onRequestAccess: () => void }) {
@@ -171,7 +178,7 @@ function RequestAccess({ onBack }: { onBack: () => void }) {
   );
 }
 
-function StockManager({ session, onSignedOut }: { session: PortalSession; onSignedOut: () => void }) {
+function StockManager({ session, onSignedOut }: { session: StaffSession; onSignedOut: () => void }) {
   const [text, setText] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);

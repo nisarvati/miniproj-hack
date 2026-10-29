@@ -121,6 +121,11 @@ export function DashboardPage() {
                 &ldquo;Time since last sync&rdquo; is how long ago MedLink last processed an event for that pharmacy. A pharmacy with no recent changes has a
                 long one and is not necessarily unhealthy; a pharmacy is marked degraded or down only when changes are waiting and not being processed.
               </p>
+              <p className="text-sm text-muted">
+                This page is about <strong className="text-ink">synchronization</strong>: whether each pharmacy&apos;s changes are reaching MedLink. It is not about stock. How low a
+                medicine is running (stock-risk scores and alerts) and what a pharmacy plans to reorder (restock plans) are different things, and they are private to that pharmacy&apos;s
+                staff in the pharmacy portal.
+              </p>
             </>
           )}
         </>

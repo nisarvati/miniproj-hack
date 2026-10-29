@@ -12,7 +12,8 @@ try {
     const email = `${p.code.toLowerCase()}@pharmacy.test`;
     await db.query(
       `INSERT INTO pharmacy_users (email, password_hash, pharmacy_code) VALUES ($1, $2, $3)
-       ON CONFLICT (lower(email)) DO UPDATE SET password_hash = EXCLUDED.password_hash, pharmacy_code = EXCLUDED.pharmacy_code`,
+       ON CONFLICT (lower(email)) DO UPDATE SET password_hash = EXCLUDED.password_hash, pharmacy_code = EXCLUDED.pharmacy_code
+       WHERE pharmacy_users.role = 'STAFF'`, // never touches an administrator that happens to share an address
       [email, await hashPassword(password), p.code],
     );
     console.log(`${email}  ->  ${p.code} (${p.name})`);

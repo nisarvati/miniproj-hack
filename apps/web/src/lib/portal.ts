@@ -11,10 +11,16 @@ export interface PortalPharmacy {
   /** MedLink's own label for the account, present only when it differs from `name`. */
   registeredName?: string | null;
 }
+export type PortalRole = "STAFF" | "ADMIN";
 export interface PortalSession {
   email: string;
-  pharmacy: PortalPharmacy;
+  /** Missing from an older portal, which only had staff. The role is decided by the server; the page only decides what to show. */
+  role?: PortalRole;
+  /** null for an administrator, who has no pharmacy. */
+  pharmacy: PortalPharmacy | null;
 }
+/** A signed-in pharmacy staff member: always has a pharmacy. */
+export type StaffSession = PortalSession & { pharmacy: PortalPharmacy };
 export interface MedicineInfo {
   medicineCode: string;
   brandName: string;
@@ -292,3 +298,29 @@ export async function downloadPlansCsv(status: PlanFilter, opts: Options = {}): 
   saveFile(await res.blob(), filename);
   return { filename, truncated: res.headers.get("x-export-truncated") === "true" };
 }
+
+export type AccountStatus = "pending" | "active" | "rejected";
+/** A portal account as an administrator sees it. No password, no pharmacy data. */
+export interface StaffAccount {
+  id: string;
+  email: string;
+  role: PortalRole;
+  pharmacyCode: string | null;
+  status: AccountStatus;
+  requestedAt: string;
+  decidedAt: string | null;
+}
+export interface AccountPage {
+  items: StaffAccount[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+/** Administrator only: the server answers 403 to anyone else, whatever this page shows. */
+export async function listStaffRequests(page: { status: AccountStatus | "all"; limit: number; offset: number }, opts: Options = {}): Promise<AccountPage> {
+  const { data, meta } = await requestRaw<StaffAccount[]>("GET", `/portal/admin/staff-requests?status=${page.status}&limit=${page.limit}&offset=${page.offset}`, undefined, opts);
+  return { items: data, total: typeof meta.total === "number" ? meta.total : data.length, limit: typeof meta.limit === "number" ? meta.limit : page.limit, offset: typeof meta.offset === "number" ? meta.offset : page.offset, hasMore: meta.hasMore === true };
+}
+export const decideStaffRequest = (id: string, decision: "approve" | "reject" | "revoke", opts: Options = {}) =>
+  request<StaffAccount>("POST", `/portal/admin/staff-requests/${encodeURIComponent(id)}/decision`, { decision }, opts);

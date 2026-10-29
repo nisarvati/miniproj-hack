@@ -37,6 +37,10 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const e = parsed.data;
   const production = e.NODE_ENV === "production";
   if (production && !e.PORTAL_SESSION_SECRET) throw new Error("Invalid configuration: PORTAL_SESSION_SECRET is required in production");
+  // The built-in secret is public (it is in the source): fine for a portal only this machine can reach, never for one other machines can.
+  if (!e.PORTAL_SESSION_SECRET && !["127.0.0.1", "localhost", "::1"].includes(e.HOST)) {
+    throw new Error(`Invalid configuration: PORTAL_SESSION_SECRET is required when HOST is ${e.HOST} (anything but this machine). Set a secret of at least 16 characters.`);
+  }
   return {
     PORT: e.PORTAL_PORT,
     HOST: e.HOST,

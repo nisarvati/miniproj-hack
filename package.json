@@ -33,6 +33,7 @@
     "notify:start": "npm run start -w @medlink/notification-service",
     "dev:all": "tsx --env-file-if-exists=.env scripts/dev-all.ts",
     "services:status": "tsx --env-file-if-exists=.env scripts/services-status.ts",
+    "perf:measure": "tsx --env-file-if-exists=.env scripts/measure-latency.ts",
     "notify:test-email": "npm run send-test-email -w @medlink/notification-service --",
     "demo:seed": "npm run demo:seed -w @medlink/pharmacy-simulator --",
     "demo:directory-setup": "npm run demo:directory-setup -w @medlink/pharmacy-simulator --",

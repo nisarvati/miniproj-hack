@@ -25,8 +25,8 @@ export const DUMMY_HASH = await hashPassword("not-a-real-password");
 export interface Session {
   /** pharmacy_users.id */
   userId: number;
-  /** The one pharmacy this session may change. */
-  pharmacyCode: string;
+  /** The one pharmacy this session may change. null: an administrator, who has none. The ROLE is never in the cookie: it is read from the database on every request. */
+  pharmacyCode: string | null;
   /** Expiry, epoch ms. */
   exp: number;
 }
@@ -48,7 +48,7 @@ export function readSessionToken(token: string | undefined, secret: string, now 
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
   try {
     const s = JSON.parse(Buffer.from(payload, "base64url").toString()) as Partial<Session>;
-    if (typeof s.userId !== "number" || typeof s.pharmacyCode !== "string" || typeof s.exp !== "number" || s.exp <= now) return null;
+    if (typeof s.userId !== "number" || (typeof s.pharmacyCode !== "string" && s.pharmacyCode !== null) || typeof s.exp !== "number" || s.exp <= now) return null;
     return { userId: s.userId, pharmacyCode: s.pharmacyCode, exp: s.exp };
   } catch {
     return null;

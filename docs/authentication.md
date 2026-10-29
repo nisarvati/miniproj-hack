@@ -76,3 +76,5 @@ Automated tests (no Google involved): the sign-in page, loading and error states
 * The session is a JWT: signing out clears the cookie on this browser, but a copied cookie stays valid until it expires (7 days).
 * `/account` and the medicine calendar (`/calendar` and `/calendar-api/*`, see `medicine-calendar.md`) are the places that use the session. Restock alerts, notifications and search do not, and the notification API still identifies a person by email only (documented limitation).
 * No rate limiting or audit log of sign-ins.
+
+Pharmacy staff and administrator roles, throttling and known gaps are described in [security.md](security.md).

@@ -16,7 +16,7 @@ export interface AppDeps {
   pharmacies: Record<string, Db>;
 }
 
-export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
+export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts: { logger?: boolean; now?: () => number } = {}): Promise<FastifyInstance> {
   const app = Fastify({
     logger: opts.logger === false ? false : { level: config.LOG_LEVEL, redact: ["req.headers.cookie", "req.headers.authorization"] },
     genReqId: (req) => {
@@ -32,6 +32,11 @@ export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts
   app.addHook("onSend", async (req, reply) => {
     reply.header("x-request-id", req.id);
     reply.header("cache-control", "no-store");
+    // This API only ever answers JSON, CSV or an error: nothing in it should be rendered, framed or sniffed as something else.
+    reply.header("x-content-type-options", "nosniff");
+    reply.header("x-frame-options", "DENY");
+    reply.header("referrer-policy", "no-referrer");
+    reply.header("content-security-policy", "default-src 'none'; frame-ancestors 'none'");
   });
   app.setErrorHandler(errorHandler);
   app.setNotFoundHandler(notFoundHandler);
@@ -41,6 +46,6 @@ export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts
   app.get("/", async (_req, reply) => reply.redirect(`${config.corsOrigins[0] ?? "http://localhost:3000"}/portal`));
   // Low-stock alerts follow every change made here. A problem with them is logged, never allowed to fail a sale.
   const sim = new PharmacySimulator(pharmacies, { lowStockThreshold: config.lowStockThreshold, onAlertError: (err) => app.log.warn({ err }, "low-stock alerts could not be updated; the next read repairs them") });
-  portalRoutes(app, { db, pharmacies, sim, config });
+  portalRoutes(app, { db, pharmacies, sim, config, now: opts.now });
   return app;
 }

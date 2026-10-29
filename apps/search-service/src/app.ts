@@ -45,6 +45,11 @@ export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): P
 
   app.addHook("onSend", async (req, reply) => {
     reply.header("x-request-id", req.id);
+    // This API only ever answers JSON or an error: nothing in it should be rendered, framed or sniffed as something else.
+    reply.header("x-content-type-options", "nosniff");
+    reply.header("x-frame-options", "DENY");
+    reply.header("referrer-policy", "no-referrer");
+    reply.header("content-security-policy", "default-src 'none'; frame-ancestors 'none'");
   });
   app.setErrorHandler(errorHandler);
   app.setNotFoundHandler(notFoundHandler);

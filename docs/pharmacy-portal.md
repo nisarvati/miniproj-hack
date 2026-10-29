@@ -58,6 +58,8 @@ database) and `GET /portal/catalogue` (medicines the pharmacy does not list yet:
 
 ## Sign-in and who can change what
 
+Roles are `STAFF` (one pharmacy) and `ADMIN` (none). Sign-in is throttled (8 wrong passwords per account, 40 per address, per 15 minutes, then 429). See [security.md](security.md).
+
 - Accounts live in the central `pharmacy_users` table: an email, a scrypt password hash and **one** pharmacy code.
 - Signing in sets a signed (HMAC), `HttpOnly`, `SameSite=Lax` cookie holding the user and the pharmacy code. It
   expires after `PORTAL_SESSION_HOURS` (8). Every request also checks that the account still exists.
@@ -69,7 +71,7 @@ database) and `GET /portal/catalogue` (medicines the pharmacy does not list yet:
 
 Staff ask for access to **one existing pharmacy** (P001...). The request is not an account you can use: it is stored in
 `pharmacy_users` with `status = 'pending'`, and only `active` accounts can sign in, change stock, or keep a session
-(`requireSession` checks the status on every request, so rejecting or removing someone ends their session at once).
+(`requireAccount` checks the status on every request, so rejecting or removing someone ends their session at once).
 
 - `POST /portal/signup` `{ email, password (10+ characters), pharmacyCode }` answers `202 { status: "pending" }`. The
   pharmacy must exist; the form cannot set a status or pick anything but the pharmacy code. The answer is the same when
@@ -78,7 +80,9 @@ Staff ask for access to **one existing pharmacy** (P001...). The request is not 
 - Signing in with a correct password while pending answers `403 ACCOUNT_PENDING` (or `ACCOUNT_NOT_APPROVED` if
   rejected); a wrong password or unknown email still gets the ordinary `401`.
 - At most 20 requests may wait per pharmacy (`429` after that), so the unauthenticated form cannot fill the table.
-- Approving is an administrator action with no HTTP endpoint on purpose:
+- Approving is an administrator action. Administrators (role `ADMIN`, no pharmacy) can use the portal's admin screen,
+  or `GET /portal/admin/staff-requests` and `POST /portal/admin/staff-requests/:id/decision` (`approve`, `reject`,
+  `revoke`), and every staff route answers an administrator with 403. The CLI still works:
 
 ```
 npm run portal:users -- list            # pending requests (add "all" for every account)
@@ -92,7 +96,7 @@ npm run portal:users -- reject <email>
   the person really works at that pharmacy before approving.
 
 Not built, on purpose, for development: email verification of the address, a notification to administrators when a
-request arrives, an admin screen, password reset, roles inside a pharmacy, sign-in rate limiting, an audit
+request arrives, password reset, roles inside a pharmacy, an audit
 trail of who changed what. Add them before real use. Set `PORTAL_SESSION_SECRET` (required when
 `NODE_ENV=production`) and serve it over HTTPS (the cookie is then also `Secure`).
 

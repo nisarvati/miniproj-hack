@@ -33,6 +33,10 @@ export function streamRoutes(app: FastifyInstance, hub: LiveHub) {
       "cache-control": "no-cache, no-transform",
       connection: "keep-alive",
       "x-accel-buffering": "no", // a reverse proxy must not hold the stream back
+      "x-content-type-options": "nosniff",
+      "x-frame-options": "DENY",
+      "referrer-policy": "no-referrer",
+      "content-security-policy": "default-src 'none'; frame-ancestors 'none'",
       "x-request-id": req.id,
     });
     req.raw.socket.setNoDelay(true);
