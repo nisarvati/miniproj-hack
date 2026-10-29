@@ -1,6 +1,8 @@
 import { createHash } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Db } from "@medlink/db";
+import { evaluateAlerts, listAlerts, stockWithAlerts, type AlertChanges, type AlertState, type StockAlert } from "./alerts.js";
+import { assessStockRisk, type RiskAssessment } from "./risk.js";
 import { catalogueEntryByCode, medicineLabel, pharmacyByCode, SimulatorError } from "./catalogue.js";
 
 export interface StockLine {
@@ -131,7 +133,15 @@ const toMovement = (pharmacyCode: string, r: MovementRow): Movement => ({
  * A refused operation (selling more than is on the shelf, say) changes nothing and records nothing.
  */
 export class PharmacySimulator {
-  constructor(private readonly pharmacies: Record<string, Db>) {}
+  /**
+   * `alerts`: with a `lowStockThreshold`, every successful change also makes the pharmacy's low-stock alerts match its stock. That is done after
+   * the change has committed and in its own transaction, so a problem with alerts is reported to `onAlertError` and never fails or undoes a
+   * sale. Without it nothing about alerts happens (the simulator and the demo tools).
+   */
+  constructor(
+    private readonly pharmacies: Record<string, Db>,
+    private readonly alerts: { lowStockThreshold: number; onAlertError?: (err: unknown) => void } | null = null,
+  ) {}
 
   /** Sells `quantity` units. Cannot sell more than is on the shelf. */
   sell(pharmacyCode: string, medicineCode: string, quantity: number): Promise<ChangeResult> {
@@ -250,6 +260,31 @@ export class PharmacySimulator {
     return new Map(rows.map((r) => [r.medicine_code, { quantity: r.quantity, price: Number(r.price) }]));
   }
 
+  /**
+   * Makes the pharmacy's alerts match its stock now (see `evaluateAlerts`). Safe to repeat and to run at the same time as anything else. Unlike the
+   * automatic check after a change, a failure is thrown: the caller asked for it. It also catches stock changed some other way (plain SQL) and a
+   * changed threshold.
+   */
+  reconcileAlerts(pharmacyCode: string): Promise<AlertChanges> {
+    if (!this.alerts) throw new SimulatorError("INVALID", "low-stock alerts are not switched on for this simulator");
+    return evaluateAlerts(this.db(pharmacyCode), this.alerts.lowStockThreshold);
+  }
+
+  /** The pharmacy's low-stock alerts, newest first. */
+  alertHistory(pharmacyCode: string, filter: { state: AlertState | "ALL"; limit: number; offset: number }): Promise<{ items: StockAlert[]; total: number }> {
+    return listAlerts(this.db(pharmacyCode), pharmacyCode, filter);
+  }
+
+  /** Each medicine the pharmacy stocks with its risk assessment against the configured threshold and its active alert, riskiest first (ties by code). */
+  async stockRisk(pharmacyCode: string): Promise<{ medicineCode: string; quantity: number; assessment: RiskAssessment; alert: { alertId: string; createdAt: Date } | null }[]> {
+    if (!this.alerts) throw new SimulatorError("INVALID", "low-stock alerts are not switched on for this simulator");
+    const threshold = this.alerts.lowStockThreshold;
+    const stock = await stockWithAlerts(this.db(pharmacyCode));
+    return stock
+      .map((s) => ({ ...s, assessment: assessStockRisk({ quantity: s.quantity, threshold }) }))
+      .sort((a, b) => (b.assessment.score ?? -1) - (a.assessment.score ?? -1) || a.medicineCode.localeCompare(b.medicineCode));
+  }
+
   private db(pharmacyCode: string): Db {
     pharmacyByCode(pharmacyCode); // a clear error for an unknown code
     const db = this.pharmacies[pharmacyCode];
@@ -291,7 +326,30 @@ export class PharmacySimulator {
     return toMovement(pharmacyCode, prior);
   }
 
+  /** `apply`, then (if alerts are switched on) bring the alerts in line with the new stock. A replay changed nothing, so it needs no check. */
   private async run(
+    action: ChangeResult["action"],
+    pharmacyCode: string,
+    medicineCode: string,
+    plan: Plan,
+    record?: Recording,
+  ): Promise<{ result: ChangeResult; movement: Movement | null } | { replay: Movement }> {
+    const out = await this.apply(action, pharmacyCode, medicineCode, plan, record);
+    if (!("replay" in out) && action !== "price") await this.syncAlerts(pharmacyCode, medicineCode);
+    return out;
+  }
+
+  /** After a COMMITTED change. Never throws: the change already happened, and the next evaluation (any change, or the next read of the alerts) repairs a miss. */
+  private async syncAlerts(pharmacyCode: string, medicineCode: string): Promise<void> {
+    if (!this.alerts) return;
+    try {
+      await evaluateAlerts(this.db(pharmacyCode), this.alerts.lowStockThreshold, medicineCode);
+    } catch (err) {
+      this.alerts.onAlertError?.(err);
+    }
+  }
+
+  private async apply(
     action: ChangeResult["action"],
     pharmacyCode: string,
     medicineCode: string,

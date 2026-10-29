@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { formatRelativeTime } from "../../lib/format";
 import { listHistory, PortalError, recordRestock, recordSale, type PortalMovement, type PortalStockItem } from "../../lib/portal";
 import { useAsync } from "../../lib/use-async";
@@ -24,7 +24,18 @@ const COPY: Record<Kind, { action: string; verb: string; noun: string }> = {
  * only this pharmacy's own medicines are offered. One submission at a time; a retry of the same entry carries the same key, so it
  * cannot be applied twice, and any edit to the entry starts a new key.
  */
-export function TransactionPanel({ items, onRecorded, onSignedOut }: { items: PortalStockItem[] | undefined; onRecorded: () => void; onSignedOut: () => void }) {
+export function TransactionPanel({
+  items,
+  onRecorded,
+  onSignedOut,
+  preset,
+}: {
+  items: PortalStockItem[] | undefined;
+  onRecorded: () => void;
+  onSignedOut: () => void;
+  /** Fills the form for a restock of this medicine (from "Restock this" on an alert). A new `nonce` applies it again. */
+  preset?: { medicineCode: string; nonce: number } | null;
+}) {
   const [kind, setKind] = useState<Kind>("sale");
   const [code, setCode] = useState("");
   const [quantity, setQuantity] = useState("");
@@ -33,6 +44,19 @@ export function TransactionPanel({ items, onRecorded, onSignedOut }: { items: Po
   const [done, setDone] = useState<string | null>(null);
   const key = useRef(newKey());
   const submitting = useRef(false);
+
+  useEffect(() => {
+    if (!preset) return;
+    setKind("restock");
+    setCode(preset.medicineCode);
+    setQuantity("");
+    setError(null);
+    setDone(null);
+    key.current = newKey();
+    const form = document.getElementById("txn-medicine");
+    form?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    document.getElementById("txn-quantity")?.focus();
+  }, [preset]);
 
   const item = items?.find((i) => i.medicineCode === code);
   const edited = <T,>(set: (v: T) => void) => (v: T) => {

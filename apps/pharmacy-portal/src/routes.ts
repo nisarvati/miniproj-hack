@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { presentPharmacy, type Db } from "@medlink/db";
-import type { ChangeResult, Movement, MovementResult, PharmacySimulator } from "@medlink/pharmacy-ops";
+import { assessStockRisk, type ChangeResult, type Movement, type MovementResult, type PharmacySimulator, type RiskAssessment, type StockAlert } from "@medlink/pharmacy-ops";
 import { clearedCookie, COOKIE_NAME, createSessionToken, DUMMY_HASH, hashPassword, readCookie, readSessionToken, sessionCookie, verifyPassword, type Session } from "./auth.js";
 import type { Config } from "./config.js";
 import { AppError } from "./errors.js";
@@ -26,6 +26,16 @@ const patchBody = z
   .strict()
   .refine((b) => b.quantity !== undefined || b.price !== undefined, "Provide quantity and/or price");
 const codeParam = z.object({ code: medicineCode });
+const alertsQuery = z.object({
+  state: z.enum(["ACTIVE", "RESOLVED", "ALL"]).default("ACTIVE"),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).max(100_000).default(0),
+});
+const riskQuery = z.object({
+  level: z.enum(["LOW", "MODERATE", "HIGH", "CRITICAL"]).optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  offset: z.coerce.number().int().min(0).max(100_000).default(0),
+});
 const transactionBody = z.object({ medicineCode, quantity: z.number().int().min(1).max(1_000_000) }).strict();
 /** Extra query parameters are ignored, never trusted: the pharmacy always comes from the session. */
 const historyQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).max(100_000).default(0) });
@@ -65,6 +75,38 @@ function movementView(m: Movement, names: Map<string, string>, userId: number) {
     idempotencyKey: m.idempotencyKey,
   };
 }
+
+function alertView(a: StockAlert, names: Map<string, string>, threshold: number) {
+  return {
+    alertId: a.alertId,
+    pharmacyCode: a.pharmacyCode,
+    medicineCode: a.medicineCode,
+    medicineName: names.get(a.medicineCode) ?? a.medicineCode,
+    type: a.type,
+    state: a.state,
+    quantityAtCreation: a.quantityAtCreation,
+    /** The threshold the alert was opened under. */
+    threshold: a.threshold,
+    riskScoreAtCreation: a.riskScoreAtCreation,
+    createdAt: a.createdAt.toISOString(),
+    resolvedAt: a.resolvedAt?.toISOString() ?? null,
+    resolvedReason: a.resolvedReason,
+    quantityAtResolution: a.quantityAtResolution,
+    /** Today's assessment of an active alert, against the threshold in force now. Resolved alerts keep only what was true then. */
+    current: a.state === "ACTIVE" && a.currentQuantity !== null ? riskView(assessStockRisk({ quantity: a.currentQuantity, threshold })) : null,
+  };
+}
+
+/** The risk assessment as the API shows it. The threshold is always there, so the score can be checked against it. */
+const riskView = (a: RiskAssessment) => ({
+  score: a.score,
+  level: a.level,
+  quantity: a.quantity,
+  threshold: a.threshold,
+  belowThreshold: a.belowThreshold,
+  summary: a.summary,
+  factors: a.factors,
+});
 
 const summary = (c: ChangeResult) => ({ medicineCode: c.medicineCode, before: c.before, after: c.after, events: c.events.map((e) => e.eventType) });
 
@@ -249,6 +291,59 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     const { items, total } = await sim.history(pharmacyCode, { limit, offset });
     const names = await medicineNames([...new Set(items.map((m) => m.medicineCode))]);
     return { data: items.map((m) => movementView(m, names, userId)), meta: { total, limit, offset, hasMore: offset + items.length < total } };
+  });
+
+  // ---- Stock risk and low-stock alerts. Staff only, and always the signed-in pharmacy's own. ----
+  // Each read first makes the alerts match the stock, which also catches stock changed outside the portal and a changed threshold. That is safe to
+  // repeat and to run at the same time as anything else (see evaluateAlerts); the alerts are derived from stock and never decide it.
+
+  /**
+   * Every medicine the pharmacy stocks with its stock-risk score (0 to 100, an operational indicator and not a forecast), the threshold it was
+   * measured against, the factors behind it and its active alert, riskiest first. `level` keeps one level; the list is paged (limit 1 to 200).
+   */
+  app.get("/portal/risk", async (req) => {
+    const { pharmacyCode } = await requireSession(req);
+    const { level, limit, offset } = riskQuery.parse(req.query);
+    await sim.reconcileAlerts(pharmacyCode);
+    const all = (await sim.stockRisk(pharmacyCode)).filter((r) => !level || r.assessment.level === level);
+    const page = all.slice(offset, offset + limit);
+    const names = await medicineNames(page.map((r) => r.medicineCode));
+    return {
+      data: page.map((r) => ({
+        medicineCode: r.medicineCode,
+        medicineName: names.get(r.medicineCode) ?? r.medicineCode,
+        ...riskView(r.assessment),
+        alert: r.alert && { alertId: r.alert.alertId, state: "ACTIVE" as const, createdAt: r.alert.createdAt.toISOString() },
+      })),
+      meta: { total: all.length, limit, offset, hasMore: offset + page.length < all.length, threshold: config.lowStockThreshold, thresholdSetting: "LOW_STOCK_THRESHOLD", formulaVersion: page[0]?.assessment.formulaVersion ?? 1, salesSpeedUsed: false },
+    };
+  });
+
+  /** The risk explanation for one medicine of this pharmacy. 404 NOT_STOCKED for one it does not carry, even if another pharmacy does. */
+  app.get("/portal/risk/:code", async (req) => {
+    const { pharmacyCode } = await requireSession(req);
+    const { code } = codeParam.parse(req.params);
+    await sim.reconcileAlerts(pharmacyCode);
+    const found = (await sim.stockRisk(pharmacyCode)).find((r) => r.medicineCode === code);
+    if (!found) throw new AppError(404, "NOT_STOCKED", `${pharmacyCode} does not carry ${code}`);
+    const names = await medicineNames([code]);
+    return {
+      data: { medicineCode: code, medicineName: names.get(code) ?? code, ...riskView(found.assessment), alert: found.alert && { alertId: found.alert.alertId, state: "ACTIVE" as const, createdAt: found.alert.createdAt.toISOString() } },
+      meta: { threshold: config.lowStockThreshold, thresholdSetting: "LOW_STOCK_THRESHOLD", salesSpeedUsed: false },
+    };
+  });
+
+  /** The pharmacy's low-stock alerts, newest first: `state` ACTIVE (default), RESOLVED or ALL. An active alert also carries today's risk assessment. */
+  app.get("/portal/alerts", async (req) => {
+    const { pharmacyCode } = await requireSession(req);
+    const { state, limit, offset } = alertsQuery.parse(req.query);
+    await sim.reconcileAlerts(pharmacyCode);
+    const { items, total } = await sim.alertHistory(pharmacyCode, { state, limit, offset });
+    const names = await medicineNames([...new Set(items.map((a) => a.medicineCode))]);
+    return {
+      data: items.map((a) => alertView(a, names, config.lowStockThreshold)),
+      meta: { total, limit, offset, hasMore: offset + items.length < total, state, threshold: config.lowStockThreshold },
+    };
   });
 
   app.post("/portal/stock", async (req, reply) => {

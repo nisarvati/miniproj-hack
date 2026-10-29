@@ -33,8 +33,8 @@ export function errorHandler(err: FastifyError | Error, req: FastifyRequest, rep
   if (err instanceof ZodError) {
     return send(reply, req, 400, "VALIDATION_ERROR", "Invalid request", err.issues.map((i) => ({ field: i.path.join("."), message: i.message })));
   }
-  // The movement history needs the pharmacy schema's 003 migration: say what to do instead of a bare 500.
-  if ((err as { code?: string }).code === "42P01" && /inventory_movements/.test(err.message)) {
+  // The movement history and the low-stock alerts need the pharmacy schema's 003 and 004 migrations: say what to do instead of a bare 500.
+  if ((err as { code?: string }).code === "42P01" && /inventory_movements|stock_alerts/.test(err.message)) {
     return send(reply, req, 503, "PHARMACY_SCHEMA_OUTDATED", "This pharmacy's database has not been updated yet. Ask MedLink to run the pharmacy migrations (npm run pharmacies:migrate).");
   }
   const status = (err as FastifyError).statusCode;

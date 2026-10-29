@@ -67,6 +67,65 @@ export interface TransactionResult {
   replayed: boolean;
 }
 
+/** How pressing a medicine's stock is, from a 0 to 100 score: LOW 0-24, MODERATE 25-49, HIGH 50-74, CRITICAL 75-100. UNKNOWN: no score could be worked out. */
+export type RiskLevel = "LOW" | "MODERATE" | "HIGH" | "CRITICAL" | "UNKNOWN";
+export interface RiskFactor {
+  id: "position" | "depth" | "demand";
+  label: string;
+  /** null: this factor is not part of the score (see `available`). */
+  points: number | null;
+  available: boolean;
+  detail: string;
+}
+/** An operational stock-risk indicator: units on hand against the low-stock threshold. Not a forecast. */
+export interface PortalRisk {
+  medicineCode: string;
+  medicineName: string;
+  quantity: number | null;
+  threshold: number | null;
+  /** quantity <= threshold: the low-stock condition that opens an alert. */
+  belowThreshold: boolean | null;
+  /** null: unknown, never 0. */
+  score: number | null;
+  level: RiskLevel;
+  summary: string;
+  factors: RiskFactor[];
+  alert: { alertId: string; state: "ACTIVE"; createdAt: string } | null;
+}
+export interface RiskPage {
+  items: PortalRisk[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  threshold: number | null;
+}
+export interface PortalAlert {
+  alertId: string;
+  pharmacyCode: string;
+  medicineCode: string;
+  medicineName: string;
+  type: "LOW_STOCK";
+  state: "ACTIVE" | "RESOLVED";
+  quantityAtCreation: number;
+  threshold: number;
+  riskScoreAtCreation: number;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedReason: "STOCK_RECOVERED" | "NO_LONGER_STOCKED" | null;
+  quantityAtResolution: number | null;
+  /** Today's assessment of an active alert. null for a resolved one. */
+  current: Pick<PortalRisk, "quantity" | "threshold" | "belowThreshold" | "score" | "level" | "summary" | "factors"> | null;
+}
+export interface AlertPage {
+  items: PortalAlert[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  threshold: number | null;
+}
+
 /** An error whose message is safe to show to pharmacy staff. */
 export class PortalError extends Error {
   constructor(
@@ -138,4 +197,22 @@ export async function listHistory(page: { limit: number; offset: number }, opts:
   const { data, meta } = await requestRaw<PortalMovement[]>("GET", `/portal/history?limit=${page.limit}&offset=${page.offset}`, undefined, opts);
   const m = meta as Partial<MovementPage>;
   return { items: data, total: m.total ?? data.length, limit: m.limit ?? page.limit, offset: m.offset ?? page.offset, hasMore: m.hasMore ?? false };
+}
+
+const pageOf = <T,>(data: T[], meta: Record<string, unknown>, fallback: { limit: number; offset: number }) => ({
+  items: data,
+  total: typeof meta.total === "number" ? meta.total : data.length,
+  limit: typeof meta.limit === "number" ? meta.limit : fallback.limit,
+  offset: typeof meta.offset === "number" ? meta.offset : fallback.offset,
+  hasMore: meta.hasMore === true,
+  threshold: typeof meta.threshold === "number" ? meta.threshold : null,
+});
+/** The pharmacy's medicines, riskiest first. The pharmacy is the signed-in one: it is never a parameter. */
+export async function listRisk(page: { limit: number; offset: number }, opts: Options = {}): Promise<RiskPage> {
+  const { data, meta } = await requestRaw<PortalRisk[]>("GET", `/portal/risk?limit=${page.limit}&offset=${page.offset}`, undefined, opts);
+  return pageOf(data, meta, page);
+}
+export async function listAlerts(filter: { state: "ACTIVE" | "RESOLVED" | "ALL"; limit: number; offset: number }, opts: Options = {}): Promise<AlertPage> {
+  const { data, meta } = await requestRaw<PortalAlert[]>("GET", `/portal/alerts?state=${filter.state}&limit=${filter.limit}&offset=${filter.offset}`, undefined, opts);
+  return pageOf(data, meta, filter);
 }

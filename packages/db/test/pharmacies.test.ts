@@ -43,7 +43,7 @@ describe("five independent pharmacy databases", () => {
       const profile = (await local(code).query("SELECT pharmacy_code, name FROM pharmacy_profile")).rows;
       expect(profile).toEqual([{ pharmacy_code: code, name: PHARMACIES[i]!.name }]);
       const tables = (await local(code).query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY 1")).rows.map((r) => r.table_name);
-      expect(tables).toEqual(["inventory", "inventory_movements", "outbox", "pharmacy_profile", "schema_migrations"]); // the pharmacy's own tables only: no central tables here
+      expect(tables).toEqual(["inventory", "inventory_movements", "outbox", "pharmacy_profile", "schema_migrations", "stock_alerts"]); // the pharmacy's own tables only: no central tables here
     }
   });
 

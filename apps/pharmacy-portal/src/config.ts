@@ -10,6 +10,8 @@ const schema = z.object({
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   PORTAL_SESSION_SECRET: z.string().min(16, "PORTAL_SESSION_SECRET must be at least 16 characters").optional(),
   PORTAL_SESSION_HOURS: z.coerce.number().positive().default(8),
+  /** Units at or below which a medicine counts as low on stock. The same setting the search service uses for its "low stock" label. */
+  LOW_STOCK_THRESHOLD: z.coerce.number().int().min(1).max(1_000_000).default(5),
   NODE_ENV: z.string().optional(),
 });
 
@@ -23,6 +25,8 @@ export interface Config {
   sessionMs: number;
   /** True in production: the session cookie is then also marked Secure. */
   secureCookies: boolean;
+  /** LOW_STOCK_THRESHOLD: where low-stock alerts open, and the threshold the risk score is measured against. */
+  lowStockThreshold: number;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -42,5 +46,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     sessionSecret: e.PORTAL_SESSION_SECRET ?? DEV_SECRET,
     sessionMs: e.PORTAL_SESSION_HOURS * 3_600_000,
     secureCookies: production,
+    lowStockThreshold: e.LOW_STOCK_THRESHOLD,
   };
 }

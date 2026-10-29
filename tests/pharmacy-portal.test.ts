@@ -115,7 +115,11 @@ describe("a portal change reaches everywhere", () => {
 
   it("search still shows the change when live stock is unavailable, because the central database was kept up to date", async () => {
     await portalCall("PATCH", "/portal/stock/M001", { quantity: 12, price: 28.5 });
-    await waitFor(async () => (await centralRow("P004", "M001"))?.quantity === 12, "the central database to show 12");
+    // The portal applies the quantity and then the price as two changes, so wait for BOTH to reach the central database.
+    await waitFor(async () => {
+      const row = await centralRow("P004", "M001");
+      return row?.quantity === 12 && Number(row.price) === 28.5;
+    }, "the central database to show 12 at 28.50");
     expect(at(await search(fallback, "Crocin 500mg"), "P004")).toMatchObject({ quantity: 12, price: 28.5, source: "catalogue" });
   });
 

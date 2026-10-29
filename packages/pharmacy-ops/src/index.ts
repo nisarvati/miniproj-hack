@@ -20,3 +20,5 @@ export {
   type SeedReport,
   type Tier,
 } from "./demo-seed.js";
+export { evaluateAlerts, listAlerts, type AlertChanges, type AlertState, type AlertType, type ResolvedReason, type StockAlert } from "./alerts.js";
+export { assessStockRisk, riskLevel, RISK_FORMULA_VERSION, type RiskAssessment, type RiskFactor, type RiskLevel } from "./risk.js";

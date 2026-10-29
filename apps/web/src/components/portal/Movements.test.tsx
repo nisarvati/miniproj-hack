@@ -233,6 +233,8 @@ describe("in the portal", () => {
       "GET /portal/me": () => ({ body: { data: session } }),
       "GET /portal/stock": () => ({ body: { data: [item("M001", "Crocin", sold ? 3 : 5)] } }),
       "GET /portal/history": () => page(sold ? [movement()] : []),
+      "GET /portal/alerts": () => ({ body: { data: [], meta: { total: 0, limit: 20, offset: 0, hasMore: false, threshold: 5 } } }),
+      "GET /portal/risk": () => ({ body: { data: [], meta: { total: 0, limit: 8, offset: 0, hasMore: false, threshold: 5 } } }),
       "GET /portal/catalogue": () => ({ body: { data: [] } }),
       "POST /portal/sales": () => ((sold = true), created(movement())),
     });
@@ -255,6 +257,8 @@ describe("in the portal", () => {
       "GET /portal/me": () => ({ body: { data: session } }),
       "GET /portal/stock": () => ({ body: { data: [item("M001", "Crocin", 5)] } }),
       "GET /portal/history": () => page([]),
+      "GET /portal/alerts": () => ({ body: { data: [], meta: { total: 0, limit: 20, offset: 0, hasMore: false, threshold: 5 } } }),
+      "GET /portal/risk": () => ({ body: { data: [], meta: { total: 0, limit: 8, offset: 0, hasMore: false, threshold: 5 } } }),
       "GET /portal/catalogue": () => ({ body: { data: [] } }),
       "PATCH /portal/stock/M001": () => ({ body: { data: { medicineCode: "M001", before: { quantity: 5, price: 25 }, after: { quantity: 8, price: 25 }, events: ["RESTOCK"] } } }),
     });

@@ -38,6 +38,8 @@ export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts
   app.get("/health", async () => ({ status: "ok" }));
   // This is the API. Someone who opens its address in a browser belongs on the portal page of the web app.
   app.get("/", async (_req, reply) => reply.redirect(`${config.corsOrigins[0] ?? "http://localhost:3000"}/portal`));
-  portalRoutes(app, { db, pharmacies, sim: new PharmacySimulator(pharmacies), config });
+  // Low-stock alerts follow every change made here. A problem with them is logged, never allowed to fail a sale.
+  const sim = new PharmacySimulator(pharmacies, { lowStockThreshold: config.lowStockThreshold, onAlertError: (err) => app.log.warn({ err }, "low-stock alerts could not be updated; the next read repairs them") });
+  portalRoutes(app, { db, pharmacies, sim, config });
   return app;
 }
