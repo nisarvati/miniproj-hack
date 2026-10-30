@@ -13,7 +13,8 @@ export interface ConnectorPharmacy {
   pollingFailing: boolean;
 }
 
-export type ConnectorReading = { reachable: true; pharmacies: Map<string, ConnectorPharmacy> } | { reachable: false };
+/** `stale`: the connector left heartbeats in Redis but its latest one is too old to trust, so nothing it once said is shown. */
+export type ConnectorReading = { reachable: true; pharmacies: Map<string, ConnectorPharmacy> } | { reachable: false; stale?: boolean };
 
 export interface ConnectorHealthSource {
   read(): Promise<ConnectorReading>;

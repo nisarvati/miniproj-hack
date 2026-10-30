@@ -39,7 +39,7 @@ export interface NodesResponse {
     generatedAt: string;
     /** "down" or "not-configured": no node can be assessed, every status is "unknown" and every counter null. */
     redis: "up" | "down" | "not-configured";
-    connector: "up" | "unreachable" | "not-configured";
+    connector: "up" | "unreachable" | "stale" | "not-configured";
     /** The sync service's own health report. Anything but "ready" or "not-configured" keeps caught-up nodes from being called healthy. */
     syncService: SyncServiceState | "not-configured";
     thresholds: typeof THRESHOLDS;
@@ -89,6 +89,7 @@ export function deriveStatus(input: {
   if (backlog === 0 && lag !== null) {
     if (syncService === "not-ready") return { status: "degraded", reason: "No events are waiting, but the sync service reports that it is not ready." };
     if (syncService === "unreachable") return { status: "unknown", reason: "No events are waiting, but the sync service could not be reached to confirm it is running." };
+    if (syncService === "stale") return { status: "unknown", reason: "No events are waiting, but the sync service's last heartbeat is too old to confirm it is running." };
     return { status: "healthy", reason: "No events are waiting; the last event was processed." };
   }
   if (reading.record === null) return { status: "unknown", reason: "No event has been synchronized for this pharmacy yet." };
@@ -132,7 +133,7 @@ export async function getNodes(src: NodeSources): Promise<NodesResponse> {
     meta: {
       generatedAt: new Date(now).toISOString(),
       redis: sync === null ? "not-configured" : sync.redis,
-      connector: connector === null ? "not-configured" : connector.reachable ? "up" : "unreachable",
+      connector: connector === null ? "not-configured" : connector.reachable ? "up" : connector.stale ? "stale" : "unreachable",
       syncService,
       thresholds: THRESHOLDS,
     },

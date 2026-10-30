@@ -13,6 +13,8 @@ const schema = z.object({
   /** Units at or below which a medicine counts as low on stock. The same setting the search service uses for its "low stock" label. */
   LOW_STOCK_THRESHOLD: z.coerce.number().int().min(1).max(1_000_000).default(5),
   NODE_ENV: z.string().optional(),
+  /** How many reverse proxies stand in front of the portal ("2": Vercel then Render). Unset or 0: none, req.ip is the connecting address. */
+  TRUST_PROXY: z.string().regex(/^\d{1,2}$/, "TRUST_PROXY must be a number of proxy hops, such as 2").optional(),
 });
 
 export interface Config {
@@ -27,6 +29,8 @@ export interface Config {
   secureCookies: boolean;
   /** LOW_STOCK_THRESHOLD: where low-stock alerts open, and the threshold the risk score is measured against. */
   lowStockThreshold: number;
+  /** Passed to Fastify: a hop count, or false. It decides which address `req.ip` is, and so whom the login throttle counts. */
+  trustProxy: number | false;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -51,5 +55,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     sessionMs: e.PORTAL_SESSION_HOURS * 3_600_000,
     secureCookies: production,
     lowStockThreshold: e.LOW_STOCK_THRESHOLD,
+    trustProxy: e.TRUST_PROXY && Number(e.TRUST_PROXY) > 0 ? Number(e.TRUST_PROXY) : false,
   };
 }

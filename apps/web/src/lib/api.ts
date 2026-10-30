@@ -206,9 +206,10 @@ export interface NodesResponse {
     generatedAt: string;
     /** Anything but "up": no pharmacy can be assessed. */
     redis: "up" | "down" | "not-configured";
-    connector: "up" | "unreachable" | "not-configured";
-    /** Whether the sync service confirmed it is running. Missing from an older API. */
-    syncService?: "ready" | "not-ready" | "unreachable" | "not-configured";
+    /** "stale": the connector left heartbeats but its latest is too old to trust (a worker on another machine that went quiet). */
+    connector: "up" | "unreachable" | "stale" | "not-configured";
+    /** Whether the sync service confirmed it is running. Missing from an older API. "stale": its last heartbeat is too old. */
+    syncService?: "ready" | "not-ready" | "stale" | "unreachable" | "not-configured";
     thresholds?: { degradedAfterMs: number; downAfterMs: number };
   };
 }

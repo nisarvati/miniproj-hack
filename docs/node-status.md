@@ -27,8 +27,8 @@ No pharmacy database, credential or connection string is read or returned.
     "staleCount": "number | null", "duplicateCount": "number | null", "processedCount": "number | null"
   }],
   "meta": {
-    "generatedAt": "ISO timestamp", "redis": "up | down | not-configured", "connector": "up | unreachable | not-configured",
-    "syncService": "ready | not-ready | unreachable | not-configured",
+    "generatedAt": "ISO timestamp", "redis": "up | down | not-configured", "connector": "up | unreachable | stale | not-configured",
+    "syncService": "ready | not-ready | stale | unreachable | not-configured",
     "thresholds": { "degradedAfterMs": 15000, "downAfterMs": 120000 }
   }
 }
@@ -84,3 +84,24 @@ conservative defaults, not measured values.
 - `syncLagMs` is time since the last processed event. The per-event delay the sync service measures (`lastLatencyMs`) is stored in Redis but not exposed here.
 - Live updates arrive over `GET /api/stream` (see [live-updates.md](live-updates.md)); the dashboard also keeps its Refresh button, which reads this endpoint.
 - No access control beyond the other `/api` routes. A role-restricted dashboard belongs with the admin-role milestone.
+
+## Where worker health comes from: local endpoints or Redis heartbeats
+
+The connector and the sync service report their own health (`ready`, dependencies, the connector's per-pharmacy backlog). The search service reads it one of two ways, chosen by `WORKER_HEALTH` on the search service:
+
+| `WORKER_HEALTH` | Source | For |
+| --- | --- | --- |
+| `http` (default) | each worker's `GET /health` on `127.0.0.1` (or a private-network address from `WORKER_HEALTH_URL_CONNECTOR` / `WORKER_HEALTH_URL_SYNC`) | local development, or workers reachable over a private network |
+| `redis` | heartbeats the workers store in Redis (`WORKER_HEARTBEAT=redis` on each worker), key `medlink:health:<service>` | workers on other machines, with no inbound port (Render) |
+| `off` | nothing | node status without worker confirmation: quiet nodes are `unknown`, never `healthy` |
+
+A heartbeat is the same report the endpoint serves plus a timestamp, so the readings are identical; the new thing is that **age** is known. Four states are kept distinct, and map onto the existing response:
+
+| Heartbeat | `meta.syncService` | `meta.connector` | Effect on a node with nothing waiting |
+| --- | --- | --- | --- |
+| recent, ready | `ready` | `up` (backlog and database state used) | `healthy` |
+| recent, not ready | `not-ready` | `up` (its own problems shown) | `degraded` |
+| newest older than `WORKER_HEALTH_STALE_AFTER_MS` (35 s) | `stale` | `stale` (no backlog shown; nothing remembered) | `unknown`, reason "last heartbeat is too old" |
+| none, or Redis unreadable | `unreachable` | `unreachable` | `unknown` |
+
+With several instances (a deploy) the newest counts, a record older than ten minutes is forgotten, and a timestamp from the future is not believed. `stale` is additive: a client that does not know it should treat it like `unreachable` (the web app does not, and says the worker "has gone quiet"). The dashboard's node, counter and status fields are unchanged. See [deployment.md](deployment.md).

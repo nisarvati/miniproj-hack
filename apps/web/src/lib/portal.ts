@@ -1,7 +1,12 @@
 import type { Options } from "./api";
 
-/** The pharmacy portal API: a separate service from the patient-facing search API, with its own sign-in. */
-export const PORTAL_URL = (process.env.NEXT_PUBLIC_PORTAL_URL ?? "http://localhost:4200").replace(/\/$/, "");
+/**
+ * The pharmacy portal API: a separate service from the patient-facing search API, with its own sign-in.
+ * In production the browser calls it on THIS site's own origin, under /portal-api, and the web host forwards it to the portal (next.config.ts, src/server/portal-upstream.ts):
+ * the session cookie then stays first-party (SameSite=Lax, Secure) and there is no cross-origin request. In development it is the local portal, directly, as before.
+ * NEXT_PUBLIC_PORTAL_URL overrides both (a public variable: never put the portal's real address in a deployment that uses the proxy).
+ */
+export const PORTAL_URL = (process.env.NEXT_PUBLIC_PORTAL_URL ?? (process.env.NODE_ENV === "production" ? "/portal-api" : "http://localhost:4200")).replace(/\/$/, "");
 
 export interface PortalPharmacy {
   code: string;

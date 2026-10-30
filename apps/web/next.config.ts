@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { webRewrites } from "./src/server/portal-upstream";
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -13,11 +14,8 @@ const config: NextConfig = {
     ];
   },
   async rewrites() {
-    if (process.env.NODE_ENV !== "development") return [];
-    return [
-      { source: "/api/:path*", destination: "http://localhost:4000/api/:path*" },
-      { source: "/portal-api/portal/:path*", destination: "http://localhost:4200/portal/:path*" },
-    ];
+    // The same-origin pharmacy-portal proxy (and, in development, the search API): see src/server/portal-upstream.ts.
+    return webRewrites({ NODE_ENV: process.env.NODE_ENV, PORTAL_UPSTREAM_URL: process.env.PORTAL_UPSTREAM_URL });
   },
 };
 

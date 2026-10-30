@@ -18,6 +18,8 @@ export interface AppDeps {
 
 export async function buildApp({ db, pharmacies }: AppDeps, config: Config, opts: { logger?: boolean; now?: () => number } = {}): Promise<FastifyInstance> {
   const app = Fastify({
+    // A hop count: trust the nearest N proxies' X-Forwarded-For entries, so `req.ip` is the real visitor (what the login throttle counts), and nothing further out.
+    trustProxy: config.trustProxy ? (_address: string, hop: number) => hop < (config.trustProxy as number) : false,
     logger: opts.logger === false ? false : { level: config.LOG_LEVEL, redact: ["req.headers.cookie", "req.headers.authorization"] },
     genReqId: (req) => {
       const h = req.headers["x-request-id"];

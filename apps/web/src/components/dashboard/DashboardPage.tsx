@@ -36,14 +36,14 @@ function SourceNotes({ meta }: { meta: NodesResponse["meta"] }) {
           Pharmacies are listed, but nothing can be said about their synchronization.
         </Alert>
       )}
-      {meta.redis === "up" && (meta.syncService === "unreachable" || meta.syncService === "not-ready") && (
-        <Alert tone="warn" title={meta.syncService === "unreachable" ? "The sync service could not be reached" : "The sync service says it is not ready"}>
-          A pharmacy with nothing waiting is shown as {meta.syncService === "unreachable" ? "unknown, because MedLink can't confirm anything is processing its changes" : "degraded"}, not healthy.
+      {meta.redis === "up" && (meta.syncService === "unreachable" || meta.syncService === "stale" || meta.syncService === "not-ready") && (
+        <Alert tone="warn" title={meta.syncService === "unreachable" ? "The sync service could not be reached" : meta.syncService === "stale" ? "The sync service has gone quiet" : "The sync service says it is not ready"}>
+          A pharmacy with nothing waiting is shown as {meta.syncService === "not-ready" ? "degraded" : meta.syncService === "stale" ? "unknown, because the sync service's last heartbeat is too old to say it is still running" : "unknown, because MedLink can't confirm anything is processing its changes"}, not healthy.
         </Alert>
       )}
       {meta.redis === "up" && meta.connector !== "up" && (
         <Alert tone="info">
-          Waiting-in-outbox counts are not available because the inventory connector could not be reached. Other readings are unaffected.
+          Waiting-in-outbox counts are not available because the inventory connector {meta.connector === "stale" ? "has gone quiet (its last heartbeat is too old)" : "could not be reached"}. Other readings are unaffected.
         </Alert>
       )}
     </>

@@ -30,6 +30,9 @@ A patient is not a portal account at all: a patient's web session is a different
 
 | Area | Control | Evidence |
 | --- | --- | --- |
+| Portal behind Vercel | Browser calls the portal on the web app's own origin (`/portal-api`), so the session cookie stays first-party (`HttpOnly`, `SameSite=Lax`, `Secure`); the proxy forwards only `/portal-api/portal/*` to one validated, server-side upstream; the upstream is absent from browser bundles | `apps/web/src/server/portal-upstream.test.ts`, `apps/web/src/lib/portal-base.test.ts`; built and exercised end to end against a stand-in upstream (docs/deployment.md) |
+| Login throttle behind proxies | `TRUST_PROXY` is a hop count (off by default); a forwarded address is ignored unless trusted, and only the nearest N proxies are believed | `apps/pharmacy-portal/test/proxy.test.ts` |
+| Worker health | Heartbeats carry counts and states only; a stale or missing one is never evidence of health | `apps/search-service/test/heartbeat-health.test.ts` |
 | Analytics | `GET /api/analytics/network` is public and carries only counts of stream entries and stock statuses. `GET /portal/analytics` is staff-only, scoped to the session's pharmacy, read-only, and 403 for administrators | `apps/search-service/test/analytics.test.ts` (no quantities, sales, risk, alerts, plans), `apps/pharmacy-portal/test/analytics.test.ts` (isolation, read-only), `roles.test.ts` (401/403 matrix) |
 |---|---|---|
 | Authorization | server-side roles on every protected route; matrix of all route families × caller types | `apps/pharmacy-portal/test/roles.test.ts` |

@@ -1,10 +1,9 @@
-import { createPool, healthPortFor } from "@medlink/db";
+import { createPool } from "@medlink/db";
 import { createRedis, describeError, redisOptionsFromEnv } from "@medlink/redis";
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { RedisLiveStock } from "./modules/live/live-stock.js";
-import { HttpConnectorHealth } from "./modules/nodes/connector-health.js";
-import { HttpSyncServiceHealth } from "./modules/nodes/service-health.js";
+import { workerHealthFromEnv } from "./modules/nodes/health-config.js";
 import { registryPharmacies } from "./modules/nodes/service.js";
 import { RedisSyncStatus } from "./modules/nodes/sync-status.js";
 import { RedisEventHistory } from "./modules/analytics/events.js";
@@ -29,22 +28,21 @@ if (process.env.LIVE_STOCK !== "off") {
     console.warn(`live stock disabled: ${describeError(err)}`);
   }
 }
-// Node status (GET /api/nodes): the sync service's Redis status, plus the connector's and the sync service's local health endpoints.
-const connectorPort = healthPortFor("inventory-connector");
-const syncPort = healthPortFor("inventory-sync");
+// Node status (GET /api/nodes): the sync service's Redis status, plus the workers' health, read the way WORKER_HEALTH says (modules/nodes/health-config.ts).
+const workerHealth = workerHealthFromEnv(process.env, redis);
 const app = await buildApp(db, config, {
   live: redis && new RedisLiveStock(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
   nodes: {
     sync: redis && new RedisSyncStatus(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
-    connector: connectorPort === null ? undefined : new HttpConnectorHealth(`http://127.0.0.1:${connectorPort}/health`),
-    syncService: syncPort === null ? undefined : new HttpSyncServiceHealth(`http://127.0.0.1:${syncPort}/health`),
+    connector: workerHealth.connector,
+    syncService: workerHealth.syncService,
   },
   // GET /api/analytics/network: counts the entries each event stream retains per time bucket (XRANGE ids only).
   events: redis && new RedisEventHistory(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
   // GET /api/stream (live updates): tails the same event streams the sync service consumes, read-only, on the same Redis client.
   stream: { stock: redis && new RedisStockFeed(redis, { pharmacyCodes: () => registryPharmacies().map((p) => p.code), keyPrefix: process.env.REDIS_KEY_PREFIX }) },
 });
-app.log.info({ liveStock: redis ? "on" : "off" }, "search service configured");
+app.log.info({ liveStock: redis ? "on" : "off", workerHealth: workerHealth.mode }, `search service configured; ${workerHealth.note}`);
 
 // Pool errors on idle clients must not crash the process.
 db.on("error", (err) => app.log.error({ err }, "idle database client error"));

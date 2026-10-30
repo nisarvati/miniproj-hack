@@ -3,7 +3,8 @@
  * Redis cannot tell "caught up" from "nobody is consuming", so a node is only called healthy when this confirms the consumer. Best effort:
  * not reachable (stopped, or on another host) is "unreachable", which means no evidence, and the node is then reported unknown.
  */
-export type SyncServiceState = "ready" | "not-ready" | "unreachable";
+/** "stale": it left heartbeats in Redis, but its latest one is too old to say it is running now (see heartbeat-health.ts). */
+export type SyncServiceState = "ready" | "not-ready" | "stale" | "unreachable";
 
 export interface SyncServiceHealthSource {
   read(): Promise<SyncServiceState>;

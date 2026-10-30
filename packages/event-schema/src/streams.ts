@@ -47,6 +47,13 @@ export const inventoryIndexKey = (pharmacyId: string, prefix = DEFAULT_KEY_PREFI
 export const medicineIndexKey = (medicineId: string, prefix = DEFAULT_KEY_PREFIX) =>
   `${prefix}:medicine:{${medicineId}}:pharmacies`;
 
+/**
+ * Where a background worker (connector, sync service, notification service) leaves its health heartbeat for the search service: one hash per service,
+ * one field per running instance, each field a JSON record with the time it was written. One key per service, so no scan is needed and a cluster
+ * is not a concern. The search service reads it to say whether each worker is healthy, unhealthy, stale or unreachable (docs/node-status.md).
+ */
+export const workerHealthKey = (service: string, prefix = DEFAULT_KEY_PREFIX) => `${prefix}:health:${service}`;
+
 /** Extracts "P001" from "<prefix>:events:{P001}", or null for keys that aren't event streams. */
 export function pharmacyIdFromStreamKey(key: string): string | null {
   return /:events:\{(P\d{3,})\}$/.exec(key)?.[1] ?? null;

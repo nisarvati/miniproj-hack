@@ -1,5 +1,6 @@
 import { hostname } from "node:os";
-import { createPool, healthPortFor, probe, startHealthServer, type HealthCheck } from "@medlink/db";
+import { createPool, healthHostFor, healthPortFor, heartbeatEnabled, heartbeatIntervalMs, probe, startHealthServer, startHeartbeat, type HealthCheck } from "@medlink/db";
+import { workerHealthKey } from "@medlink/event-schema";
 import { createRedis, describeError, redisOptionsFromEnv } from "@medlink/redis";
 import { createLogger } from "./logger.js";
 import { loadEmailConfig } from "./config.js";
@@ -71,7 +72,21 @@ const check: HealthCheck = async () => {
   };
 };
 const healthPort = healthPortFor("notification-service");
-if (healthPort !== null) await startHealthServer({ service: "notification-service", port: healthPort, check, onProblem: (m) => logger.warn({}, m) });
+if (healthPort !== null) await startHealthServer({ service: "notification-service", port: healthPort, host: healthHostFor(), check, onProblem: (m) => logger.warn({}, m) });
+
+// Opt-in (WORKER_HEARTBEAT=redis): leave a time-stamped copy of this health report in Redis for the search service, so it can tell this worker is alive, unhealthy or silent
+// even when it runs on another machine and has no reachable port. Failures are logged once and never affect the worker.
+const heartbeat = heartbeatEnabled()
+  ? startHeartbeat({
+      service: "notification-service",
+      instance: process.env.WORKER_INSTANCE?.trim() || `${hostname()}-${process.pid}`,
+      key: workerHealthKey("notification-service", process.env.REDIS_KEY_PREFIX),
+      store: redis,
+      check,
+      intervalMs: heartbeatIntervalMs(),
+      onProblem: (m) => logger.warn({}, m),
+    })
+  : null;
 void check().then((r) => {
   const down = Object.entries(r.dependencies).filter(([, s]) => s === "down").map(([n]) => n);
   if (down.length) logger.warn({ unreachable: down }, "notification-service started, but cannot reach everything it needs: it keeps retrying");
@@ -81,6 +96,7 @@ void check().then((r) => {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, async () => {
     logger.info({ signal, ...service.stats() }, "shutting down");
+    await heartbeat?.stop();
     await service.stop();
     redis.disconnect();
     await db.end();

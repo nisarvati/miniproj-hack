@@ -1,5 +1,6 @@
 import { hostname } from "node:os";
-import { createPool, healthPortFor, probe, startHealthServer, type HealthCheck } from "@medlink/db";
+import { createPool, healthHostFor, healthPortFor, heartbeatEnabled, heartbeatIntervalMs, probe, startHealthServer, startHeartbeat, type HealthCheck } from "@medlink/db";
+import { workerHealthKey } from "@medlink/event-schema";
 import { createRedis, describeError, redisOptionsFromEnv } from "@medlink/redis";
 import { DEFAULT_DEDUP_OPTIONS } from "./dedup.js";
 import { createSyncHandler } from "./handlers.js";
@@ -59,7 +60,21 @@ const check: HealthCheck = async () => {
   };
 };
 const healthPort = healthPortFor("inventory-sync");
-if (healthPort !== null) await startHealthServer({ service: "inventory-sync", port: healthPort, check, onProblem: (m) => logger.warn({}, m) });
+if (healthPort !== null) await startHealthServer({ service: "inventory-sync", port: healthPort, host: healthHostFor(), check, onProblem: (m) => logger.warn({}, m) });
+
+// Opt-in (WORKER_HEARTBEAT=redis): leave a time-stamped copy of this health report in Redis for the search service, so it can tell this worker is alive, unhealthy or silent
+// even when it runs on another machine and has no reachable port. Failures are logged once and never affect the worker.
+const heartbeat = heartbeatEnabled()
+  ? startHeartbeat({
+      service: "inventory-sync",
+      instance: process.env.WORKER_INSTANCE?.trim() || `${hostname()}-${process.pid}`,
+      key: workerHealthKey("inventory-sync", process.env.REDIS_KEY_PREFIX),
+      store: redis,
+      check,
+      intervalMs: heartbeatIntervalMs(),
+      onProblem: (m) => logger.warn({}, m),
+    })
+  : null;
 void check().then((r) => {
   const down = Object.entries(r.dependencies).filter(([, s]) => s === "down").map(([n]) => n);
   if (down.length) logger.warn({ unreachable: down }, "inventory-sync started, but cannot reach everything it needs: it keeps retrying");
@@ -69,6 +84,7 @@ void check().then((r) => {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, async () => {
     logger.info({ signal, ...service.stats() }, "shutting down");
+    await heartbeat?.stop();
     await service.stop();
     redis.disconnect();
     await catalogueDb?.end();

@@ -57,4 +57,4 @@ export {
   type LocationCandidate,
   type RegisterReport,
 } from "./pharmacy-registry.js";
-export { buildReport, healthPortFor, HEALTH_PORTS, HEALTH_PORT_ENV, probe, startHealthServer, withTimeout, type DependencyState, type HealthCheck, type HealthReport, type HealthServer } from "./health.js";
+export { buildReport, healthHostFor, healthPortFor, heartbeatEnabled, heartbeatIntervalMs, HEALTH_PORTS, HEALTH_PORT_ENV, HEARTBEAT_DEFAULTS, probe, startHealthServer, startHeartbeat, withTimeout, type DependencyState, type HealthCheck, type HealthReport, type HealthServer, type Heartbeat, type HeartbeatRecord, type HeartbeatStore } from "./health.js";

@@ -1,4 +1,6 @@
-import { createPool, healthPortFor, loadPharmacyUrls, PHARMACY_CODES, probe, startHealthServer, type HealthCheck } from "@medlink/db";
+import { hostname } from "node:os";
+import { createPool, healthHostFor, healthPortFor, heartbeatEnabled, heartbeatIntervalMs, loadPharmacyUrls, PHARMACY_CODES, probe, startHealthServer, startHeartbeat, type HealthCheck } from "@medlink/db";
+import { workerHealthKey } from "@medlink/event-schema";
 import { createRedis, describeError, redisOptionsFromEnv } from "@medlink/redis";
 import { InventoryConnector } from "./connector.js";
 import { createLogger } from "./logger.js";
@@ -85,7 +87,21 @@ const check: HealthCheck = async () => {
   };
 };
 const healthPort = healthPortFor("inventory-connector");
-if (healthPort !== null) await startHealthServer({ service: "inventory-connector", port: healthPort, check, onProblem: (m) => logger.warn({}, m) });
+if (healthPort !== null) await startHealthServer({ service: "inventory-connector", port: healthPort, host: healthHostFor(), check, onProblem: (m) => logger.warn({}, m) });
+
+// Opt-in (WORKER_HEARTBEAT=redis): leave a time-stamped copy of this health report in Redis for the search service, so it can tell this worker is alive, unhealthy or silent
+// even when it runs on another machine and has no reachable port. Failures are logged once and never affect the worker.
+const heartbeat = heartbeatEnabled()
+  ? startHeartbeat({
+      service: "inventory-connector",
+      instance: process.env.WORKER_INSTANCE?.trim() || `${hostname()}-${process.pid}`,
+      key: workerHealthKey("inventory-connector", process.env.REDIS_KEY_PREFIX),
+      store: redis,
+      check,
+      intervalMs: heartbeatIntervalMs(),
+      onProblem: (m) => logger.warn({}, m),
+    })
+  : null;
 void check().then((r) => {
   const down = Object.entries(r.dependencies).filter(([, s]) => s === "down").map(([n]) => n);
   if (down.length) logger.warn({ unreachable: down }, "connector started, but cannot reach everything it needs: events stay in each pharmacy's outbox until it can");
@@ -95,6 +111,7 @@ void check().then((r) => {
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.once(signal, async () => {
     logger.info({ signal }, "shutting down");
+    await heartbeat?.stop();
     await Promise.all(connectors.map((c) => c.stop()));
     await Promise.all(pools.map((p) => p.end()));
     redis.disconnect();

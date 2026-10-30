@@ -76,6 +76,98 @@ const DEPENDENCY_HINTS: Record<string, string> = {
   postgres: "PostgreSQL is not reachable: start it with `npm run infra:up` and check DATABASE_URL",
 };
 
+/** Where the health endpoint listens. Loopback by default; set HEALTH_HOST (for example 0.0.0.0) only to reach it over a private network. */
+export const healthHostFor = (env: NodeJS.ProcessEnv = process.env): string => env.HEALTH_HOST?.trim() || "127.0.0.1";
+
+/**
+ * A heartbeat: instead of (or as well as) answering GET /health, a worker periodically stores the same report in Redis, stamped with the time, where the
+ * search service reads it. That works when the services run on different machines and a worker has no inbound port at all. A silent worker is then
+ * visible as a STALE heartbeat (its last one is too old), which is different from an unhealthy one (a fresh heartbeat that says it is not ready).
+ */
+export interface HeartbeatStore {
+  hset(key: string, field: string, value: string): Promise<unknown>;
+  hdel(key: string, ...fields: string[]): Promise<unknown>;
+  expire(key: string, seconds: number): Promise<unknown>;
+}
+
+/** What one heartbeat holds. `at` is the writer's clock (ms); the reader compares it with its own. */
+export interface HeartbeatRecord {
+  v: 1;
+  at: number;
+  startedAt: number;
+  instance: string;
+  report: HealthReport;
+}
+
+export const HEARTBEAT_DEFAULTS = { intervalMs: 10_000, ttlSeconds: 600 } as const;
+
+/** Heartbeats are opt-in (WORKER_HEARTBEAT=redis, on, true or 1), so a local setup behaves exactly as before. */
+export const heartbeatEnabled = (env: NodeJS.ProcessEnv = process.env): boolean => /^(redis|on|true|1|yes)$/i.test(env.WORKER_HEARTBEAT?.trim() ?? "");
+
+export function heartbeatIntervalMs(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.WORKER_HEARTBEAT_INTERVAL_MS);
+  return Number.isFinite(n) && n >= 1000 && n <= 120_000 ? n : HEARTBEAT_DEFAULTS.intervalMs;
+}
+
+export interface Heartbeat {
+  /** Stops beating and removes this instance's record (best effort), so a clean shutdown is not mistaken for a crash. */
+  stop(): Promise<void>;
+}
+
+/**
+ * Starts beating: now, then every `intervalMs`. It never throws and never lets a slow or failing Redis stall the worker: each write has a time limit, a beat that is
+ * still running is not started twice, and a failure is reported once (and again once it recovers) rather than on every beat. Writes only its own field of its own key.
+ */
+export function startHeartbeat(opts: {
+  service: string;
+  instance: string;
+  key: string;
+  store: HeartbeatStore;
+  check: HealthCheck;
+  intervalMs?: number;
+  ttlSeconds?: number;
+  writeTimeoutMs?: number;
+  onProblem?: (message: string) => void;
+  now?: () => number;
+}): Heartbeat {
+  const now = opts.now ?? Date.now;
+  const startedAt = now();
+  const interval = opts.intervalMs ?? HEARTBEAT_DEFAULTS.intervalMs;
+  const ttl = opts.ttlSeconds ?? HEARTBEAT_DEFAULTS.ttlSeconds;
+  const writeTimeout = opts.writeTimeoutMs ?? 3000;
+  let beating = false;
+  let failing = false;
+  let stopped = false;
+
+  const beat = async () => {
+    if (beating || stopped) return;
+    beating = true;
+    try {
+      const report = await buildReport(opts.service, startedAt, opts.check);
+      const record: HeartbeatRecord = { v: 1, at: now(), startedAt, instance: opts.instance, report };
+      await withTimeout(Promise.all([opts.store.hset(opts.key, opts.instance, JSON.stringify(record)), opts.store.expire(opts.key, ttl)]), writeTimeout);
+      if (failing) opts.onProblem?.("health heartbeat recovered: Redis accepted it again");
+      failing = false;
+    } catch (err) {
+      if (!failing) opts.onProblem?.(`health heartbeat could not be written to Redis (${(err as Error).message}); the search service will see this worker as stale until it can`);
+      failing = true;
+    } finally {
+      beating = false;
+    }
+  };
+
+  void beat();
+  const timer = setInterval(() => void beat(), interval);
+  timer.unref();
+  return {
+    async stop() {
+      stopped = true;
+      clearInterval(timer);
+      await withTimeout(Promise.resolve(opts.store.hdel(opts.key, opts.instance)), writeTimeout).catch(() => undefined);
+    },
+  };
+}
+
 export interface HealthServer {
   port: number;
   close(): Promise<void>;
