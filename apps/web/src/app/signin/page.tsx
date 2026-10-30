@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getSession } from "../../auth";
-import { signInWithGoogle } from "../../auth-actions";
+import { signInWithEmail, signInWithGoogle, signUpWithEmail } from "../../auth-actions";
 import { SignInPage } from "../../components/auth/SignInPage";
 import { authConfigured, safeRedirect, signInErrorMessage } from "../../lib/auth-config";
 
@@ -11,5 +11,5 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   const { error, callbackUrl } = await searchParams;
   const to = safeRedirect(callbackUrl);
   if (await getSession()) redirect(to); // already signed in
-  return <SignInPage action={signInWithGoogle} error={signInErrorMessage(error)} callbackUrl={to} configured={authConfigured()} />;
+  return <SignInPage action={signInWithGoogle} emailAction={signInWithEmail} signUpAction={signUpWithEmail} error={signInErrorMessage(error)} callbackUrl={to} configured={authConfigured()} />;
 }

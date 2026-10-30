@@ -28,14 +28,15 @@ describe("the Auth.js endpoints at /auth", () => {
     expect((await GET(req("/auth/callback/google?code=x&state=y"))).status).toBe(503);
   });
 
-  it("configured: lists Google as the only provider, with the exact callback URL to register, and no secrets", async () => {
+  it("configured: lists Google and email/password as providers, with the exact callback URL to register, and no secrets", async () => {
     configure(true);
     const { GET } = await import("./app/auth/[...nextauth]/route");
     const res = await GET(req("/auth/providers"));
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, { id: string; callbackUrl: string; signinUrl: string }>;
-    expect(Object.keys(body)).toEqual(["google"]);
+    expect(Object.keys(body)).toEqual(["google", "credentials"]);
     expect(body.google).toMatchObject({ id: "google", callbackUrl: "http://localhost:3000/auth/callback/google", signinUrl: "http://localhost:3000/auth/signin/google" });
+    expect(body.credentials).toMatchObject({ id: "credentials", signinUrl: "http://localhost:3000/auth/signin/credentials" });
     expect(JSON.stringify(body)).not.toContain(REAL.AUTH_GOOGLE_SECRET);
   });
 
@@ -121,7 +122,7 @@ describe("the stable identity the calendar is keyed by", () => {
 });
 
 describe("who may sign in, and where they may land", () => {
-  it("accepts only a Google account whose email Google verified", async () => {
+  it("accepts Google accounts whose email Google verified and credentials sign-ins", async () => {
     configure(true);
     const { authCallbacks } = await import("./auth");
     const google = { provider: "google" } as never;
@@ -130,6 +131,7 @@ describe("who may sign in, and where they may land", () => {
     expect(authCallbacks.signIn({ account: google, profile: { email: "a@example.com" } })).toBe(false);
     expect(authCallbacks.signIn({ account: google, profile: { email_verified: true } })).toBe(false);
     expect(authCallbacks.signIn({ account: { provider: "github" } as never, profile: { email: "a@example.com", email_verified: true } })).toBe(false);
+    expect(authCallbacks.signIn({ account: { provider: "credentials" } as never, profile: undefined })).toBe(true);
     expect(authCallbacks.signIn({ account: null, profile: undefined })).toBe(false);
   });
 
@@ -197,7 +199,7 @@ describe("the protected page and the sign-in page", () => {
 
   it("/signin bounces an already signed-in visitor to a checked destination, never an external one", async () => {
     vi.doMock("./auth", () => ({ getSession: async () => ({ user: { name: "A", email: "a@example.com", image: null } }) }));
-    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined }));
+    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined, signInWithEmail: async () => undefined, signUpWithEmail: async () => undefined }));
     const { default: SignIn } = await import("./app/signin/page");
     expect(await redirected(() => SignIn({ searchParams: Promise.resolve({ callbackUrl: "/pharmacies" }) }))).toBe("/pharmacies");
     expect(await redirected(() => SignIn({ searchParams: Promise.resolve({ callbackUrl: "https://evil.example/" }) }))).toBe("/");
@@ -205,14 +207,14 @@ describe("the protected page and the sign-in page", () => {
 
   it("/signin for a signed-in visitor with no destination goes to the homepage", async () => {
     vi.doMock("./auth", () => ({ getSession: async () => ({ user: { name: "A", email: "a@example.com", image: null } }) }));
-    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined }));
+    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined, signInWithEmail: async () => undefined, signUpWithEmail: async () => undefined }));
     const { default: SignIn } = await import("./app/signin/page");
     expect(await redirected(() => SignIn({ searchParams: Promise.resolve({}) }))).toBe("/");
   });
 
   it("/signin for a visitor shows the form, with the error worded for people and the destination checked", async () => {
     vi.doMock("./auth", () => ({ getSession: async () => null }));
-    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined }));
+    vi.doMock("./auth-actions", () => ({ signInWithGoogle: async () => undefined, signInWithEmail: async () => undefined, signUpWithEmail: async () => undefined }));
     configure(true);
     const { default: SignIn } = await import("./app/signin/page");
     const element = (await SignIn({ searchParams: Promise.resolve({ error: "AccessDenied", callbackUrl: "//evil.example" }) })) as { props: { error: string; callbackUrl: string; configured: boolean } };
@@ -227,7 +229,17 @@ describe("the sign-in and sign-out actions", () => {
     configure(opts.configured);
     const signIn = vi.fn(async () => undefined);
     const signOut = vi.fn(async () => undefined);
-    vi.doMock("./auth", () => ({ signIn, signOut }));
+    vi.doMock("./auth", async (importOriginal) => {
+      const auth = await importOriginal<typeof import("./auth")>();
+      return {
+        ...auth,
+        looksLikeEmail: auth.looksLikeEmail,
+        createCredentialUser: auth.createCredentialUser,
+        findCredentialUser: auth.findCredentialUser,
+        signIn,
+        signOut,
+      };
+    });
     const mod = await import("./auth-actions");
     return { mod, signIn, signOut };
   };
@@ -257,6 +269,24 @@ describe("the sign-in and sign-out actions", () => {
     const { mod, signIn } = await setup({ configured: false });
     expect(await redirected(() => mod.signInWithGoogle(form("/")))).toBe("/signin?error=NotConfigured");
     expect(signIn).not.toHaveBeenCalled();
+  });
+
+  it("creates a local account and signs the visitor in with email and password", async () => {
+    const { mod, signIn } = await setup({ configured: true });
+    const email = `new-${Date.now()}@example.com`;
+    const password = "super-secret";
+    const signup = new FormData();
+    signup.set("email", email);
+    signup.set("password", password);
+    signup.set("callbackUrl", "/search");
+    await mod.signUpWithEmail(signup);
+    expect(signIn).toHaveBeenLastCalledWith("credentials", { email, password, redirectTo: "/search" });
+    const signin = new FormData();
+    signin.set("email", email);
+    signin.set("password", password);
+    signin.set("callbackUrl", "/account");
+    await mod.signInWithEmail(signin);
+    expect(signIn).toHaveBeenLastCalledWith("credentials", { email, password, redirectTo: "/account" });
   });
 
   it("an Auth.js error becomes a sign-in error code; any other error is not swallowed", async () => {

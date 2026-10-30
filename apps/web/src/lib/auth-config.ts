@@ -7,7 +7,12 @@
 /** Where Auth.js is mounted. Not under /api: in development /api/* is proxied to the search service (see next.config.ts). */
 export const AUTH_BASE_PATH = "/auth";
 
-/** True only when the three private settings exist. Without them the site works as before and sign-in says it is not set up. */
+/** True when Auth.js has enough configuration to issue or validate a session cookie at all. */
+export function authReady(env: Record<string, string | undefined> = process.env): boolean {
+  return Boolean(env.AUTH_SECRET?.trim());
+}
+
+/** True only when the three private Google settings exist. Without them the site works as before and Google sign-in says it is not set up. */
 export function authConfigured(env: Record<string, string | undefined> = process.env): boolean {
   return Boolean(env.AUTH_SECRET?.trim() && env.AUTH_GOOGLE_ID?.trim() && env.AUTH_GOOGLE_SECRET?.trim());
 }
@@ -44,9 +49,14 @@ export function signInErrorMessage(code: unknown): string | null {
     case "OAuthAccountNotLinked":
     case "Callback":
       return "Signing in with Google did not finish. Please try again.";
+    case "CredentialsSignin":
+    case "InvalidCredentials":
+      return "Wrong email or password. Please try again.";
+    case "EmailTaken":
+      return "An account with that email already exists. Please sign in instead.";
     case "Configuration":
     case "NotConfigured":
-      return "Google sign-in is not set up on this server yet.";
+      return "Sign-in is not set up on this server yet.";
     case "SessionRequired":
       return "Please sign in to see that page.";
     default:

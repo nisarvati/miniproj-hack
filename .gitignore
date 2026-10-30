@@ -7,6 +7,7 @@ dist/
 coverage/
 .env
 .env.*
+apps/web/.env.local
 !.env.example
 *.log
 .DS_Store

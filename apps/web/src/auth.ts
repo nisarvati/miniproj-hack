@@ -1,8 +1,40 @@
-import NextAuth, { type Account, type Profile, type Session } from "next-auth";
+import NextAuth, { type Account, type Profile, type Session, type User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
+import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { AUTH_BASE_PATH, authConfigured, safeRedirect } from "./lib/auth-config";
+import { AUTH_BASE_PATH, authConfigured, authReady, safeRedirect } from "./lib/auth-config";
 import type { PatientIdentity } from "./server/calendar/repo";
+
+const users = new Map<string, { id: string; email: string; name: string; passwordHash: string }>();
+
+const normaliseEmail = (value: string) => value.trim().toLowerCase();
+export const looksLikeEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) && value.trim().length <= 254;
+
+async function hashPassword(password: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`medlink-credentials:${password}`));
+  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export async function createCredentialUser(email: string, password: string): Promise<{ id: string; email: string; name: string }> {
+  const cleaned = normaliseEmail(email);
+  if (!looksLikeEmail(cleaned)) throw new Error("InvalidCredentials");
+  if (password.length < 8) throw new Error("InvalidCredentials");
+  if (users.has(cleaned)) throw new Error("EmailTaken");
+  const user = { id: crypto.randomUUID(), email: cleaned, name: cleaned.split("@")[0] || "MedLink user", passwordHash: await hashPassword(password) };
+  users.set(cleaned, user);
+  return { id: user.id, email: user.email, name: user.name };
+}
+
+export function findCredentialUser(email: string) {
+  return users.get(normaliseEmail(email)) ?? null;
+}
+
+export async function verifyCredentialUser(email: string, password: string) {
+  const user = findCredentialUser(email);
+  if (!user) return null;
+  const match = (await hashPassword(password)) === user.passwordHash;
+  return match ? { id: user.id, email: user.email, name: user.name } : null;
+}
 
 /**
  * Google sign-in for patients, with Auth.js (next-auth v5): the server-side authorization-code flow with state and PKCE, a signed
@@ -15,8 +47,9 @@ import type { PatientIdentity } from "./server/calendar/repo";
  * (server/calendar) keys a person by the Google account identifier alone.
  */
 export const authCallbacks = {
-  /** Only a Google account whose email Google has verified may sign in. */
+  /** Google accounts must have a verified email; credentials sign-ins are accepted after the user and password are validated. */
   signIn({ account, profile }: { account?: Account | null; profile?: Profile }): boolean {
+    if (account?.provider === "credentials") return true;
     return account?.provider === "google" && profile?.email_verified === true && Boolean(profile.email);
   },
   /**
@@ -24,8 +57,15 @@ export const authCallbacks = {
    * The token's own `sub` is NOT that: with no database adapter Auth.js makes it a new random id at every sign-in, so keying the
    * calendar by it would give a person a new, empty calendar each time they signed in. Later calls (no `account`) keep the token as is.
    */
-  jwt({ token, account }: { token: JWT; account?: Account | null }): JWT {
-    if (account?.provider === "google" && account.providerAccountId) (token as { googleId?: string }).googleId = account.providerAccountId;
+  jwt({ token, account, user }: { token: JWT; account?: Account | null; user?: Partial<User> }): JWT {
+    if (account?.provider === "google" && account.providerAccountId) {
+      (token as { googleId?: string; authProvider?: string }).googleId = account.providerAccountId;
+      (token as { authProvider?: string }).authProvider = "google";
+    }
+    if (user?.id) {
+      (token as { userId?: string; authProvider?: string }).userId = String(user.id);
+      (token as { authProvider?: string }).authProvider = account?.provider ?? "credentials";
+    }
     return token;
   },
   /**
@@ -35,7 +75,12 @@ export const authCallbacks = {
    */
   session({ session, token }: { session: Session; token: JWT }): Session {
     const googleId = (token as { googleId?: string }).googleId;
-    if (session.user && googleId) (session.user as { id?: string }).id = googleId;
+    const userId = (token as { userId?: string }).userId;
+    const authProvider = (token as { authProvider?: string }).authProvider ?? (googleId ? "google" : undefined);
+    if (session.user) {
+      (session.user as { id?: string; provider?: string }).id = googleId ?? userId;
+      if (authProvider) (session.user as { provider?: string }).provider = authProvider;
+    }
     return session;
   },
   /** Auth.js's own redirects (after sign-in and sign-out) may only land on this site. */
@@ -50,9 +95,24 @@ export const authCallbacks = {
   },
 };
 
+export const credentialsProvider = Credentials({
+  name: "Email and password",
+  credentials: {
+    email: { label: "Email", type: "email" },
+    password: { label: "Password", type: "password" },
+  },
+  async authorize(credentials) {
+    const email = String(credentials?.email ?? "").trim();
+    const password = String(credentials?.password ?? "");
+    if (!looksLikeEmail(email) || password.length < 8) return null;
+    const user = await verifyCredentialUser(email, password);
+    return user ? { id: user.id, name: user.name, email: user.email } : null;
+  },
+});
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: AUTH_BASE_PATH,
-  providers: [Google],
+  providers: [Google, credentialsProvider],
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 7 },
   pages: { signIn: "/signin", error: "/signin" },
   callbacks: authCallbacks,
@@ -60,10 +120,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 /** The signed-in patient as the server knows them for private data (see server/calendar): from the verified session only. */
 export async function getPatientIdentity(): Promise<PatientIdentity | null> {
-  if (!authConfigured()) return null;
+  if (!authReady() || !authConfigured()) return null;
   try {
-    const user = (await auth())?.user as { id?: string; email?: string | null; name?: string | null } | undefined;
-    if (!user?.id) return null;
+    const user = (await auth())?.user as { id?: string; email?: string | null; name?: string | null; provider?: string } | undefined;
+    if (!user?.id || user.provider !== "google") return null;
     return { provider: "google", subject: user.id, email: user.email ?? null, name: user.name ?? null };
   } catch {
     return null;
@@ -78,7 +138,7 @@ export interface SessionUser {
 
 /** The signed-in visitor, or null: no cookie, an invalid or expired one, or sign-in not configured. Never throws. */
 export async function getSession(): Promise<{ user: SessionUser } | null> {
-  if (!authConfigured()) return null;
+  if (!authReady()) return null;
   try {
     const session = await auth();
     return session?.user ? { user: { name: session.user.name ?? null, email: session.user.email ?? null, image: session.user.image ?? null } } : null;
