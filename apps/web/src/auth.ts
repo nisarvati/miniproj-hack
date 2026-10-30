@@ -1,40 +1,13 @@
 import NextAuth, { type Account, type Profile, type Session, type User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
+import { authenticateCredentials, clientAddress, looksLikeEmail } from "./server/credentials/service";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "./server/credentials/password";
 import Google from "next-auth/providers/google";
 import { AUTH_BASE_PATH, authConfigured, authReady, safeRedirect } from "./lib/auth-config";
 import type { PatientIdentity } from "./server/calendar/repo";
 
-const users = new Map<string, { id: string; email: string; name: string; passwordHash: string }>();
-
-const normaliseEmail = (value: string) => value.trim().toLowerCase();
-export const looksLikeEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) && value.trim().length <= 254;
-
-async function hashPassword(password: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`medlink-credentials:${password}`));
-  return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-export async function createCredentialUser(email: string, password: string): Promise<{ id: string; email: string; name: string }> {
-  const cleaned = normaliseEmail(email);
-  if (!looksLikeEmail(cleaned)) throw new Error("InvalidCredentials");
-  if (password.length < 8) throw new Error("InvalidCredentials");
-  if (users.has(cleaned)) throw new Error("EmailTaken");
-  const user = { id: crypto.randomUUID(), email: cleaned, name: cleaned.split("@")[0] || "MedLink user", passwordHash: await hashPassword(password) };
-  users.set(cleaned, user);
-  return { id: user.id, email: user.email, name: user.name };
-}
-
-export function findCredentialUser(email: string) {
-  return users.get(normaliseEmail(email)) ?? null;
-}
-
-export async function verifyCredentialUser(email: string, password: string) {
-  const user = findCredentialUser(email);
-  if (!user) return null;
-  const match = (await hashPassword(password)) === user.passwordHash;
-  return match ? { id: user.id, email: user.email, name: user.name } : null;
-}
+export { createCredentialUser, findCredentialUser, looksLikeEmail, verifyCredentialUser } from "./server/credentials/service";
 
 /**
  * Google sign-in for patients, with Auth.js (next-auth v5): the server-side authorization-code flow with state and PKCE, a signed
@@ -101,11 +74,12 @@ export const credentialsProvider = Credentials({
     email: { label: "Email", type: "email" },
     password: { label: "Password", type: "password" },
   },
-  async authorize(credentials) {
+  // The only door a sign-in goes through, including a request posted straight to /auth/callback/credentials: so the attempt limit lives here, not in the form's action.
+  async authorize(credentials, request) {
     const email = String(credentials?.email ?? "").trim();
     const password = String(credentials?.password ?? "");
-    if (!looksLikeEmail(email) || password.length < 8) return null;
-    const user = await verifyCredentialUser(email, password);
+    if (!looksLikeEmail(email) || password.length < PASSWORD_MIN_LENGTH || password.length > PASSWORD_MAX_LENGTH) return null;
+    const user = await authenticateCredentials(email, password, clientAddress(request?.headers));
     return user ? { id: user.id, name: user.name, email: user.email } : null;
   },
 });

@@ -28,7 +28,7 @@ Warning: `pharmacies:setup` and `pharmacies:reset` **reseed stock**. Use them on
 Existing environments apply only what is pending, which is safe on live data:
 
 ```
-npm run db:migrate              # central (001 to 007)
+npm run db:migrate              # central (001 to 008)
 npm run pharmacies:migrate      # the five pharmacy databases (001 to 005)
 ```
 
@@ -104,8 +104,8 @@ Environment variables. The first four are read when the app is **built**: change
 | `NEXT_PUBLIC_API_URL` | public, build-time | yes | The search API's Render origin. |
 | `NEXT_PUBLIC_SITE_URL` | public, build-time | yes | The web app's public origin (canonical links). |
 | `NEXT_PUBLIC_PORTAL_URL` | public | **leave unset** | If set it overrides the proxy and the browser would call that address directly. |
-| `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | **secret**, server-only | for Google sign-in | `AUTH_SECRET`: `openssl rand -base64 32`. Without all three, "Sign in" is hidden. |
-| `DATABASE_URL` | **secret**, server-only | for the patient calendar | The web server's own connection to the central database. Use the **external** Postgres URL with TLS. |
+| `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET` | **secret**, server-only | for Google sign-in | `AUTH_SECRET`: `openssl rand -base64 32`. Google sign-in needs all three. `AUTH_SECRET` alone (with `DATABASE_URL`) enables email-and-password sign-in only; with neither, "Sign in" is hidden. |
+| `DATABASE_URL` | **secret**, server-only | for the patient calendar **and for email-and-password sign-in** | The web server's own connection to the central database. Use the **external** Postgres URL with TLS. Without it email sign-in is not offered in production. |
 | `AUTH_URL` | optional | no | Only if Auth.js cannot work out its own address. |
 
 **Google OAuth.** In Google Cloud Console, add the authorized redirect URI `https://<your-vercel-domain>/auth/callback/google` (Auth.js is mounted at `/auth`) and the origin `https://<your-vercel-domain>`. Preview deployments need their own entries.
@@ -226,7 +226,7 @@ Not set in the cloud: `PORTAL_DEV_PASSWORD`, `PORTAL_ADMIN_PASSWORD` (command li
 
 Goal: the cloud starts with the local pharmacy stock, prices, movement history, alerts, plans, medicines and pharmacy records, **without** development staff accounts or personal data, with an **empty** Redis, and without publishing any event twice.
 
-Local baseline to compare against (taken from the local databases; recount before you start): central 7 migrations, 5 pharmacies, 167 medicines, 68 inventory rows; per pharmacy P001–P005, 5 pharmacy migrations; stock rows 14/14/13/14/13 (units 383/312/325/366/348); movements 0/13/0/0/0; alerts 0/7/6/0/5; plans 0/1/0/0/0; unpublished outbox 0 everywhere.
+Local baseline to compare against (taken from the local databases; recount before you start): central 8 migrations (the last, 008, adds `credential_accounts` and `auth_throttle`, which are empty or excluded), 5 pharmacies, 167 medicines, 68 inventory rows; per pharmacy P001–P005, 5 pharmacy migrations; stock rows 14/14/13/14/13 (units 383/312/325/366/348); movements 0/13/0/0/0; alerts 0/7/6/0/5; plans 0/1/0/0/0; unpublished outbox 0 everywhere.
 
 1. **Quiesce locally.** Stop the connector and the portal (nothing may write while you dump). Confirm `SELECT count(*) FROM outbox WHERE published_at IS NULL` is `0` in all five pharmacy databases. If it is not, let the connector publish first (locally), then stop it.
 2. **Dump** each database from the local container (custom format), e.g.:
@@ -237,9 +237,10 @@ Local baseline to compare against (taken from the local databases; recount befor
    ```
    pg_dump -Fc -d medlink --exclude-table-data=pharmacy_users --exclude-table-data=users \
      --exclude-table-data=restock_subscriptions --exclude-table-data=notifications \
-     --exclude-table-data=patients --exclude-table-data=medicine_calendar_entries
+     --exclude-table-data=patients --exclude-table-data=medicine_calendar_entries \
+     --exclude-table-data=credential_accounts --exclude-table-data=auth_throttle
    ```
-   This drops the development password hashes, the real accounts, patient identities, restock subscriptions (email addresses) and notifications. Keep `medicines`, `pharmacies`, `inventory` and `schema_migrations`.
+   This drops the development staff password hashes, the real accounts, patient identities, email-and-password patient accounts and their attempt counters, restock subscriptions (email addresses) and notifications. Keep `medicines`, `pharmacies`, `inventory` and `schema_migrations`.
 3. **Create the six empty databases** in the cloud instance (see Privileges). Restore each dump into its own empty database with `pg_restore --no-owner --no-privileges -d <cloud url>` (add `--role` if you use one shared role).
 4. **Migrate.** With the cloud URLs in the environment, run `npm run db:migrate` and `npm run pharmacies:migrate`. Both should report nothing pending, because `schema_migrations` was restored; if anything is pending, it is applied additively.
 5. **Staff accounts.** Create fresh accounts later with strong, unique passwords (`npm run portal:users -- create-admin <email>` with `PORTAL_ADMIN_PASSWORD` on the command line; staff request access and an administrator approves). Do **not** run `portal:seed-users` with the default dev password.

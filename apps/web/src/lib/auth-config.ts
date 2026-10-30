@@ -52,6 +52,10 @@ export function signInErrorMessage(code: unknown): string | null {
     case "CredentialsSignin":
     case "InvalidCredentials":
       return "Wrong email or password. Please try again.";
+    case "TooManyAttempts":
+      return "Too many attempts. Please wait a few minutes and try again.";
+    case "Unavailable":
+      return "Email sign-in is temporarily unavailable. Please try again in a moment.";
     case "EmailTaken":
       return "An account with that email already exists. Please sign in instead.";
     case "Configuration":
@@ -63,3 +67,9 @@ export function signInErrorMessage(code: unknown): string | null {
       return "Something went wrong while signing in. Please try again.";
   }
 }
+
+/**
+ * True for the "this server has no sign-in configured" notice. It is a state of the server, not a sign-in that went wrong, so the page shows it plainly
+ * (not as a red failure). Matches the older, Google-only wording too.
+ */
+export const isNotSetUpNotice = (message: string | null | undefined): boolean => typeof message === "string" && /not set up on this server yet\.?$/i.test(message.trim());

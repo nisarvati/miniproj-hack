@@ -30,6 +30,7 @@ A patient is not a portal account at all: a patient's web session is a different
 
 | Area | Control | Evidence |
 | --- | --- | --- |
+| Patient email/password sign-in | Accounts in PostgreSQL (shared by every instance), salted scrypt hashes verified in constant time, a database check that refuses any other hash format, attempt limits per address and per address-and-email kept in the database and enforced at the Auth.js door, hashed counter keys, no sign-in offered in production without a database, emails never verified and never an identity (the calendar needs Google) | `apps/web/src/server/credentials/*.test.ts`, `apps/web/src/auth-credentials.test.ts`; see docs/authentication.md for what it does not do |
 | Portal behind Vercel | Browser calls the portal on the web app's own origin (`/portal-api`), so the session cookie stays first-party (`HttpOnly`, `SameSite=Lax`, `Secure`); the proxy forwards only `/portal-api/portal/*` to one validated, server-side upstream; the upstream is absent from browser bundles | `apps/web/src/server/portal-upstream.test.ts`, `apps/web/src/lib/portal-base.test.ts`; built and exercised end to end against a stand-in upstream (docs/deployment.md) |
 | Login throttle behind proxies | `TRUST_PROXY` is a hop count (off by default); a forwarded address is ignored unless trusted, and only the nearest N proxies are believed | `apps/pharmacy-portal/test/proxy.test.ts` |
 | Worker health | Heartbeats carry counts and states only; a stale or missing one is never evidence of health | `apps/search-service/test/heartbeat-health.test.ts` |

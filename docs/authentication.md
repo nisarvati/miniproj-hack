@@ -78,3 +78,26 @@ Automated tests (no Google involved): the sign-in page, loading and error states
 * No rate limiting or audit log of sign-ins.
 
 Pharmacy staff and administrator roles, throttling and known gaps are described in [security.md](security.md).
+
+## Email and password (patients, alternative to Google)
+
+The sign-in page also offers an email-and-password account. It is deliberately smaller than Google sign-in; know what it is and is not.
+
+**How it is stored and checked** (`apps/web/src/server/credentials/`, migration `008_credential_accounts.sql`):
+
+* Accounts live in the central PostgreSQL (`credential_accounts`), not in the web server's memory, so they survive restarts and are the same on every server instance.
+* Passwords are **salted scrypt** hashes (N=32768, r=8, p=1, a fresh random salt each, parameters stored with the hash), compared in constant time. The database itself refuses a row whose hash is not in that format or whose email is not lower-case. Passwords are 8 to 128 characters; longer ones are refused before any hashing.
+* An email with no account costs the same time as a wrong password, so the speed of the answer does not reveal which emails exist. (Sign-up does say when an email is already registered, which is the usual trade for a usable form; it is limited per address, below.)
+* **Attempt limits**, kept in the database (`auth_throttle`) so they hold across server instances: sign-in is limited to 8 attempts per address-and-email and 40 per address in 15 minutes; sign-up to 10 per address per hour. The limit is enforced where the password is checked (the Auth.js `authorize` step), so posting straight to `/auth/callback/credentials` does not skip it. A correct password clears that account's counter. Keys are hashes: no address or email is written to the counter table.
+* One visitor's failed attempts do not lock another visitor out of the same email (the limit is per address and email).
+
+**Where it works.** It needs `AUTH_SECRET` **and** `DATABASE_URL` for the web app. Without a database it is **not offered in production** (the page says sign-in is not set up) rather than keeping accounts in memory. Outside production, with no `DATABASE_URL`, a throwaway in-memory store is used for a quick local run and a warning is logged.
+
+**What it does not do.**
+
+* **Emails are not verified.** Anyone can create an account with any address. The email is shown back to its owner and nothing else: it is never used to find, link or merge accounts, and it proves nothing about who someone is.
+* **The patient calendar still requires Google.** A password account is not a patient (`getPatientIdentity` accepts only a Google identity), so it gets no calendar and no private data.
+* No password reset, no email change, no account deletion, no multi-factor sign-in. A forgotten password cannot be recovered; the person creates a new account with a different email.
+* The attempt limit counts the first address in `X-Forwarded-For`, which a host such as Vercel sets for you. Elsewhere a visitor could vary it; the per-account limit then still applies.
+
+Automated tests cover the hashing, the PostgreSQL store (isolated test database), the limits, the form actions and the Auth.js door (`apps/web/src/server/credentials/*.test.ts`, `apps/web/src/auth-credentials.test.ts`). They do not drive a browser.

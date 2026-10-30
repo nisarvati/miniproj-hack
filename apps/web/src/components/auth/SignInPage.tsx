@@ -5,6 +5,7 @@ import { useEffect, useState, type CSSProperties, type MouseEvent } from "react"
 import { useFormStatus } from "react-dom";
 import { Button, Input } from "../ui/primitives";
 import { GoogleIcon, LogoMark } from "../ui/icons";
+import { isNotSetUpNotice } from "../../lib/auth-config";
 import { Alert } from "../ui/primitives";
 import s from "./signin.module.css";
 import { MedicineStorm } from "./storm/MedicineStorm";
@@ -55,13 +56,17 @@ export function SignInPage({
   error,
   callbackUrl,
   configured,
+  emailEnabled = true,
 }: {
   action?: (formData: FormData) => void | Promise<void>;
   emailAction?: (formData: FormData) => void | Promise<void>;
   signUpAction?: (formData: FormData) => void | Promise<void>;
   error: string | null;
   callbackUrl: string;
+  /** Google sign-in is set up. */
   configured: boolean;
+  /** Email-and-password sign-in can actually work here (it needs the auth secret and a database). When false the form is not offered. */
+  emailEnabled?: boolean;
 }) {
   const [formKey, setFormKey] = useState(0);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -105,9 +110,10 @@ export function SignInPage({
           <section className={`${s.rise} ${s.panel}`} style={step(3)} aria-labelledby="signin-title">
             <p className="ui-mono text-[0.72rem] font-medium uppercase tracking-[0.14em] text-brand">Patient access</p>
             <h2 id="signin-title" className="editorial-title mt-2 text-3xl leading-tight">Welcome to MedLink</h2>
-            <p className="mt-2 text-muted">Sign in with Google or use an email and password. You never need an account to search for medicines.</p>
+            <p className="mt-2 text-muted">{emailEnabled ? "Sign in with Google or use an email and password." : "Sign in with Google."} You never need an account to search for medicines.</p>
 
-            {error && (
+            {/* "Not set up" describes the server, not a sign-in that went wrong: it is explained below, not shown as a failure. */}
+            {error && !isNotSetUpNotice(error) && (
               <Alert tone="bad" title="Sign-in did not finish" className="mt-5">
                 {error}
               </Alert>
@@ -121,34 +127,38 @@ export function SignInPage({
                 </form>
               ) : (
                 <Alert tone="info" title="Google sign-in is not set up yet">
-                  This server has no Google sign-in configured, so that option is unavailable right now. You can still use email and password below.
+                  {emailEnabled
+                    ? "This server has no Google sign-in configured, so that option is unavailable right now. You can still use email and password below."
+                    : "This server has no sign-in configured yet, so signing in is unavailable right now. You can still search for medicines without an account."}
                 </Alert>
               )}
 
-              <div className="border-t border-line pt-5">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">Email and password</p>
-                <div className="mb-3 flex gap-2 rounded-xl border border-line bg-surface-2 p-1" aria-label="Email sign-in mode">
-                  <button type="button" onClick={() => setMode("signin")} aria-pressed={mode === "signin"} className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${mode === "signin" ? "bg-surface text-ink shadow-sm" : "text-muted"}`}>
-                    Sign in
-                  </button>
-                  <button type="button" onClick={() => setMode("signup")} aria-pressed={mode === "signup"} className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${mode === "signup" ? "bg-surface text-ink shadow-sm" : "text-muted"}`}>
-                    Create account
-                  </button>
-                </div>
+              {emailEnabled && (
+                <div className="border-t border-line pt-5">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted">Email and password</p>
+                  <div className="mb-3 flex gap-2 rounded-xl border border-line bg-surface-2 p-1" aria-label="Email sign-in mode">
+                    <button type="button" onClick={() => setMode("signin")} aria-pressed={mode === "signin"} className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${mode === "signin" ? "bg-surface text-ink shadow-sm" : "text-muted"}`}>
+                      Sign in
+                    </button>
+                    <button type="button" onClick={() => setMode("signup")} aria-pressed={mode === "signup"} className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${mode === "signup" ? "bg-surface text-ink shadow-sm" : "text-muted"}`}>
+                      Create account
+                    </button>
+                  </div>
 
-                <form action={mode === "signup" ? signUpAction ?? emailAction : emailAction ?? signUpAction} className="space-y-3">
-                  <input type="hidden" name="callbackUrl" value={callbackUrl} />
-                  <div>
-                    <label htmlFor="signin-email" className="mb-1 block text-sm font-medium">Email</label>
-                    <Input id="signin-email" name="email" type="email" autoComplete="username" required />
-                  </div>
-                  <div>
-                    <label htmlFor="signin-password" className="mb-1 block text-sm font-medium">Password</label>
-                    <Input id="signin-password" name="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} />
-                  </div>
-                  <Button type="submit" variant="primary" size="lg" className="w-full">{mode === "signup" ? "Create account" : "Sign in with email"}</Button>
-                </form>
-              </div>
+                  <form action={mode === "signup" ? signUpAction ?? emailAction : emailAction ?? signUpAction} className="space-y-3">
+                    <input type="hidden" name="callbackUrl" value={callbackUrl} />
+                    <div>
+                      <label htmlFor="signin-email" className="mb-1 block text-sm font-medium">Email</label>
+                      <Input id="signin-email" name="email" type="email" autoComplete="username" required />
+                    </div>
+                    <div>
+                      <label htmlFor="signin-password" className="mb-1 block text-sm font-medium">Password</label>
+                      <Input id="signin-password" name="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} maxLength={128} />
+                    </div>
+                    <Button type="submit" variant="primary" size="lg" className="w-full">{mode === "signup" ? "Create account" : "Sign in with email"}</Button>
+                  </form>
+                </div>
+              )}
             </div>
 
             <p className="mt-4 border-t border-line pt-4 text-xs leading-relaxed text-muted">

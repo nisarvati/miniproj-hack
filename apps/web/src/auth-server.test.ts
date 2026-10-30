@@ -240,6 +240,10 @@ describe("the sign-in and sign-out actions", () => {
         signOut,
       };
     });
+    // The tests load .env, so DATABASE_URL is the development database. Email accounts must never be written there: use a throwaway in-memory store.
+    const credentials = await import("./server/credentials/service");
+    const { MemoryCredentialStore } = await import("./server/credentials/store");
+    credentials.setCredentialStoreForTesting(new MemoryCredentialStore());
     const mod = await import("./auth-actions");
     return { mod, signIn, signOut };
   };
