@@ -268,17 +268,21 @@
       "address": "35/D-2, Vaibhav CHS, SVP Nagar, Versova, Andheri West, Mumbai, Maharashtra 400053",
       "addressAsListed": "plot 35, d/2, vaibhav soc s.v.p. ngr, near four banglow, andhari, Mumbai, Maharashtra, 400053 (GST registry); OpenStreetMap: 35, Vibhav Cooperative Housing Society",
       "location": {
-        "status": "single-source",
+        "status": "verified",
+        "basis": "openstreetmap-node",
+        "latitude": 19.13639,
+        "longitude": 72.82323,
+        "kind": "osm-storefront-node",
         "candidates": [
           {
             "latitude": 19.13639,
             "longitude": 72.82323,
             "source": "https://www.openstreetmap.org/node/12317765975",
             "kind": "osm-storefront-node",
-            "note": "Community-mapped pharmacy node at house number 35. No second map source agrees or disagrees, so this point is not used for directions. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22."
+            "note": "Community-mapped pharmacy node at house number 35. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22 and re-read on 2026-10-30: the name matches the listing exactly, it is tagged amenity=pharmacy, at house number 35, postcode 400053."
           }
         ],
-        "note": "Directions use the verified address until a second map source confirms the point."
+        "note": "Verified from the OpenStreetMap pharmacy node alone, by the project owner's decision of 2026-10-30 (OpenStreetMap is the only map source used). The point is the node's own position, not a neighbourhood centre."
       },
       "confidence": "high",
       "classification": {
@@ -396,17 +400,21 @@
       "address": "Chakala, Andheri East, Mumbai, Maharashtra 400099",
       "addressAsListed": "Shop No.2, Chakala Road, Andheri East, Mumbai - 400099 (Next to Samraj Hotel) (Justdial, search-reported); Cardinal Gracias Road, Chakala Village (OpenStreetMap). The exact storefront is NOT established: no shop number or street is used as the address.",
       "location": {
-        "status": "single-source",
+        "status": "verified",
+        "basis": "openstreetmap-node",
+        "latitude": 19.11118,
+        "longitude": 72.85865,
+        "kind": "osm-storefront-node",
         "candidates": [
           {
             "latitude": 19.11118,
             "longitude": 72.85865,
             "source": "https://www.openstreetmap.org/node/12317845292",
             "kind": "osm-storefront-node",
-            "note": "Community-mapped pharmacy node. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22."
+            "note": "Community-mapped pharmacy node. © OpenStreetMap contributors (ODbL), read through Nominatim on 2026-10-22 and re-read on 2026-10-30: the name matches the listing exactly, it is tagged amenity=pharmacy, on Cardinal Gracias Road, Chakala, postcode 400099."
           }
         ],
-        "note": "One map source only, and the street differs between sources. Directions use the address."
+        "note": "Verified from the OpenStreetMap pharmacy node alone, by the project owner's decision of 2026-10-30 (OpenStreetMap is the only map source used). The point is the node's own position, not a neighbourhood centre. The street name differs between listings (Cardinal Gracias Road in OpenStreetMap, Chakala Road in Justdial) but both are in Chakala, 400099."
       },
       "confidence": "low",
       "classification": {

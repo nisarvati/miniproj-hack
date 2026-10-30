@@ -29,6 +29,8 @@ A patient is not a portal account at all: a patient's web session is a different
 ## Controls in place
 
 | Area | Control | Evidence |
+| --- | --- | --- |
+| Analytics | `GET /api/analytics/network` is public and carries only counts of stream entries and stock statuses. `GET /portal/analytics` is staff-only, scoped to the session's pharmacy, read-only, and 403 for administrators | `apps/search-service/test/analytics.test.ts` (no quantities, sales, risk, alerts, plans), `apps/pharmacy-portal/test/analytics.test.ts` (isolation, read-only), `roles.test.ts` (401/403 matrix) |
 |---|---|---|
 | Authorization | server-side roles on every protected route; matrix of all route families × caller types | `apps/pharmacy-portal/test/roles.test.ts` |
 | Pharmacy isolation | pharmacy from the account; separate databases per pharmacy; cross-pharmacy reads and writes tested for stock, history, alerts, plans and export | `roles.test.ts`, `transactions.test.ts`, `restock-plans.test.ts`, `risk.test.ts` |

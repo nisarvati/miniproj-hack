@@ -36,6 +36,12 @@ export interface LocationCandidate {
  */
 export interface DirectoryLocation {
   status: "verified" | "single-source" | "conflicting" | "unavailable";
+  /**
+   * How a verified point was established. Absent or "two-sources": two independent map sources agree within 100 m (the default rule).
+   * "openstreetmap-node": the project owner decided (2026-10-30) that one OpenStreetMap pharmacy node may verify a point when its name
+   * and address were re-read and match the listing. It must be declared; it is never inferred, and it never applies to a directory point.
+   */
+  basis?: "two-sources" | "openstreetmap-node";
   latitude?: number;
   longitude?: number;
   kind?: string;
@@ -245,8 +251,10 @@ export function validateDirectoryEntry(p: DirectoryPharmacy): string | null {
   if (loc.status === "verified") {
     if (typeof loc.latitude !== "number" || typeof loc.longitude !== "number") return "a verified location needs coordinates";
     const point = { latitude: loc.latitude, longitude: loc.longitude };
-    const sources = new Set(loc.candidates.filter((c) => distanceM(point, c) <= 100).map((c) => c.source));
-    if (sources.size < 2) return "a verified location needs two independent map sources within 100 m of the point";
+    const near = loc.candidates.filter((c) => distanceM(point, c) <= 100);
+    if (loc.basis === "openstreetmap-node") {
+      if (!near.some((c) => c.kind === "osm-storefront-node" && c.source.startsWith("https://www.openstreetmap.org/node/"))) return "an OpenStreetMap-verified location needs an OpenStreetMap pharmacy node within 100 m of the point";
+    } else if (new Set(near.map((c) => c.source)).size < 2) return "a verified location needs two independent map sources within 100 m of the point";
   } else if (loc.latitude !== undefined || loc.longitude !== undefined) {
     return "only a verified location may carry coordinates; an unverified one keeps its observed points as candidates";
   }

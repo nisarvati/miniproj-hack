@@ -271,16 +271,18 @@ describe("directory pharmacies in the search API", () => {
     const res = (await app.inject({ method: "GET", url: "/api/pharmacies" })).json().data as P[];
     const by = Object.fromEntries(res.map((p) => [p.code, p]));
     const expected: Record<string, [string, string, boolean]> = {
-      P001: ["Paras Medical and General Store", "35/D-2, Vaibhav CHS, SVP Nagar, Versova, Andheri West, Mumbai, Maharashtra 400053", false],
+      P001: ["Paras Medical and General Store", "35/D-2, Vaibhav CHS, SVP Nagar, Versova, Andheri West, Mumbai, Maharashtra 400053", true],
       P002: ["Roopam Medical and General Stores", "Shop 8, Shopping Centre, 18-A M.M. Road, Bhavani Nagar, Marol, Andheri East, Mumbai, Maharashtra 400059", false],
-      P003: ["United Medical and General Stores", "Chakala, Andheri East, Mumbai, Maharashtra 400099", false],
+      P003: ["United Medical and General Stores", "Chakala, Andheri East, Mumbai, Maharashtra 400099", true],
       P004: ["Bandra Medical Stores", "Shop 139, Hill Road, near Union Bank of India, Bandra West, Mumbai, Maharashtra 400050", true],
       P005: ["Faiza Medical and General Stores", "Shop 19, near Mina Centre, Ahmed Zakaria Nagar, Bandra East, Mumbai, Maharashtra 400051", false],
     };
     for (const [code, [name, address, verified]] of Object.entries(expected)) {
       expect(by[code], code).toMatchObject({ name, address, demo: true, independent: true, locationVerified: verified, inventorySimulated: true });
     }
-    expect(by.P004).toMatchObject({ latitude: 19.05548, longitude: 72.83152 }); // the only verified point
+    expect(by.P004).toMatchObject({ latitude: 19.05548, longitude: 72.83152 }); // two sources agree
+    expect(by.P001).toMatchObject({ latitude: 19.13639, longitude: 72.82323 }); // an OpenStreetMap node, by declared basis
+    expect(by.P003).toMatchObject({ latitude: 19.11118, longitude: 72.85865 });
     expect(JSON.stringify(res)).not.toMatch(/Pharmacy [A-E] -/); // no stale fictional name in the API output
     // The persisted rows are untouched.
     const persisted = (await db.query("SELECT code, name FROM pharmacies WHERE code <= 'P005' ORDER BY code")).rows.map((r) => r.name);

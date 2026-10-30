@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { AREAS, parseCoordinates } from "../../lib/locations";
 import { useLocation } from "../providers/location";
+import { useDetectLocation } from "../providers/use-detect-location";
 import { CheckIcon, ChevronDownIcon, CrosshairIcon, MapPinIcon } from "../ui/icons";
 import { Button, cx, Input, Spinner } from "../ui/primitives";
 
@@ -13,7 +14,6 @@ export function LocationMenu({ className }: { className?: string }) {
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [message, setMessage] = useState<{ kind: "info" | "error"; text: string } | null>(null);
-  const [locating, setLocating] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panelId = useId();
@@ -40,29 +40,8 @@ export function LocationMenu({ className }: { className?: string }) {
     };
   }, [open]);
 
-  const useMyLocation = () => {
-    if (!navigator.geolocation) {
-      setMessage({ kind: "error", text: "Your browser doesn't support location. Pick an area instead." });
-      return;
-    }
-    setLocating(true);
-    setMessage({ kind: "info", text: "Finding your location…" });
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocating(false);
-        setPicked({ label: "Your location", location: { latitude: pos.coords.latitude, longitude: pos.coords.longitude } });
-        close();
-      },
-      (err) => {
-        setLocating(false);
-        setMessage({
-          kind: "error",
-          text: err.code === err.PERMISSION_DENIED ? "Location permission was denied. Pick an area or enter coordinates instead." : "Couldn't determine your location. Pick an area or enter coordinates instead.",
-        });
-      },
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 },
-    );
-  };
+  const { state: detection, detect } = useDetectLocation(() => close());
+  const locating = detection.status === "detecting";
 
   const applyCoordinates = () => {
     const parsed = parseCoordinates(lat, lng);
@@ -116,7 +95,7 @@ export function LocationMenu({ className }: { className?: string }) {
           </ul>
 
           <div className="mt-3 border-t border-line pt-3">
-            <Button size="sm" variant="secondary" onClick={useMyLocation} disabled={locating} className="w-full">
+            <Button size="sm" variant="secondary" onClick={() => { setMessage(null); void detect(); }} disabled={locating} className="w-full">
               {locating ? <Spinner /> : <CrosshairIcon size={16} />}
               Use my current location
             </Button>
@@ -127,9 +106,18 @@ export function LocationMenu({ className }: { className?: string }) {
             <Button size="sm" variant="ghost" onClick={applyCoordinates} disabled={!lat && !lng} className="mt-2 w-full">
               Use these coordinates
             </Button>
-            <p role="status" aria-live="polite" className={cx("mt-1 min-h-5 text-xs", message?.kind === "error" ? "text-bad" : "text-muted")}>
-              {message?.text}
-            </p>
+            {(() => {
+              const shown = locating
+                ? { kind: "info" as const, text: "Detecting location…" }
+                : detection.status === "error" && !message
+                  ? { kind: "error" as const, text: detection.message }
+                  : message;
+              return (
+                <p role="status" aria-live="polite" className={cx("mt-1 min-h-5 text-xs", shown?.kind === "error" ? "text-bad" : "text-muted")}>
+                  {shown?.text}
+                </p>
+              );
+            })()}
           </div>
         </div>
       )}

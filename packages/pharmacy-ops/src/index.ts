@@ -27,3 +27,4 @@ export {
   EXPORT_COLUMNS, isOpen, MAX_EXPORT_ROWS, MAX_NOTES, MAX_PLAN_QUANTITY, OPEN_STATUSES, PLAN_STATUSES, PlanError, plansToCsv, RestockPlanner, TRANSITIONS, validateNotes, validateQuantity, validateTargetDate,
   type PlanErrorCode, type PlanFilter, type PlanInput, type PlanPatch, type PlanStatus, type RestockPlan,
 } from "./restock-plans.js";
+export { ANALYTICS_RANGES, pharmacyAnalytics, rangeOf, type AnalyticsDays, type DayMovement, type PharmacyAnalytics, type Section } from "./analytics.js";

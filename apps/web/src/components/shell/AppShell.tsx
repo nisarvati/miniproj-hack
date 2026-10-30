@@ -33,6 +33,28 @@ export function AppShell({ children, signOutAction }: { children: ReactNode; sig
       </AuthProvider>
     );
   }
+  // The dashboard is a full-window page too: the header, then the dashboard fills the rest of the window and arranges its own sections (each one screen
+  // where the window allows). On a phone it scrolls like any other page.
+  if (pathname === "/dashboard") {
+    return (
+      <AuthProvider>
+        <LocationProvider>
+          <AccountProvider>
+            <div className="app-theme app-shell-fill">
+              <a href="#main" className="sr-only z-50 rounded-lg bg-brand px-4 py-2 font-semibold text-on-brand focus:not-sr-only focus:fixed focus:left-4 focus:top-3">
+                Skip to content
+              </a>
+              <AppHeader signOutAction={signOutAction} />
+              <main id="main" className="app-theme-main dash-main relative">
+                {children}
+              </main>
+              <BottomNav />
+            </div>
+          </AccountProvider>
+        </LocationProvider>
+      </AuthProvider>
+    );
+  }
   const bare = pathname === "/" || pathname === "/signin" || pathname === "/landing" || pathname.startsWith("/landing/");
   if (bare) {
     return (

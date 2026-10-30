@@ -51,7 +51,12 @@ Staff routes act on the **signed-in staff member's own pharmacy only**; a `pharm
 | `POST /portal/logout` | any | clears the cookie (`204`) |
 | `GET /portal/me` | STAFF or ADMIN | `{ email, role, pharmacy }`; `pharmacy` is `null` for an administrator |
 
+`GET /api/analytics/network?hours=6|24|72` is public: events retained per time bucket (by publish time) and stock **status** counts, with `available: false` and a reason for
+a part that cannot be read. No quantities, sales, risk, alerts or plans. See [analytics-dashboard.md](analytics-dashboard.md).
+
 ### Pharmacy staff (role STAFF)
+
+`GET /portal/analytics?days=7|14|30` returns read-only aggregates for the signed-in pharmacy only (movements per day, top sold, stock and risk distribution, alert and plan counts). It never changes anything or reconciles alerts. See [analytics-dashboard.md](analytics-dashboard.md).
 
 | Method and path | Purpose | Docs |
 |---|---|---|

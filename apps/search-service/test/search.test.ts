@@ -54,10 +54,10 @@ describe("GET /api/search: ranked, location-aware", () => {
         stockStatus: expect.stringMatching(/IN_STOCK|LOW_STOCK|OUT_OF_STOCK/),
       });
     }
-    // A distance is claimed only for a verified location (P004); the others have none.
+    // A distance is claimed only for a verified location (P001, P003 and P004); the others have none.
     for (const r of results) {
       const code = (r.pharmacy as unknown as { code: string }).code;
-      if (code === "P004") expect(r).toMatchObject({ distanceKm: expect.any(Number), distanceVerified: true });
+      if (["P001", "P003", "P004"].includes(code)) expect(r).toMatchObject({ distanceKm: expect.any(Number), distanceVerified: true });
       else expect(r).toMatchObject({ distanceKm: null, distanceVerified: false });
     }
     expect(body.meta.weights).toEqual({ availability: 0.4, distance: 0.3, price: 0.2, relevance: 0.1 });
@@ -83,10 +83,13 @@ describe("GET /api/search: ranked, location-aware", () => {
     // Shown under their directory identities: P004 is "Bandra Medical Stores" (its verified point is used), P001 "Paras Medical and General Store".
     expect(results.at(-1)!.pharmacy.name).toBe("Bandra Medical Stores");
     expect(results.at(-1)!.stockStatus).toBe("OUT_OF_STOCK");
-    const a = results.find((r) => r.pharmacy.code === "P001")!;
+    const a = results.find((r) => r.pharmacy.code === "P002")!; // Roopam: two conflicting directory points, no OpenStreetMap record
+    const p1 = results.find((r) => r.pharmacy.code === "P001")!;
     const d = results.find((r) => r.pharmacy.code === "P004")!;
-    expect(a.distanceKm).toBeNull(); // its internal demo point sits at the origin, but that is not the shop: no distance is claimed
+    expect(a.distanceKm).toBeNull(); // its internal demo point is not the shop: no distance is claimed
     expect(a.pharmacy.locationVerified).toBe(false);
+    expect(p1.pharmacy.locationVerified).toBe(true);
+    expect(p1.distanceKm).toBeCloseTo(0.67, 1); // to its OpenStreetMap node, not 0 km to its internal demo point, which sits exactly at the origin
     expect(d.pharmacy.locationVerified).toBe(true);
     expect(d.distanceKm).toBeCloseTo(9.0, 1); // from Andheri West to the VERIFIED Hill Road point (was 8.54 to the demo point)
   });
@@ -101,7 +104,7 @@ describe("GET /api/search: ranked, location-aware", () => {
     const { body } = await search("q=Crocin&lat=19.1176&lng=72.906");
     const p005 = body.data.find((r: { pharmacy: { code: string } }) => r.pharmacy.code === "P005");
     expect(p005.distanceKm).toBeNull();
-    expect(body.data.filter((r: { distanceKm: number | null }) => r.distanceKm !== null).map((r: { pharmacy: { code: string } }) => r.pharmacy.code)).toEqual(["P004"]);
+    expect(body.data.filter((r: { distanceKm: number | null }) => r.distanceKm !== null).map((r: { pharmacy: { code: string } }) => r.pharmacy.code).sort()).toEqual(["P001", "P003", "P004"]);
   });
 
   it("reflects inventory changes immediately (sold out becomes out of stock)", async () => {

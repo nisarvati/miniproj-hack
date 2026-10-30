@@ -213,6 +213,27 @@ async function requestRaw<T>(method: string, path: string, body: unknown, opts: 
 }
 const request = async <T>(method: string, path: string, body: unknown, opts: Options): Promise<T> => (await requestRaw<T>(method, path, body, opts)).data;
 
+/** One section of the pharmacy's own analytics. One that could not be read says so; it is never shown as zero. */
+export type AnalyticsSection<T> = ({ available: true } & T) | { available: false; reason: "SCHEMA_OUTDATED" | "ERROR" };
+export const ANALYTICS_DAYS = [7, 14, 30] as const;
+export interface PortalAnalytics {
+  pharmacyCode: string;
+  generatedAt: string;
+  range: { days: number; from: string; to: string; timeZone: "UTC" };
+  movements: AnalyticsSection<{
+    daily: { date: string; salesUnits: number; salesTransactions: number; restockUnits: number; restockTransactions: number }[];
+    totals: { salesUnits: number; salesTransactions: number; restockUnits: number; restockTransactions: number };
+    stockCountAdjustments: number;
+  }>;
+  topSold: AnalyticsSection<{ items: { medicineCode: string; medicineName: string; units: number; transactions: number }[] }>;
+  stock: AnalyticsSection<{ total: number; inStock: number; lowStock: number; outOfStock: number; threshold: number }>;
+  risk: AnalyticsSection<{ byLevel: Record<RiskLevel, number>; total: number; threshold: number }>;
+  alerts: AnalyticsSection<{ active: number; resolvedInRange: number; openedInRange: number }>;
+  plans: AnalyticsSection<{ byStatus: Record<PlanStatus, number>; open: number; overdue: number }>;
+}
+/** The signed-in pharmacy's own aggregates (staff only). */
+export const getPharmacyAnalytics = (days: number, opts: Options = {}) => request<PortalAnalytics>("GET", `/portal/analytics?days=${days}`, undefined, opts);
+
 export const getSession = (opts: Options = {}) => request<PortalSession>("GET", "/portal/me", undefined, opts);
 export const signIn = (email: string, password: string, opts: Options = {}) => request<PortalSession>("POST", "/portal/login", { email, password }, opts);
 /** Asks for staff access to one pharmacy. The account stays pending until MedLink approves it; it cannot sign in before then. */

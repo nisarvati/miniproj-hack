@@ -234,7 +234,7 @@ describe("deliverPending (transaction shape, no database)", () => {
     let seen: OutgoingNotification | undefined;
     await deliverPending(db, { send: async (x) => void (seen = x) }, silentLogger);
     expect(seen!.restock!.medicine).toEqual({ brandName: "Crocin", dosage: "500mg" });
-    expect(seen!.restock!.pharmacy).toMatchObject({ name: "Paras Medical and General Store", demo: true, inventorySimulated: true, locationVerified: false });
+    expect(seen!.restock!.pharmacy).toMatchObject({ name: "Paras Medical and General Store", demo: true, inventorySimulated: true, locationVerified: true });
   });
 
   it("with email unconfigured nothing is marked delivered", async () => {

@@ -99,4 +99,4 @@ CSV export; restock notifications.
 
 [Architecture](docs/architecture.md) · [API](docs/api.md) · [Security](docs/security.md) ·
 [Deployment](docs/deployment.md) · [Verification](docs/verification.md) · [Demo](docs/demo.md) ·
-[Development](docs/development.md) · [Pharmacy portal](docs/pharmacy-portal.md)
+[Analytics dashboard](docs/analytics-dashboard.md) · [Development](docs/development.md) · [Pharmacy portal](docs/pharmacy-portal.md)

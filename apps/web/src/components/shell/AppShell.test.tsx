@@ -52,6 +52,22 @@ describe("AppShell", () => {
     }
   });
 
+  it("gives /dashboard the full window below the same header: the dashboard fills what is left, with no footer, margins or width limit", () => {
+    nav.pathname = "/dashboard";
+    const { container } = render(<AppShell><p>dashboard</p></AppShell>);
+    expect(screen.getByText("dashboard")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "MedLink home" })).toBeTruthy(); // the same header
+    expect(screen.getAllByRole("navigation", { name: "Main" }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("contentinfo")).toBeNull();
+    const shell = container.querySelector(".app-theme")!;
+    expect(shell.classList.contains("app-shell-fill")).toBe(true);
+    const main = screen.getByRole("main");
+    expect(main.id).toBe("main");
+    expect(main.classList.contains("dash-main")).toBe(true);
+    expect(main.className).not.toMatch(/max-w-|min-h-\[calc/);
+    expect(screen.getByRole("link", { name: "Skip to content" }).getAttribute("href")).toBe("#main");
+  });
+
   it("gives /calendar the app theme and the same header as every page, without the footer", () => {
     nav.pathname = "/calendar";
     const { container } = render(<AppShell><main><p>calendar workspace</p></main></AppShell>);

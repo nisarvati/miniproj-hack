@@ -1,6 +1,6 @@
 /**
- * Distance is claimed only between a valid origin and a VERIFIED pharmacy point. P004 (Bandra Medical Stores) is the only
- * verified directory identity; P001-P003 and P005 sit at internal demo coordinates that must never make them look nearby.
+ * Distance is claimed only between a valid origin and a VERIFIED pharmacy point. P004 (Bandra Medical Stores: two sources), P001 and P003
+ * (an OpenStreetMap node each) are the verified directory identities; P002 and P005 sit at internal demo coordinates that must never make them look nearby.
  * Test-only pharmacies P090/P091 (not in the directory, so their stored point is used) stand in for verified shops.
  */
 import type { FastifyInstance } from "fastify";
@@ -58,7 +58,7 @@ describe("distance is claimed only for verified locations", () => {
     expect(rows).toHaveLength(7);
     for (const r of rows) {
       const verified = r.pharmacy.locationVerified;
-      expect(verified).toBe(["P004", "P090", "P091"].includes(r.pharmacy.code));
+      expect(verified).toBe(["P001", "P003", "P004", "P090", "P091"].includes(r.pharmacy.code)); // P001 and P003: an OpenStreetMap node, by declared basis
       expect(r.distanceVerified).toBe(verified);
       if (verified) expect(r.distanceKm).toEqual(expect.any(Number));
       else expect(r.distanceKm).toBeNull();
@@ -70,12 +70,14 @@ describe("distance is claimed only for verified locations", () => {
   });
 
   it("never lets an unverified pharmacy's internal point make it nearest, even standing exactly on that point", async () => {
-    // P001's internal demo point IS the origin (distance 0 if it were used).
-    const { rows, meta } = await get("sort=distance");
-    const p001 = rows.find((r) => r.pharmacy.code === "P001")!;
-    expect(p001.distanceKm).toBeNull();
-    expect(rows[0]!.pharmacy.code).not.toBe("P001");
-    expect(meta.unverifiedCount).toBe(4);
+    // Stand exactly on P002's internal demo point (Roopam has no verified location): distance 0 if that point were used.
+    const res = await app.inject({ method: "GET", url: "/api/search?q=Crocin&lat=19.1197&lng=72.8468&sort=distance" });
+    const rows = res.json().data as R[];
+    const p002 = rows.find((r) => r.pharmacy.code === "P002")!;
+    expect(p002.distanceKm).toBeNull();
+    expect(p002.distanceVerified).toBe(false);
+    expect(rows[0]!.pharmacy.code).not.toBe("P002");
+    expect(res.json().meta.unverifiedCount).toBe(2); // P002 and P005
   });
 });
 
@@ -86,7 +88,7 @@ describe("nearest-first ordering", () => {
     expect(meta.sortNote).toBeNull();
     const inStock = rows.filter((r) => r.quantity > 0);
     const verified = inStock.filter((r) => r.distanceKm !== null);
-    expect(codes(verified)).toEqual(["P090", "P091"]); // nearest to farthest
+    expect(codes(verified)).toEqual(["P090", "P001", "P003", "P091"]); // nearest to farthest
     expect(verified.map((r) => r.distanceKm)).toEqual([...verified.map((r) => r.distanceKm!)].sort((a, b) => a - b));
     // Every in-stock result without a distance comes after every in-stock result with one.
     const firstNull = inStock.findIndex((r) => r.distanceKm === null);
@@ -98,9 +100,9 @@ describe("nearest-first ordering", () => {
   });
 
   it("with no verified location among the results, says it is not ordering by distance and orders by availability, price and relevance", async () => {
-    await db.query("DELETE FROM inventory WHERE pharmacy_id IN (SELECT id FROM pharmacies WHERE code IN ('P004', 'P090', 'P091'))");
+    await db.query("DELETE FROM inventory WHERE pharmacy_id IN (SELECT id FROM pharmacies WHERE code IN ('P001', 'P003', 'P004', 'P090', 'P091'))");
     const { rows, meta } = await get("sort=distance");
-    expect(codes(rows).sort()).toEqual(["P001", "P002", "P003", "P005"]);
+    expect(codes(rows).sort()).toEqual(["P002", "P005"]);
     expect(rows.every((r) => r.distanceKm === null && !r.distanceVerified)).toBe(true);
     expect(meta.sortApplied).toBe("best");
     expect(meta.sortNote).toMatch(/not ordered by distance/);
@@ -110,7 +112,7 @@ describe("nearest-first ordering", () => {
   });
 
   it("does not add the note when distance was not asked for", async () => {
-    await db.query("DELETE FROM inventory WHERE pharmacy_id IN (SELECT id FROM pharmacies WHERE code IN ('P004', 'P090', 'P091'))");
+    await db.query("DELETE FROM inventory WHERE pharmacy_id IN (SELECT id FROM pharmacies WHERE code IN ('P001', 'P003', 'P004', 'P090', 'P091'))");
     const { meta } = await get("");
     expect(meta.sortApplied).toBe("best");
     expect(meta.sortNote).toBeNull();
@@ -148,10 +150,10 @@ describe("other criteria and filters are preserved", () => {
 
   it("applies maxDistanceKm to verified pharmacies only and reports what it could not measure", async () => {
     const { rows, meta } = await get("maxDistanceKm=2");
-    expect(codes(rows)).toEqual(["P090"]);
-    expect(meta.unverifiedFiltered).toBe(4); // P001-P003, P005: distance cannot be established
+    expect(codes(rows)).toEqual(["P090", "P001"]);
+    expect(meta.unverifiedFiltered).toBe(2); // P002 and P005: distance cannot be established
     const wide = await get("maxDistanceKm=50");
-    expect(codes(wide.rows).sort()).toEqual(["P004", "P090", "P091"]);
+    expect(codes(wide.rows).sort()).toEqual(["P001", "P003", "P004", "P090", "P091"]);
   });
 });
 

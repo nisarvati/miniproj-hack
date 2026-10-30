@@ -28,11 +28,17 @@ const node = (over: Partial<NodeStatusEntry> = {}): NodeStatusEntry => ({
 const response = (data: NodeStatusEntry[], meta: Partial<NodesResponse["meta"]> = {}): { body: NodesResponse } => ({
   body: { data, meta: { generatedAt: GENERATED_AT, redis: "up", connector: "up", ...meta } },
 });
+/** The other things the page reads. A visitor who is not signed in gets no private figures; the network figures are unavailable here, which the page must say without breaking. */
+const others = {
+  "GET /api/analytics/network": () => ({ body: { data: { window: { hours: 24, bucketMinutes: 60, from: GENERATED_AT, to: GENERATED_AT, bucketStarts: [] }, events: { available: false, reason: "NOT_CONFIGURED" }, stock: { available: false, reason: "ERROR" } }, meta: { generatedAt: GENERATED_AT } } }),
+  "GET /portal/me": () => ({ status: 401, body: { error: { code: "UNAUTHENTICATED", message: "Sign in" } } }),
+};
 const card = (name: string) => screen.getByRole("group", { name: new RegExp(name) }) as HTMLElement;
 
 describe("DashboardPage", () => {
   it("shows a card per pharmacy with its name, code, status, times and counts", async () => {
     mockApi({
+      ...others,
       "GET /api/nodes": () =>
         response([
           node(),
@@ -53,11 +59,11 @@ describe("DashboardPage", () => {
     expect(b.getByText("1 min 23 s")).toBeTruthy();
     expect(b.getByText("4")).toBeTruthy(); // outbox
     expect(screen.getByText("Showing 2 pharmacies")).toBeTruthy();
-    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(within(screen.getByRole("list", { name: "Pharmacy synchronization status" })).getAllByRole("listitem")).toHaveLength(2);
   });
 
   it("explains that MedLink is eventually consistent and promises no delivery time", async () => {
-    mockApi({ "GET /api/nodes": () => response([node()]) });
+    mockApi({ ...others, "GET /api/nodes": () => response([node()]) });
     render(<DashboardPage />);
     await screen.findByText("Alpha Chemist");
     const text = document.body.textContent ?? "";
@@ -75,7 +81,7 @@ describe("DashboardPage", () => {
 
   it("shows an error with a retry that loads the data", async () => {
     let up = false;
-    const api = mockApi({ "GET /api/nodes": () => (up ? response([node()]) : { status: 503, body: { error: { code: "X", message: "down" } } }) });
+    const api = mockApi({ ...others, "GET /api/nodes": () => (up ? response([node()]) : { status: 503, body: { error: { code: "X", message: "down" } } }) });
     render(<DashboardPage />);
     expect((await screen.findByRole("alert")).textContent).toMatch(/temporarily unavailable/);
     up = true;
@@ -86,7 +92,7 @@ describe("DashboardPage", () => {
   });
 
   it("shows an empty state when no pharmacy is configured", async () => {
-    mockApi({ "GET /api/nodes": () => response([]) });
+    mockApi({ ...others, "GET /api/nodes": () => response([]) });
     render(<DashboardPage />);
     expect(await screen.findByRole("heading", { name: "No pharmacies are configured" })).toBeTruthy();
     expect(screen.queryByRole("list")).toBeNull();
@@ -94,6 +100,7 @@ describe("DashboardPage", () => {
 
   it("labels unknown and unavailable metrics instead of showing zero", async () => {
     mockApi({
+      ...others,
       "GET /api/nodes": () =>
         response([node({ pharmacyCode: "P003", name: "Gamma Chemist", status: "unknown", statusReason: "No event has been synchronized for this pharmacy yet.", lastSyncedAt: null, syncLagMs: null, unpublishedOutbox: null, staleCount: null, duplicateCount: null, processedCount: null })]),
     });
@@ -109,6 +116,7 @@ describe("DashboardPage", () => {
 
   it("gives every status a text label, not only a colour", async () => {
     mockApi({
+      ...others,
       "GET /api/nodes": () =>
         response([
           node({ pharmacyCode: "P001", name: "A1", status: "healthy" }),
@@ -126,7 +134,7 @@ describe("DashboardPage", () => {
   });
 
   it("says plainly when the status store cannot be read, and that nothing is healthy", async () => {
-    mockApi({ "GET /api/nodes": () => response([node({ status: "unknown", lastSyncedAt: null, syncLagMs: null, processedCount: null, staleCount: null, duplicateCount: null, unpublishedOutbox: null })], { redis: "down", connector: "unreachable" }) });
+    mockApi({ ...others, "GET /api/nodes": () => response([node({ status: "unknown", lastSyncedAt: null, syncLagMs: null, processedCount: null, staleCount: null, duplicateCount: null, unpublishedOutbox: null })], { redis: "down", connector: "unreachable" }) });
     render(<DashboardPage />);
     expect(await screen.findByText(/can't read synchronization status/)).toBeTruthy();
     expect(screen.getByText(/not healthy/)).toBeTruthy();
@@ -134,7 +142,7 @@ describe("DashboardPage", () => {
   });
 
   it("warns when the sync service cannot be reached, so unknown is not mistaken for a fault in the pharmacy", async () => {
-    mockApi({ "GET /api/nodes": () => response([node({ status: "unknown", statusReason: "No events are waiting, but the sync service could not be reached to confirm it is running." })], { syncService: "unreachable" }) });
+    mockApi({ ...others, "GET /api/nodes": () => response([node({ status: "unknown", statusReason: "No events are waiting, but the sync service could not be reached to confirm it is running." })], { syncService: "unreachable" }) });
     render(<DashboardPage />);
     expect(await screen.findByText("The sync service could not be reached")).toBeTruthy();
     expect(screen.getByText(/shown as unknown/)).toBeTruthy();
@@ -142,19 +150,19 @@ describe("DashboardPage", () => {
   });
 
   it("notes when only the outbox counts are unavailable", async () => {
-    mockApi({ "GET /api/nodes": () => response([node({ unpublishedOutbox: null })], { connector: "unreachable" }) });
+    mockApi({ ...others, "GET /api/nodes": () => response([node({ unpublishedOutbox: null })], { connector: "unreachable" }) });
     render(<DashboardPage />);
-    expect(await screen.findByText(/inventory connector could not be reached/)).toBeTruthy();
-    expect(screen.getByText("Healthy")).toBeTruthy();
+    expect(await screen.findByText(/Waiting-in-outbox counts are not available because the inventory connector could not be reached/)).toBeTruthy();
+    expect(within(card("Alpha Chemist")).getByText("Healthy")).toBeTruthy(); // (the overview table shows it too)
   });
 
   it("refreshes on request and shows the new readings", async () => {
     let n = 0;
-    const api = mockApi({ "GET /api/nodes": () => response([node({ processedCount: 10 + 5 * n++ })]) });
+    const api = mockApi({ ...others, "GET /api/nodes": () => response([node({ processedCount: 10 + 5 * n++ })]) });
     render(<DashboardPage />);
-    expect(await screen.findByText("10")).toBeTruthy();
+    expect(await within(await screen.findByRole("group", { name: /Alpha Chemist/ })).findByText("10")).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Refresh status" }));
-    await waitFor(() => expect(screen.getByText("15")).toBeTruthy());
+    await waitFor(() => expect(within(card("Alpha Chemist")).getByText("15")).toBeTruthy());
     expect(api.calls.filter((c) => c.path === "/api/nodes")).toHaveLength(2);
   });
 });

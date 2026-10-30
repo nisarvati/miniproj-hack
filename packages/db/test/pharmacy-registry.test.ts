@@ -77,8 +77,12 @@ describe("the Mumbai demo directory of independent pharmacies", () => {
   it("presents a persisted row through its directory identity, with simulated inventory, and keeps unverified points out of use", () => {
     const row = (code: string) => ({ code, name: PHARMACIES.find((p) => p.code === code)!.name, address: "Fictional address", latitude: 19.1, longitude: 72.9 });
     const p1 = presentPharmacy(row("P001"));
-    expect(p1).toMatchObject({ name: "Paras Medical and General Store", demo: true, independent: true, locationVerified: false, inventorySimulated: true });
+    // Paras is verified from its OpenStreetMap node alone (basis "openstreetmap-node"), so its point is that node's, not the row's demo point.
+    expect(p1).toMatchObject({ name: "Paras Medical and General Store", demo: true, independent: true, locationVerified: true, latitude: 19.13639, longitude: 72.82323, inventorySimulated: true });
     expect(p1.address).toBe(displayMappings()[0]!.address);
+    // Roopam has two directory points 450 m apart and no OpenStreetMap record: unverified, so the row's demo point is kept only for internal ranking.
+    const p2 = presentPharmacy(row("P002"));
+    expect(p2).toMatchObject({ name: "Roopam Medical and General Stores", locationVerified: false, latitude: 19.1, longitude: 72.9 });
     const p4 = presentPharmacy(row("P004"));
     expect(p4).toMatchObject({ name: "Bandra Medical Stores", locationVerified: true, latitude: 19.05548, longitude: 72.83152, inventorySimulated: true });
     // A code with no directory identity passes through unchanged and is not marked independent.
@@ -120,14 +124,19 @@ describe("the Mumbai demo directory of independent pharmacies", () => {
     for (const p of dir) for (const s of p.sources.filter((x) => x.url.includes("justdial.com"))) expect(s.inspected).toMatch(/snippet/);
   });
 
-  it("only treats a point as verified when two independent map sources agree, and never invents one", () => {
+  it("only treats a point as verified when two independent map sources agree, or an OpenStreetMap node is declared as the basis, and never invents one", () => {
     const verified = dir.filter((p) => p.location.status === "verified");
-    expect(verified.map((p) => p.name)).toEqual(["Bandra Medical Stores"]);
+    expect(verified.map((p) => p.name)).toEqual(["Paras Medical and General Store", "United Medical and General Stores", "Bandra Medical Stores"]);
     for (const p of dir) {
       const point = verifiedPoint(p);
       if (p.location.status === "verified") {
         expect(point).not.toBeNull();
-        expect(new Set(p.location.candidates.map((c) => c.source)).size).toBeGreaterThanOrEqual(2);
+        if (p.location.basis === "openstreetmap-node") {
+          // Declared, never inferred: an OpenStreetMap pharmacy node sits at the point.
+          expect(p.location.candidates.some((c) => c.kind === "osm-storefront-node" && c.source.startsWith("https://www.openstreetmap.org/node/") && c.latitude === point!.latitude && c.longitude === point!.longitude)).toBe(true);
+        } else {
+          expect(new Set(p.location.candidates.map((c) => c.source)).size).toBeGreaterThanOrEqual(2);
+        }
       } else {
         expect(point).toBeNull();
         expect(p.location.latitude).toBeUndefined(); // an unverified shop carries no coordinates, only observed candidates
@@ -150,6 +159,20 @@ describe("the Mumbai demo directory of independent pharmacies", () => {
     expect(bad({ ...base.location, status: "single-source" })).toMatch(/only a verified location may carry coordinates/);
     expect(bad({ status: "conflicting", candidates: [base.location.candidates[0]!, base.location.candidates[1]!], note: "x" })).toMatch(/more than 100 m apart/);
     expect(bad({ status: "single-source", candidates: [{ ...base.location.candidates[0]!, latitude: 28.6 }], note: "x" })).toMatch(/outside the Mumbai region/);
+  });
+
+  it("accepts a single OpenStreetMap node as the basis only when it is declared, and still refuses everything else", () => {
+    const paras = dir.find((p) => p.name.startsWith("Paras"))!;
+    const bad = (location: DirectoryPharmacy["location"]) => validateDirectoryEntry({ ...paras, location });
+    expect(validateDirectoryEntry(paras)).toBeNull();
+    expect(bad({ ...paras.location, basis: undefined })).toMatch(/two independent map sources/); // one source is not enough unless the basis is declared
+    expect(bad({ ...paras.location, basis: "two-sources" })).toMatch(/two independent map sources/);
+    // The point must be at an OpenStreetMap pharmacy node, not at a directory's directions link and not somewhere else.
+    expect(bad({ ...paras.location, latitude: 19.14, longitude: 72.84 })).toMatch(/OpenStreetMap pharmacy node within 100 m/);
+    expect(bad({ ...paras.location, candidates: paras.location.candidates.map((c) => ({ ...c, kind: "directory-directions-link" })) })).toMatch(/OpenStreetMap pharmacy node within 100 m/);
+    expect(bad({ ...paras.location, candidates: paras.location.candidates.map((c) => ({ ...c, source: "https://magicpin.in/x" })) })).toMatch(/OpenStreetMap pharmacy node within 100 m/);
+    // Without a verified status the basis does nothing: coordinates are still refused.
+    expect(bad({ ...paras.location, status: "single-source" })).toMatch(/only a verified location may carry coordinates/);
   });
 
   it("keeps the exact demo, non-partnership label on every entry and in the description", () => {
@@ -223,8 +246,8 @@ describe("the registry is configuration driven", () => {
     expect(isDemoPharmacy("P999")).toBe(false);
     for (const p of dir) expect(isIndependentListing(p.code)).toBe(true);
     expect(isIndependentListing("P090")).toBe(false);
-    expect(hasVerifiedLocation("P004")).toBe(true); // the only verified point
-    for (const code of ["P001", "P002", "P003", "P005", "P006"]) expect(hasVerifiedLocation(code)).toBe(false);
+    for (const code of ["P001", "P003", "P004"]) expect(hasVerifiedLocation(code)).toBe(true); // P004: two sources; P001, P003: an OpenStreetMap node
+    for (const code of ["P002", "P005", "P006"]) expect(hasVerifiedLocation(code)).toBe(false); // conflicting, and no OpenStreetMap record found, respectively
     expect(hasVerifiedLocation("P090")).toBe(true); // not a directory identity: its row's point is used as before
   });
 

@@ -7,6 +7,7 @@ import { HttpConnectorHealth } from "./modules/nodes/connector-health.js";
 import { HttpSyncServiceHealth } from "./modules/nodes/service-health.js";
 import { registryPharmacies } from "./modules/nodes/service.js";
 import { RedisSyncStatus } from "./modules/nodes/sync-status.js";
+import { RedisEventHistory } from "./modules/analytics/events.js";
 import { RedisStockFeed } from "./modules/stream/feed.js";
 
 const config = loadConfig();
@@ -38,6 +39,8 @@ const app = await buildApp(db, config, {
     connector: connectorPort === null ? undefined : new HttpConnectorHealth(`http://127.0.0.1:${connectorPort}/health`),
     syncService: syncPort === null ? undefined : new HttpSyncServiceHealth(`http://127.0.0.1:${syncPort}/health`),
   },
+  // GET /api/analytics/network: counts the entries each event stream retains per time bucket (XRANGE ids only).
+  events: redis && new RedisEventHistory(redis, { keyPrefix: process.env.REDIS_KEY_PREFIX }),
   // GET /api/stream (live updates): tails the same event streams the sync service consumes, read-only, on the same Redis client.
   stream: { stock: redis && new RedisStockFeed(redis, { pharmacyCodes: () => registryPharmacies().map((p) => p.code), keyPrefix: process.env.REDIS_KEY_PREFIX }) },
 });

@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { presentPharmacy, type Db } from "@medlink/db";
-import { assessStockRisk, plansToCsv, RestockPlanner, type ChangeResult, type Movement, type MovementResult, type PharmacySimulator, type RestockPlan, type RiskAssessment, type StockAlert } from "@medlink/pharmacy-ops";
+import { ANALYTICS_RANGES, assessStockRisk, pharmacyAnalytics, type AnalyticsDays, plansToCsv, RestockPlanner, type ChangeResult, type Movement, type MovementResult, type PharmacySimulator, type RestockPlan, type RiskAssessment, type StockAlert } from "@medlink/pharmacy-ops";
 import { AccountDecisionError, decideById, listAccounts, type UserRole } from "./admin.js";
 import { AttemptLimiter, LOGIN_LIMITS } from "./rate-limit.js";
 import { clearedCookie, COOKIE_NAME, createSessionToken, DUMMY_HASH, hashPassword, readCookie, readSessionToken, sessionCookie, verifyPassword } from "./auth.js";
@@ -56,6 +56,7 @@ const planCreateBody = z.object({ medicineCode, quantity: z.number(), targetDate
 const planPatchBody = z.object({ status: z.enum(planStatuses).optional(), quantity: z.number().optional(), targetDate: z.string().optional(), notes: z.string().nullable().optional() }).strict();
 const transactionBody = z.object({ medicineCode, quantity: z.number().int().min(1).max(1_000_000) }).strict();
 /** Extra query parameters are ignored, never trusted: the pharmacy always comes from the session. */
+const analyticsQuery = z.object({ days: z.coerce.number().int().refine((d): d is AnalyticsDays => (ANALYTICS_RANGES as readonly number[]).includes(d), `days must be one of ${ANALYTICS_RANGES.join(", ")}`).default(14) });
 const historyQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(20), offset: z.coerce.number().int().min(0).max(100_000).default(0) });
 
 interface Deps {
@@ -399,6 +400,23 @@ export function portalRoutes(app: FastifyInstance, { db, pharmacies, sim, config
     const { items, total } = await sim.history(pharmacyCode, { limit, offset });
     const names = await medicineNames([...new Set(items.map((m) => m.medicineCode))]);
     return { data: items.map((m) => movementView(m, names, userId)), meta: { total, limit, offset, hasMore: offset + items.length < total } };
+  });
+
+  /**
+   * Read-only analytics for the signed-in pharmacy's own dashboard: movements per day, top sold, stock and risk distribution, alert and plan counts. Aggregated in
+   * the pharmacy's database (one SELECT per section), for the pharmacy in the session only, with no medicine quantities of other pharmacies and no staff identities.
+   * It never reconciles alerts or changes anything, and a section that cannot be read says so instead of showing zero.
+   */
+  app.get("/portal/analytics", async (req, reply) => {
+    const { pharmacyCode } = await requireStaff(req);
+    const { days } = analyticsQuery.parse(req.query);
+    reply.header("cache-control", "no-store");
+    const data = await pharmacyAnalytics(pharmacyDb(pharmacyCode), { pharmacyCode, days, threshold: config.lowStockThreshold });
+    if (data.topSold.available) {
+      const names = await medicineNames(data.topSold.items.map((i) => i.medicineCode));
+      return { data: { ...data, topSold: { ...data.topSold, items: data.topSold.items.map((i) => ({ ...i, medicineName: names.get(i.medicineCode) ?? i.medicineCode })) } }, meta: { generatedAt: data.generatedAt } };
+    }
+    return { data, meta: { generatedAt: data.generatedAt } };
   });
 
   // ---- Stock risk and low-stock alerts. Staff only, and always the signed-in pharmacy's own. ----

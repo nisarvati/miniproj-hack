@@ -282,6 +282,8 @@ function toResult(
         quantity: o.quantity,
         price: o.price,
         distanceKm: r.distanceKm,
+        // A verified pharmacy with no distance can only be missing one because the origin is unknown.
+        ...(r.distanceKm === null && { distanceUnavailable: o.pharmacy.locationVerified ? ("ORIGIN_UNKNOWN" as const) : ("PHARMACY_UNVERIFIED" as const) }),
         relevance: r.relevance,
         maxDistanceKm: explain.ranking.maxDistanceKm,
         lowStockThreshold,

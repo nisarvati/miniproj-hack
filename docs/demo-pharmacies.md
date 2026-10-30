@@ -46,7 +46,7 @@ Your 18 research leads were checked first, then the earlier OpenStreetMap-based 
 
 Verified here means the shop was found at this address in two independent sources and shows no sign of being a chain. It does not mean the pharmacy is a partner, is open today, or holds a valid licence.
 
-**Location rule.** A point is 'verified' only when two independent map sources agree within 100 m. Otherwise the observed points are kept as candidates and are never used for directions or distances; Google Maps directions then use the address. Neighbourhood-centre points are never recorded. Today **only 1 of 6** has a verified point (Bandra Medical Stores: an OpenStreetMap node and a
+**Location rule.** A point is 'verified' when two independent map sources agree within 100 m, or, by the project owner's decision of 2026-10-30 (OpenStreetMap is the only map source used), when one OpenStreetMap pharmacy node whose name, category and address were re-read matches the listing; such an entry declares `"basis": "openstreetmap-node"`, and the validator accepts it only with an `osm-storefront-node` point within 100 m. P001 (Paras) and P003 (United) are verified this way. P002 (Roopam) and P005 (Faiza) have no OpenStreetMap record and stay unverified. Otherwise the observed points are kept as candidates and are never used for directions or distances; Google Maps directions then use the address. Neighbourhood-centre points are never recorded. Today **only 1 of 6** has a verified point (Bandra Medical Stores: an OpenStreetMap node and a
 magicpin point agree to about 10 m). The others get directions by address and show no pin or distance. **P003's exact storefront is unverified**: only
 "Chakala, Andheri East 400099" is shown, with no shop number.
 

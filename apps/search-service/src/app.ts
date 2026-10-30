@@ -6,8 +6,10 @@ import type { Config } from "./config.js";
 import { errorHandler, notFoundHandler } from "./errors.js";
 import { inventoryRoutes } from "./modules/inventory/routes.js";
 import { medicineRoutes } from "./modules/medicines/routes.js";
+import { analyticsRoutes } from "./modules/analytics/routes.js";
+import type { EventHistory } from "./modules/analytics/events.js";
 import { nodeRoutes } from "./modules/nodes/routes.js";
-import { getNodes, type NodeSources } from "./modules/nodes/service.js";
+import { getNodes, registryPharmacies, type NodeSources } from "./modules/nodes/service.js";
 import type { StockFeed } from "./modules/stream/feed.js";
 import { LiveHub } from "./modules/stream/hub.js";
 import { streamRoutes } from "./modules/stream/routes.js";
@@ -24,6 +26,8 @@ export interface AppOptions {
   live?: LiveStock;
   /** Where GET /api/nodes reads sync status from. Without `sync` every node is reported "unknown". */
   nodes?: NodeSources;
+  /** Where GET /api/analytics/network reads how many events each pharmacy's stream retains. Without it that part answers NOT_CONFIGURED. */
+  events?: EventHistory;
   /** GET /api/stream. `stock` is where stock changes come from (without it the stream carries node status and heartbeats only);
    *  `hub` replaces the whole fan-out (tests). */
   stream?: { stock?: StockFeed; hub?: LiveHub };
@@ -75,6 +79,7 @@ export async function buildApp(db: Db, config: Config, opts: AppOptions = {}): P
   searchRoutes(app, deps);
   notificationRoutes(app, db);
   nodeRoutes(app, opts.nodes ?? {});
+  analyticsRoutes(app, { ...deps, events: opts.events, pharmacies: opts.nodes?.pharmacies ?? registryPharmacies, now: opts.nodes?.now });
   streamRoutes(app, opts.stream?.hub ?? new LiveHub({ stock: opts.stream?.stock ?? noStock, nodes: () => getNodes(opts.nodes ?? {}), log: app.log }));
 
   return app;

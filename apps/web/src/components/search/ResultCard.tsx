@@ -9,6 +9,7 @@ import { DemoBadge, SimulatedInventoryNotice } from "../ui/DemoBadge";
 import { DirectionsActions } from "../pharmacies/DirectionsActions";
 import { AddToCalendar } from "../calendar/AddToCalendar";
 import { MatchInfo } from "./MatchInfo";
+import { useLocation } from "../providers/location";
 
 /**
  * One pharmacy's listing of one medicine. Medicine first (what it is), then the pharmacy and its distance, then price and stock,
@@ -16,6 +17,7 @@ import { MatchInfo } from "./MatchInfo";
  */
 export function ResultCard({ result, origin, best }: { result: SearchResult; origin: Location | null; best: boolean }) {
   const { medicine, pharmacy, stockStatus } = result;
+  const { picked, explicit } = useLocation(); // only to say where a distance is measured from when nobody has chosen a location
   const unavailable = stockStatus === "OUT_OF_STOCK";
   const phoneNumber = "phone" in pharmacy && typeof pharmacy.phone === "string" ? pharmacy.phone : null;
 
@@ -36,9 +38,15 @@ export function ResultCard({ result, origin, best }: { result: SearchResult; ori
             <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted">
               <span>{pharmacy.address}</span>
               {result.distanceKm === null ? (
-                <span title="This listing's map location is not verified, so no distance is shown.">Distance not shown</span>
+                <>
+                  <span title={pharmacy.locationVerified === false ? "This pharmacy's map location has not been verified, so no distance can be calculated." : "Your location is needed to calculate a distance."}>Distance not shown</span>
+                  <span className="text-xs">{pharmacy.locationVerified === false ? "Pharmacy location not verified" : "Set your location to see the distance"}</span>
+                </>
               ) : (
-                <span className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-ink"><MapPinIcon size={13} />{formatDistance(result.distanceKm)}</span>
+                <>
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-ink"><MapPinIcon size={13} />{formatDistance(result.distanceKm)}</span>
+                  {!explicit && <span className="text-xs">from {picked.label.replace(/, Mumbai$/, "")}</span>}
+                </>
               )}
             </p>
             {pharmacy.demo && (

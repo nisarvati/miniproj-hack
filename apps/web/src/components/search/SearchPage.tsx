@@ -10,6 +10,7 @@ import { unavailableMedicines } from "../../lib/restock";
 import { activeFilterCount, parseSearchParams, toSearchParams, type SearchState, type View } from "../../lib/search-state";
 import { useAsync } from "../../lib/use-async";
 import { useLocation } from "../providers/location";
+import { LocationNotice } from "./LocationNotice";
 import { AlertIcon, SearchIcon } from "../ui/icons";
 import { Alert, Button, EmptyState, LiveDot, Skeleton } from "../ui/primitives";
 import { FilterBar } from "./FilterBar";
@@ -204,6 +205,8 @@ export function SearchPage() {
                 )}
               </div>
             )}
+
+            {results.length > 0 && <LocationNotice />}
 
             {results.length > 0 && (
             <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted" aria-live="polite" aria-atomic="true">

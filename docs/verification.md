@@ -96,3 +96,18 @@ No browser was driven. The UI is covered by component tests only. Before a demo,
 | Staff and administrator roles | Implemented, tested |
 | Container deployment of the apps, CI | **Not built** (see [deployment.md](deployment.md)) |
 | Redis Cluster | Supported by key design; cluster test suite not run here |
+
+## Dashboard layout (browser-measured)
+
+Measured with headless Google Chrome over the DevTools protocol against the running dev stack, with the staff-only endpoints answered by a synthetic fixture so the busiest (staff) view could be
+measured. This is a layout check, not a data check, and it is not an automated test in the repository. Fit means the section is no taller than the stage and no card's content spills out or overlaps another.
+
+| Viewport | Overview | Inventory | Synchronization | Network | Restock |
+| --- | --- | --- | --- | --- | --- |
+| 1440 x 900 (staff, signed-out, admin) | fits | fits | fits | fits | fits |
+| 1366 x 768 (staff, signed-out, admin) | fits | fits | fits | fits | fits |
+| 768 x 1024, staff | fits | scrolls (892 > 731 px) | scrolls (852) | scrolls (861) | fits |
+| 768 x 1024, signed-out | fits | fits | scrolls (852) | scrolls (861) | fits |
+| 390 x 844 | page scrolls, 0.7 to 2 screens per section, no horizontal overflow | | | | |
+
+Tooltips were checked to stay on screen and inside their card at every size. Unit tests cover the layout rules, chart sizing, tooltip clamping, the shell and the overview table.

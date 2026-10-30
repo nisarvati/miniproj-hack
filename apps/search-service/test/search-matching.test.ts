@@ -1,7 +1,7 @@
 /**
  * Match percentages, match reasons and rejected candidates through GET /api/search, on the same fixtures as location-ranking.test.ts:
  * the user stands at Andheri West; test pharmacies P090 (about 0.5 km, 20 at 31) and P091 (about 10 km, 20 at 29) have verified locations,
- * P004 (Bandra, verified, about 9 km) has none of M001 in stock, and P001-P003 and P005 have no verified location, so no distance.
+ * P004 (Bandra, verified, about 9 km) has none of M001 in stock, and P002 and P005 have no verified location, so no distance (P001 and P003 are verified from an OpenStreetMap node each).
  */
 import type { FastifyInstance } from "fastify";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -108,12 +108,21 @@ describe("eligible results carry a match percentage and its reasons", () => {
     expect(reasonOf(near, "distance").message).toMatch(/About 0\.[4-6] km/);
     expect(reasonOf(near, "availability")).toMatchObject({ code: "IN_STOCK" });
     // Pharmacies without a verified location get no distance, no "nearby", and no points for it.
-    for (const code of ["P001", "P002", "P003", "P005"]) {
+    for (const code of ["P002", "P005"]) {
       const r = byPharmacy(data, code);
       expect(r.distanceKm).toBeNull();
       expect(reasonOf(r, "distance")).toMatchObject({ code: "MISSING_DISTANCE", points: 0, factorValue: null });
+      expect(reasonOf(r, "distance").message).toMatch(/pharmacy's map location has not been verified/);
       expect(r.matchReasons.map((x) => x.code)).not.toContain("NEARBY");
     }
+    // P001 and P003 are verified from an OpenStreetMap node each: a real distance, and credit for it (more for the nearer one).
+    const p1 = byPharmacy(data, "P001");
+    const p3 = byPharmacy(data, "P003");
+    expect(p1.distanceKm).toBeCloseTo(0.67, 1);
+    expect(p3.distanceKm).toBeCloseTo(4.14, 1);
+    expect(reasonOf(p1, "distance").code).toBe("NEARBY");
+    expect(reasonOf(p1, "distance").points).toBeGreaterThan(reasonOf(p3, "distance").points);
+    expect(reasonOf(p3, "distance").points).toBeGreaterThan(0);
     // Sold out: no availability credit.
     expect(reasonOf(byPharmacy(data, "P004"), "availability")).toMatchObject({ code: "OUT_OF_STOCK", points: 0 });
     // Low stock earns half.
@@ -130,7 +139,7 @@ describe("eligible results carry a match percentage and its reasons", () => {
   });
 
   it("calls the match after the filters: with one eligible offer there is nothing to compare, so no cheapness claim", async () => {
-    const { data } = await get("maxDistanceKm=1");
+    const { data } = await get("maxDistanceKm=0.6"); // P090 is 0.5 km away; P001 (0.67 km) is just outside
     expect(data.map((r) => r.pharmacy.code)).toEqual(["P090"]);
     const price = reasonOf(data[0]!, "price");
     expect(price.code).toBe("PRICE_NO_COMPARISON");
@@ -168,21 +177,21 @@ describe("rejected candidates", () => {
 
   it("explain a verified offer beyond the distance limit, and one whose distance is unknown", async () => {
     const { data, rejected, summary, meta } = await get("maxDistanceKm=2");
-    expect(data.map((r) => r.pharmacy.code)).toEqual(["P090"]);
+    expect(data.map((r) => r.pharmacy.code)).toEqual(["P090", "P001"]);
     const far = rejected.find((r) => r.pharmacy.code === "P091")!;
     expect(far.reasons).toEqual([expect.objectContaining({ code: "OUTSIDE_DISTANCE_LIMIT", filter: "maxDistanceKm", limit: 2 })]);
     expect(far.reasons[0]!.actual).toBeGreaterThan(2);
     expect(far.reasons[0]!.message).toMatch(/km away, beyond your limit of 2 km/);
-    for (const code of ["P001", "P002", "P003", "P005"]) {
+    for (const code of ["P002", "P005"]) {
       const r = rejected.find((x) => x.pharmacy.code === code)!;
       expect(r.reasons).toEqual([expect.objectContaining({ code: "MISSING_REQUIRED_DATA", field: "distance", actual: null })]);
       expect(r.distanceKm).toBeNull();
     }
-    // P004 (verified, about 9 km) is outside too.
-    expect(rejected.find((r) => r.pharmacy.code === "P004")!.reasons[0]!.code).toBe("OUTSIDE_DISTANCE_LIMIT");
-    expect(summary).toMatchObject({ total: 6, byReason: { OUTSIDE_DISTANCE_LIMIT: 2, MISSING_REQUIRED_DATA: 4 } });
+    // P003 (verified, about 4 km) and P004 (verified, about 9 km) are outside too.
+    for (const code of ["P003", "P004"]) expect(rejected.find((r) => r.pharmacy.code === code)!.reasons[0]!.code).toBe("OUTSIDE_DISTANCE_LIMIT");
+    expect(summary).toMatchObject({ total: 5, byReason: { OUTSIDE_DISTANCE_LIMIT: 3, MISSING_REQUIRED_DATA: 2 } });
     // The existing counter keeps its meaning: offers lost ONLY because no distance could be established.
-    expect(meta.unverifiedFiltered).toBe(4);
+    expect(meta.unverifiedFiltered).toBe(2);
   });
 
   it("explain a price over the limit, and nothing about price when none was set", async () => {

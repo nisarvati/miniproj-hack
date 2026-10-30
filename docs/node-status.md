@@ -1,5 +1,7 @@
 # Pharmacy node status (`GET /api/nodes`)
 
+> The `/dashboard` page is now the MedLink Analytics dashboard ([analytics-dashboard.md](analytics-dashboard.md)); this endpoint is still its source for node health and event counters.
+
 A read-only view of how each pharmacy's inventory synchronization is doing, for the `/dashboard` page. MedLink is eventually consistent:
 the numbers describe what MedLink has processed so far, and nothing here promises how quickly a change reaches search.
 

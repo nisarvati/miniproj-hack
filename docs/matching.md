@@ -55,7 +55,7 @@ Each eligible result has `matchPercent` and `matchReasons`: exactly one reason p
 | `OUT_OF_STOCK` | availability | none in stock (or stock not known) | 0 |
 | `NEARBY` | distance | a **verified** distance that earns at least half the distance credit | by distance |
 | `DISTANCE` | distance | a verified distance that earns less than half (none from `maxDistanceKm`) | by distance, can be 0 |
-| `MISSING_DISTANCE` | distance | no distance can be claimed: the pharmacy's map location is not verified, or the user's location is not set | **0**, and the message says that is not the same as being far away |
+| `MISSING_DISTANCE` | distance | no distance can be claimed. The message says which: the pharmacy's map location has not been verified, or the user's location is needed (the code is the same for both) | **0**, and the message says that is not the same as being far away |
 | `PRICE_COMPARISON` | price | there is a real comparison set: **two or more** in-stock offers of this medicine among the eligible results with different prices | by price |
 | `PRICE_NO_COMPARISON` | price | no comparison set (one offer, equal prices, or none known) | whatever the ranking gave it (full credit when there is no spread) |
 | `MISSING_PRICE` | price | no price is known | 0 |
@@ -139,3 +139,10 @@ npx vitest run apps/search-service/test/match.test.ts apps/search-service/test/s
   apps/web/src/components/search apps/web/src/lib/api.test.ts
 curl -s 'localhost:4000/api/search?q=Crocin&lat=19.1364&lng=72.8296&inStock=true&maxDistanceKm=5' | python3 -m json.tool | head -80
 ```
+
+## Where distance comes from, and why a result may have none
+
+- The web app always sends an origin (`lat`, `lng`). Until the person picks an area, types coordinates or uses **Use my location**, that origin is the default area (Andheri West) and the result card says "from Andheri West". The search API rejects a missing or out-of-range `lat`/`lng` with 400; it never guesses one.
+- Detecting the location is a click, never automatic (`apps/web/src/lib/geolocation.ts`): it reports unsupported, insecure page (browsers share location only on https or localhost), denied, unavailable, timed out or invalid, and none of them stops searching. A detected position is kept at full precision in memory and only to about 1 km in `localStorage`.
+- A distance is the Haversine great-circle distance in km between that origin and the pharmacy's **verified** point. A point is verified either when two independent map sources agree within 100 m, or (since 2026-10-30, by the project owner's decision that OpenStreetMap is the only map source used) when a single OpenStreetMap pharmacy node whose name and address were re-read matches the listing; that entry must declare `"basis": "openstreetmap-node"` (see [demo-pharmacies.md](demo-pharmacies.md)). A pharmacy without a verified point gets no distance, no distance credit and the explanation "this pharmacy's map location has not been verified". Its point is never guessed or taken from an area centre.
+- Today P004 (Bandra Medical Stores, two sources), P001 (Paras Medical and General Store) and P003 (United Medical and General Stores) (an OpenStreetMap node each) are verified. P002 (Roopam Medical and General Stores) and P005 (Faiza Medical and General Stores) are not: Roopam's two directory points are about 450 m apart and OpenStreetMap has no record of it, and Faiza has one directory point and no OpenStreetMap record (searched 2026-10-30). Verifying them means a source that exists, not code: an OpenStreetMap pharmacy node (anyone can map one at openstreetmap.org), then an entry in `packages/db/pharmacy-directory/mumbai-demo.json`.

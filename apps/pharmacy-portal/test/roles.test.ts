@@ -74,6 +74,7 @@ const STAFF_ROUTES: [method: "GET" | "POST" | "PATCH" | "DELETE", url: string, b
   ["GET", "/portal/risk"],
   ["GET", "/portal/risk/M001"],
   ["GET", "/portal/alerts"],
+  ["GET", "/portal/analytics"],
   ["POST", "/portal/restock-plans", { medicineCode: "M001", quantity: 5, targetDate: inDays(3) }],
   ["GET", "/portal/restock-plans"],
   ["GET", `/portal/restock-plans/${NOPE}`],

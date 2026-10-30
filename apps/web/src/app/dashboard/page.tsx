@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DashboardPage } from "../../components/dashboard/DashboardPage";
 
-export const metadata: Metadata = { title: "Pharmacy sync status" };
+export const metadata: Metadata = { title: "MedLink Analytics" };
 
 export default function Page() {
   return <DashboardPage />;

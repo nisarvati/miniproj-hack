@@ -52,7 +52,7 @@ describe("the routes the public API has", () => {
     expect(routes.map((r) => `${r.method} ${r.path}`).sort()).toEqual(
       [
         "DELETE /api/restock-subscriptions/:id", "GET /api/directory", "GET /api/health", "GET /api/inventory", "GET /api/inventory/:id", "GET /api/medicines/:id/substitutes",
-        "GET /api/medicines/search", "GET /api/nodes", "GET /api/notifications", "GET /api/pharmacies", "GET /api/pharmacies/:id", "GET /api/pharmacies/:id/stock",
+        "GET /api/medicines/search", "GET /api/analytics/network", "GET /api/nodes", "GET /api/notifications", "GET /api/pharmacies", "GET /api/pharmacies/:id", "GET /api/pharmacies/:id/stock",
         "GET /api/restock-subscriptions", "GET /api/search", "GET /api/stream", "GET /health", "POST /api/restock-subscriptions",
       ].sort(),
     );

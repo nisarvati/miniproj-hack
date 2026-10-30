@@ -178,10 +178,10 @@ describe("filters and sorting", () => {
   });
 
   it("maxDistanceKm and maxPrice narrow the results", async () => {
-    // Only P004 has a verified location. A distance limit keeps verified pharmacies inside it and drops the ones whose distance cannot be established.
+    // P001, P003 and P004 have verified locations. A distance limit keeps verified pharmacies inside it and drops the ones whose distance cannot be established.
     const near = await crocin("maxDistanceKm=20");
-    expect(near.map((r) => r.pharmacy.code)).toEqual(["P004"]);
-    expect(await crocin("maxDistanceKm=3")).toEqual([]);
+    expect(near.map((r) => r.pharmacy.code).sort()).toEqual(["P001", "P003", "P004"]);
+    expect((await crocin("maxDistanceKm=3")).map((r) => r.pharmacy.code)).toEqual(["P001"]); // 0.67 km; P003 is 4.1 km and P004 9 km away
     const cheap = await crocin("maxPrice=25");
     expect(cheap.every((r) => r.price <= 25)).toBe(true);
     expect(cheap.length).toBeLessThan(5);
@@ -195,9 +195,12 @@ describe("filters and sorting", () => {
   });
 
   it("sort=distance orders by distance, sort=price by price, sort=stock by quantity, sold-out last", async () => {
-    const byDistance = (await search("Crocin 500mg", "sort=distance")).data as { distanceKm: number; quantity: number }[];
+    const byDistance = (await search("Crocin 500mg", "sort=distance")).data as { distanceKm: number | null; quantity: number }[];
     const inStockDistances = byDistance.filter((r) => r.quantity > 0).map((r) => r.distanceKm);
-    expect(inStockDistances).toEqual([...inStockDistances].sort((a, b) => a - b));
+    // Known distances come first, nearest first; pharmacies with no verified distance follow.
+    const known = inStockDistances.filter((d): d is number => d !== null);
+    expect(known.length).toBeGreaterThan(1);
+    expect(inStockDistances).toEqual([...[...known].sort((a, b) => a - b), ...inStockDistances.filter((d) => d === null)]);
     expect(byDistance.at(-1)!.quantity).toBe(0);
 
     const byPrice = (await search("Crocin 500mg", "sort=price")).data as { price: number; quantity: number }[];
@@ -296,10 +299,13 @@ describe("pharmacy pages", () => {
   it("returns one pharmacy, with the distance when a location is given", async () => {
     const id = await idOf("P001");
     const plain = (await get(`/api/pharmacies/${id}`)).json().data;
-    expect(plain).toMatchObject({ code: "P001", name: "Paras Medical and General Store", distanceKm: null, demo: true, independent: true, locationVerified: false, inventorySimulated: true });
-    // P001's map point is not verified, so no distance is claimed even when a location is given...
-    expect((await get(`/api/pharmacies/${id}?${WEST}`)).json().data.distanceKm).toBeNull();
-    // ...while P004 (Bandra Medical Stores) has a verified point and gets one.
+    expect(plain).toMatchObject({ code: "P001", name: "Paras Medical and General Store", distanceKm: null, demo: true, independent: true, locationVerified: true, inventorySimulated: true });
+    // No location given: no distance. With one, P001 (verified from its OpenStreetMap node) gets a real one, about 0.7 km from Andheri West...
+    expect((await get(`/api/pharmacies/${id}?${WEST}`)).json().data.distanceKm).toBeCloseTo(0.67, 1);
+    // ...P002 (Roopam) has no verified point, so none is claimed even when a location is given...
+    const roopam = (await get(`/api/pharmacies/${await idOf("P002")}?${WEST}`)).json().data;
+    expect(roopam).toMatchObject({ code: "P002", locationVerified: false, distanceKm: null });
+    // ...and P004 (Bandra Medical Stores) has a verified point and gets one.
     const bandra = (await get(`/api/pharmacies/${await idOf("P004")}?${WEST}`)).json().data;
     expect(bandra).toMatchObject({ name: "Bandra Medical Stores", locationVerified: true, latitude: 19.05548, longitude: 72.83152 });
     expect(bandra.distanceKm).toBeCloseTo(9.0, 1);

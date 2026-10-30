@@ -72,7 +72,7 @@ Events carry ids `<bootId>.<n>`. The server keeps the last 200 in memory.
 
 ## In the web app
 
-- **`/dashboard`**: shows `Connecting… / Live / Reconnecting… / Live updates off` and when it was last updated. A `node` event replaces that card (only if it is newer than what the page already has); the first load and Refresh still use `GET /api/nodes`; a reconnect triggers one reload.
+- **`/dashboard`** (MedLink Analytics, see [analytics-dashboard.md](analytics-dashboard.md)): a `stock` event schedules one debounced re-read of the network and pharmacy figures. It shows `Connecting… / Live / Reconnecting… / Live updates off` and when it was last updated. A `node` event replaces that card (only if it is newer than what the page already has); the first load and Refresh still use `GET /api/nodes`; a reconnect triggers one reload.
 - **`/search`**: when a `stock` event arrives for a medicine in the current results, the same search is read again once, 800 ms later (a burst is one reload). Events for other medicines are ignored. The existing 20 s refresh stays as the fallback.
 - Without `EventSource` (or with the stream down) both pages work as before.
 

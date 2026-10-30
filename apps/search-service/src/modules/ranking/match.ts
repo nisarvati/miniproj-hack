@@ -57,6 +57,11 @@ export interface MatchInput {
   price: number | null;
   /** null: no distance can be claimed (the pharmacy's location is not verified, or the origin is unknown). */
   distanceKm: number | null;
+  /**
+   * Why `distanceKm` is null, when the caller knows: the pharmacy's map point is not verified, or the origin (the user's location) is unknown.
+   * Only changes the wording; the factor earns nothing either way.
+   */
+  distanceUnavailable?: "PHARMACY_UNVERIFIED" | "ORIGIN_UNKNOWN";
   /** How well the name matched: 1 exact brand, 0.9 exact generic, 0.8 brand prefix, 0.6 generic prefix, 0.4 other (medicines/repo.ts). */
   relevance: number;
   maxDistanceKm: number;
@@ -128,13 +133,13 @@ function availability(i: MatchInput, f: number, points: number): MatchReason {
 
 function distance(i: MatchInput, f: number, points: number): MatchReason {
   if (!finite(i.distanceKm)) {
-    return {
-      code: "MISSING_DISTANCE",
-      factor: "distance",
-      points,
-      factorValue: null,
-      message: "No distance is known (this pharmacy's map location is not verified, or your location is not set), so it earns no distance credit. That is not the same as being far away.",
-    };
+    const message =
+      i.distanceUnavailable === "PHARMACY_UNVERIFIED"
+        ? "This pharmacy's map location has not been verified, so its distance cannot be calculated and it earns no distance credit. That is not the same as being far away."
+        : i.distanceUnavailable === "ORIGIN_UNKNOWN"
+          ? "Your location is needed to calculate the distance, so it earns no distance credit. That is not the same as being far away."
+          : "No distance is known (this pharmacy's map location is not verified, or your location is not set), so it earns no distance credit. That is not the same as being far away.";
+    return { code: "MISSING_DISTANCE", factor: "distance", points, factorValue: null, message };
   }
   const km = i.distanceKm.toFixed(1);
   if (f >= 0.5) return { code: "NEARBY", factor: "distance", points, factorValue: f, message: `About ${km} km away: close enough to earn most of the distance credit.` };

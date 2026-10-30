@@ -322,6 +322,24 @@ export async function getNodes(opts: Options = {}): Promise<NodesResponse> {
   return body;
 }
 
+/** A part of an analytics answer that could not be read says why; it is never answered with zeros. */
+export type Unavailable = { available: false; reason: string };
+export interface NetworkAnalytics {
+  data: {
+    window: { hours: number; bucketMinutes: number; from: string; to: string; bucketStarts: string[] };
+    /** Entries each pharmacy's event stream still retains, by the time they were PUBLISHED. Not events the sync service has processed. */
+    events: Unavailable | { available: true; truncated: boolean; byPharmacy: { pharmacyCode: string; total: number; buckets: number[] }[] };
+    /** Listings by stock status, never quantities. */
+    stock: Unavailable | { available: true; live: boolean; threshold: number; byPharmacy: { pharmacyCode: string; inStock: number; lowStock: number; outOfStock: number; listings: number }[] };
+  };
+  meta: { generatedAt: string };
+}
+export async function getNetworkAnalytics(hours: number, opts: Options = {}): Promise<NetworkAnalytics> {
+  const body = await getJson<NetworkAnalytics>(`/api/analytics/network?hours=${hours}`, opts, "object");
+  if (typeof body.meta?.generatedAt !== "string" || !body.data?.window) throw new ApiError("Unexpected response from MedLink.", "unknown");
+  return body;
+}
+
 export async function listPharmacies(opts: Options = {}): Promise<PharmacyRef[]> {
   return (await getJson<{ data: PharmacyRef[] }>("/api/pharmacies", opts)).data;
 }
